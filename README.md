@@ -63,9 +63,54 @@ JAL's compiler **calculates and inserts StackMapFrames automatically** — no mo
 
 ---
 
+## 📦 Installation
+
+JAL is available as a [Javasm IntelliJ plugin](https://plugins.jetbrains.com/plugin/27944-javasm)
+or [JAL CLI Compiler](https://github.com/PeyaPeyaPeyang/LangJAL/releases).
+
+To install the JAL CLI Compiler, download the latest release from the [releases page](https://github.com/PeyaPeyaPeyang/LangJAL/releases)
+and decompress it to a directory of your choice.
+To use the JAL CLI Compiler, add the `bin` directory to your system's PATH environment variable.
+
+---
+
+## 🛠️ JAL CLI Compiler Usage
+
+To compile JAL files, use the JAL CLI compiler:
+
+```bash
+$ jalc MyProgram.jal
+```
+
+Or specify the jal files directly:
+
+```bash
+$ jalc MyJALFiles
+```
+
+### Making .jar file
+
+To create a `.jar` file from your compiled JAL files, use the `jar` command:
+
+```bash
+$ jalc MyProgram.jal --output /path/to/MyProgram.jar
+$ jalc MyJALFiles --output /path/to/MyJALFiles.jar
+```
+
+#### Customizing output directory
+
+You can specify the output directory for the compiled classes using the `--output` option:
+
+```bash
+$ jalc MyProgram.jal --output /path/to/output/directory
+$ jalc MyJALFiles --output /path/to/output/directory
+```
+
+---
+
 ## 🔌 Javasm IntelliJ Plugin Features
 
-Javasm supercharges your JAL development inside IntelliJ IDEA with [Javasm](https://github.com/PeyaPeyaPeyang/Javasm) plugin:
+Javasm supercharges your JAL development inside IntelliJ IDEA with [Javasm](https://plugins.jetbrains.com/plugin/27944-javasm) plugin:
 
 - ✅ **Instruction name completion**  
   Start typing and get autocompletion for all instructions.
