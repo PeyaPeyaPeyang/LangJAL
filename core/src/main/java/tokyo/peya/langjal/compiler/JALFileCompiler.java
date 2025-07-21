@@ -38,7 +38,7 @@ public class JALFileCompiler
     }
 
     @Nullable
-    public ClassNode compile(@NotNull Path inputFile) throws CompileErrorException
+    public void compile(@NotNull Path inputFile) throws CompileErrorException
     {
         CharStream charStream;
         try
@@ -52,12 +52,12 @@ public class JALFileCompiler
                     new FileReadingException(e, inputFile),
                     inputFile
             );
-            return null;
+            return;
         }
 
         ClassNode compiled = compile(this.reporter, charStream, this.settings, inputFile).getCompiledClass();
         this.writeClass(compiled);
-        return compiled;
+        return;
     }
 
     @NotNull
