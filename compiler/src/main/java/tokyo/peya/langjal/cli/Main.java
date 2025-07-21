@@ -64,6 +64,7 @@ public class Main
         }
         catch (Exception ignored) {}
 
+        System.out.println();
         System.exit(1);
     }
 
@@ -76,7 +77,7 @@ public class Main
         parser.accepts("output")
                 .withRequiredArg()
                 .ofType(String.class)
-                .describedAs("output directory or .class/.jar file")
+                .describedAs("output directory or .jar file")
                 .defaultsTo("./");
 
         return parser;
