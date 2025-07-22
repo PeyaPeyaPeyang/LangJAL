@@ -1,0 +1,114 @@
+public class BubbleSort (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+  // int[] arr = {5, 3, 8, 4, 2};
+    iconst_5
+    newarray I
+    dup
+    iconst_0
+    iconst_5
+    iastore
+    dup
+    iconst_1
+    iconst_3
+    iastore
+    dup
+    iconst_2
+    bipush 8
+    iastore
+    dup
+    iconst_3
+    iconst_4
+    iastore
+    dup
+    iconst_4
+    iconst_2
+    iastore
+    astore_1 [->targetArray] // arr
+
+  // for (int i = 0; i < arr.length - 1; i++)
+    iconst_0
+    istore_2 [->i]  // i = 0
+  OuterLoopStart:
+    iload_2
+    aload_1
+    arraylength
+    iconst_1
+    isub
+    if_icmpge OuterLoopEnd
+
+  // for (int j = 0; j < arr.length - i - 1; j++)
+    iconst_0
+    istore_3 [->j] // j = 0
+  InnerLoopStart:
+    iload_3
+    aload_1
+    arraylength
+    iload_2
+    isub
+    iconst_1
+    isub
+    if_icmpge InnerLoopEnd
+
+  // if (arr[j] > arr[j+1])
+    aload_1
+    iload_3
+    iaload
+    aload_1
+    iload_3
+    iconst_1
+    iadd
+    iaload
+    if_icmple NoSwap
+
+  // swap arr[j] and arr[j+1]
+    aload_1
+    iload_3
+    iaload
+    istore 4 [->temp] // temp = arr[j]
+    aload_1
+    iload_3
+    aload_1
+    iload_3
+    iconst_1
+    iadd
+    iaload
+    iastore
+    aload_1
+    iload_3
+    iconst_1
+    iadd
+    iload 4
+    iastore
+
+  NoSwap:
+    iinc 3 1
+    goto InnerLoopStart
+  InnerLoopEnd:
+    iinc 2 1
+    goto OuterLoopStart
+  OuterLoopEnd:
+
+  // 出力: for (int k = 0; k < arr.length; k++) System.out.println(arr[k]);
+    iconst_0
+    istore 5 [->k] // k = 0
+  PrintLoopStart:
+    iload 5
+    aload_1
+    arraylength
+    if_icmpge PrintLoopEnd
+
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    aload_1
+    iload 5
+    iaload
+    invokevirtual java/io/PrintStream->println(I)V
+
+    iinc 5 1
+    goto PrintLoopStart
+  PrintLoopEnd:
+    return
+  }
+}

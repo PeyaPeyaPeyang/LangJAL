@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "tokyo.peya"
-version = "0.0.1"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -48,5 +48,14 @@ tasks.register<Zip>("packageAll") {
     from("scripts/unix") {
         into("bin")
     }
-    archiveFileName.set("Jal.zip")
+    from("README.md") {
+        into("")
+    }
+    from("LICENSE") {
+        into("")
+    }
+    from("examples") {
+        into("examples")
+    }
+    archiveFileName.set("langjal-${project.version}.zip")
 }

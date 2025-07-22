@@ -1,0 +1,68 @@
+public class FizzBuzz (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+  // int i = 1;
+    iconst_1
+    istore_1  // Store the value of i in local variable 1
+
+  LoopStart:
+  // if (i >= 101) goto LoopEnd;
+    iload_1
+    bipush 101
+    if_icmpge LoopEnd
+
+  // if (i % 15 = 0)
+    iload_1
+    bipush 15
+    irem
+    ifne NotFizzBuzz
+
+  // System.out.println("FizzBuzz");
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "FizzBuzz"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto LoopIncrement
+
+  NotFizzBuzz:
+  // else if (i % 3 == 0)
+    iload_1
+    iconst_3
+    irem
+    ifne NotFizz
+
+  // System.out.println("Fizz");
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Fizz"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto LoopIncrement
+
+  NotFizz:
+  // else if (i % 5 == 0)
+    iload_1
+    iconst_5
+    irem
+    ifne PrintNumber
+
+  // System.out.println("Buzz");
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Buzz"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto LoopIncrement
+
+  PrintNumber:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload_1
+    invokevirtual java/io/PrintStream->println(I)V
+
+  LoopIncrement:
+  // i++
+    iinc
+    goto LoopStart
+
+  LoopEnd:
+  // return;
+    return
+  }
+}

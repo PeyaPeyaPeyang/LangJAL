@@ -1,0 +1,106 @@
+public class BinarySearch (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+  // int[] arr = {10, 20, 30, 40, 50};
+    iconst_5
+    newarray I
+    dup
+    iconst_0
+    bipush 10
+    iastore
+    dup
+    iconst_1
+    bipush 20
+    iastore
+    dup
+    iconst_2
+    bipush 30
+    iastore
+    dup
+    iconst_3
+    bipush 40
+    iastore
+    dup
+    iconst_4
+    bipush 50
+    iastore
+    astore_1 [->arr]
+
+  // int target = 30;
+    bipush 30
+    istore_2 [->target]
+
+  // int left = 0, right = arr.length - 1;
+    iconst_0
+    istore_3 [->left]
+    aload_1
+    arraylength
+    iconst_1
+    isub
+    istore 4 [->right]
+
+  LoopStart:
+  // if (left > right) goto NotFound;
+    iload_3
+    iload 4
+    if_icmpgt NotFound
+
+  // int mid = left + (right - left) / 2;
+    iload_3
+    iload 4
+    iload_3
+    isub
+    iconst_2
+    idiv
+    iadd
+    istore 5 [->mid]
+
+  // if (arr[mid] == target) goto Found;
+    aload_1
+    iload 5
+    iaload
+    iload_2
+    if_icmpeq Found
+
+  // if (arr[mid] < target) left = mid + 1;
+    aload_1
+    iload 5
+    iaload
+    iload_2
+    if_icmpge UpdateRight
+    iload 5
+    iconst_1
+    iadd
+    istore_3
+    goto LoopStart
+
+  UpdateRight:
+  // else right = mid - 1;
+    iload 5
+    iconst_1
+    isub
+    istore 4
+    goto LoopStart
+
+  Found:
+  // System.out.println("Found at idx " + mid);
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Found at idx "
+    invokevirtual java/io/PrintStream->print(Ljava/lang/String;)V
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 5
+    invokevirtual java/io/PrintStream->println(I)V
+    goto End
+
+  NotFound:
+  // System.out.println("Not Found");
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Not Found"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+  End:
+    return
+  }
+}
