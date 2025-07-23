@@ -26,7 +26,7 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
         JALParser.JvmInsArgTableSwitchCaseListContext caseList = args.jvmInsArgTableSwitchCaseList();
         List<JALParser.LabelNameContext> branches = caseList.labelName();
         JALParser.LabelNameContext defaultBranch = args.labelName();
-        int high = low + branches.size() - 1; // low から default までの範囲
+        int high = low + branches.size();
 
         LabelNode defaultLabel = toLabel(compiler, defaultBranch);
         LabelNode[] labels = branches.stream()
@@ -73,7 +73,7 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
         List<JALParser.LabelNameContext> branches = caseList.labelName();
 
         int padding = (int) ((4 - (startOffset + 1) % 4) % 4);
-        int numCases = branches.size() - 1; // 最後の要素は default ブランチなので除外
+        int numCases = branches.size();
 
         return 1               // opcode
                 + padding         // padding to 4-byte boundary
