@@ -76,7 +76,7 @@ jobs:
           cd examples
           # 出力と期待値を trim（末尾改行を削除）
           actual=$(< actual_output.txt tr -d '\n')
-          expected=$(< out/${{ matrix.example }}.out.txt tr -d '\n')
+          expected=$(< outs/${{ matrix.example }}.out.txt tr -d '\n')
 
           if [ "$actual" != "$expected" ]; then
             echo "❌ Output mismatch for ${{ matrix.example }}"
