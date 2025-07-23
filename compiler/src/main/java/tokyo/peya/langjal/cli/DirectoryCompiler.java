@@ -12,9 +12,10 @@ import java.util.stream.Stream;
 
 public class DirectoryCompiler
 {
-    public static void runCompiler(@NotNull Path sourceDirectory, @NotNull Path output, boolean verbose)
+    public static void runCompiler(@NotNull Path sourceDirectory, @NotNull Path output,
+                                   boolean isOutputDirectoryLike, boolean verbose)
     {
-        FileOutputter outputter = new FileOutputter(output, verbose);
+        FileOutputter outputter = new FileOutputter(output, isOutputDirectoryLike, verbose);
         if (!outputter.prepareOutput(output, verbose))
         {
             System.err.println("Failed to prepare output directory: " + output);

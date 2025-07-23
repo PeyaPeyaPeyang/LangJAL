@@ -29,9 +29,9 @@ public class CompilerCLI
 
         // ファイルがディレクトリの場合は，専用のコンパイラを使用
         if (Files.isDirectory(inputPath))
-            DirectoryCompiler.runCompiler(inputPath, outputPath, verbose);
+            DirectoryCompiler.runCompiler(inputPath, outputPath, isDirectoryLike(output), verbose);
         else
-            FileCompiler.runCompiler(inputPath, outputPath, verbose);
+            FileCompiler.runCompiler(inputPath, outputPath, isDirectoryLike(output),  verbose);
     }
 
     public static boolean hasValidInputFileName(@NotNull Path path)
@@ -78,7 +78,7 @@ public class CompilerCLI
             System.err.println("Error: Input path does not exist: " + resolvedPath);
             return false;
         }
-        if (isDirectory(resolvedPath))
+        if (isDirectoryLike(path))
             return true;
 
         if (!hasValidInputFileName(resolvedPath))
@@ -92,21 +92,16 @@ public class CompilerCLI
     private static boolean validateOutputPath(@NotNull String path)
     {
         Path resolvedPath = resolveAbsolutePath(path);
-        if (Files.exists(resolvedPath) && !isDirectory(resolvedPath))
-        {
-            System.err.println("Error: Output path must be a directory or a new file: " + resolvedPath);
-            return false;
-        }
 
-        if (isDirectory(resolvedPath))
+        if (isDirectoryLike(path))
         {
-
-            if (!Files.isWritable(resolvedPath))
+            if (Files.exists(resolvedPath) && !Files.isDirectory(resolvedPath))
             {
-                System.err.println("Error: Output directory is not writable: " + resolvedPath);
+                System.err.println("Error: Output path must be a directory or a new file: " + resolvedPath);
                 return false;
             }
 
+            // ディレクトリの場合は一律問題なし
             return true;
         }
 
@@ -119,9 +114,20 @@ public class CompilerCLI
     }
 
 
-    private static boolean isDirectory(@NotNull Path path)
+    public static boolean isDirectoryLike(@NotNull String pathName)
     {
-        return Files.isDirectory(path);
+        Path path = resolveAbsolutePath(pathName);
+        if (Files.isDirectory(path))
+            return true;
+        else if (Files.exists(path))  // ディレクトリではないものが存在している時点でディレクトリじゃない
+            return false;
+
+        if (path.endsWith("/") || path.endsWith("\\"))
+            return true;  // パスがスラッシュで終わっている場合はディレクトリとみなす
+
+        // パスが拡張子を持たない場合はディレクトリとみなす
+        String fileName = path.getFileName().toString();
+        return fileName.isEmpty() || fileName.indexOf('.') < 0;
     }
 
     private static Path resolveAbsolutePath(@NotNull String path)

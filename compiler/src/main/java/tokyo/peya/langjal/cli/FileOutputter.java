@@ -16,19 +16,19 @@ import java.util.zip.ZipOutputStream;
 public class FileOutputter
 {
     private final Path output;
-    private boolean isDirectory;
-    private boolean verbose;
+    private final boolean isDirectory;
+    private final boolean verbose;
 
     @Getter
-    private Path actualCompileOutput;
+    private final Path actualCompileOutput;
 
-    public FileOutputter(@NotNull Path output, boolean verbose)
+    public FileOutputter(@NotNull Path output, boolean isOutputDirectoryLike, boolean verbose)
     {
         this.output = output;
-        this.isDirectory = Files.isDirectory(output);
+        this.isDirectory = isOutputDirectoryLike;
         this.verbose = verbose;
 
-        this.actualCompileOutput = createActualCompileOutput(this.isDirectory, output);
+        this.actualCompileOutput = createActualCompileOutput(isOutputDirectoryLike, output);
 
         if (this.verbose)
             System.out.println("Output path: " + output + ", is directory: " + this.isDirectory);
@@ -92,8 +92,7 @@ public class FileOutputter
 
     public boolean prepareOutput(@NotNull Path output, boolean verbose)
     {
-        boolean isDirectory = Files.isDirectory(output);
-        if (isDirectory)
+        if (this.isDirectory)
         {
             if (verbose)
                 System.out.println("Output is a directory: " + output);

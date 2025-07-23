@@ -23,7 +23,7 @@ jobs:
       - name: Free gradlew
         run: chmod +x ./gradlew
       - name: Build compiler
-        run: ./gradlew :jalc:build
+        run: ./gradlew :jalc:shadowJar
       - name: Upload jalc.jar
         uses: actions/upload-artifact@v4
         with:
