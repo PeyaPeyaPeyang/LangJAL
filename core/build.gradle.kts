@@ -90,3 +90,8 @@ publishing {
         }
     }
 }
+
+tasks.named("sourcesJar", Zip::class) {
+    dependsOn("generateGrammarSource")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
