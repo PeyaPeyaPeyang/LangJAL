@@ -24,7 +24,7 @@ dependencies {
     antlr("org.antlr:antlr4:4.13.2")
     implementation("org.antlr:antlr4-runtime:4.13.2")
 
-    implementation("org.ow2.asm:asm:9.8")
+    api("org.ow2.asm:asm:9.8")
     implementation("org.ow2.asm:asm-commons:9.8")
     implementation("org.ow2.asm:asm-util:9.8")
 }

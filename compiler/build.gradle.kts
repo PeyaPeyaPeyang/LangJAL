@@ -19,6 +19,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
     annotationProcessor("org.jetbrains:annotations:26.0.2")
 
+    implementation("org.antlr:antlr4-runtime:4.13.2")
     implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
     implementation(project(":langjal"))
 }
@@ -29,8 +30,7 @@ tasks.test {
 }
 
 tasks.jar {
-    dependsOn(tasks.shadowJar)
-    archiveFileName.set("jalc.jar")
+    archiveFileName.set("jalc-original.jar")
     manifest {
         attributes(
             "Main-Class" to "tokyo.peya.langjal.cli.Main",
@@ -42,18 +42,18 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+    dependsOn(tasks.jar)
     archiveBaseName.set("jalc")
     archiveClassifier.set("")
     archiveVersion.set("")
-    manifest {
-        attributes(
-            "Main-Class" to "tokyo.peya.langjal.cli.Main"
-        )
-    }
 
     relocate("com.ibm.icu", "tokyo.peya.langjal.cli.relocated.icu")
     relocate("org.objectweb.asm", "tokyo.peya.langjal.cli.relocated.asm")
     relocate("org.antlr", "tokyo.peya.langjal.cli.relocated.antlr")
 
     minimize()
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }

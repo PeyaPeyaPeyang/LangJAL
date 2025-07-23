@@ -1,3 +1,4 @@
+
 plugins {
     id("java")
 }
@@ -19,9 +20,32 @@ tasks.test {
 }
 
 tasks.register<Copy>("copyCliTools") {
-    dependsOn(":jalc:shadowJar")
-    from(project(":jalc").tasks.named("shadowJar"))
-    into("${layout.buildDirectory.get().asFile.path}/distribution/tools")
+    dependsOn(":jalc:jar")
+    from(project(":jalc").configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("distribution/lib"))
+
+    from(project(":jalc").tasks.named("jar"))
+    into("${layout.buildDirectory.get().asFile.path}/distribution/lib")
+}
+
+tasks.register<Copy>("copyAccessories") {
+    into(layout.buildDirectory.dir("distribution"))
+
+    from("scripts/win") {
+        into("bin")
+    }
+    from("scripts/unix") {
+        into("bin")
+    }
+    from("README.md") {
+        into("")
+    }
+    from("LICENSE") {
+        into("")
+    }
+    from("examples") {
+        into("examples")
+    }
 }
 
 tasks.register<Exec>("createJre") {
@@ -37,25 +61,10 @@ tasks.register<Exec>("createJre") {
     )
 }
 
-tasks.register<Zip>("packageAll") {
-    dependsOn("copyCliTools", "createJre")
+tasks.register<Zip>("createDistribution") {
+    dependsOn("clean", "copyCliTools", "createJre", "copyAccessories")
     from("${layout.buildDirectory.get().asFile.path}/distribution") {
         into("")
-    }
-    from("scripts/win") {
-        into("bin")
-    }
-    from("scripts/unix") {
-        into("bin")
-    }
-    from("README.md") {
-        into("")
-    }
-    from("LICENSE") {
-        into("")
-    }
-    from("examples") {
-        into("examples")
     }
     archiveFileName.set("langjal-${project.version}.zip")
 }
