@@ -1,0 +1,100 @@
+public class VariablesControl (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+
+  // int[] nums = {1, 2, 3, 4, 5, 6};
+    bipush 6
+    newarray I
+    dup
+    iconst_0
+    iconst_1
+    iastore
+    dup
+    iconst_1
+    iconst_2
+    iastore
+    dup
+    iconst_2
+    iconst_3
+    iastore
+    dup
+    iconst_3
+    iconst_4
+    iastore
+    dup
+    iconst_4
+    iconst_5
+    iastore
+    dup
+    iconst_5
+    bipush 6
+    iastore
+    astore_1 [->nums]
+
+  // int[] squared = new int[6];
+    bipush 6
+    newarray I
+    astore_2 [->squared]
+
+  // int sum = 0;
+    iconst_0
+    istore_3 [->sum]
+
+  // for (int i = 0; i < nums.length; i++)
+    iconst_0
+    istore 4 [->i]
+  LoopStart:
+    iload 4
+    aload_1
+    arraylength
+    if_icmpge LoopEnd
+
+  // int val = nums[i];
+    aload_1
+    iload 4
+    iaload
+    istore 5 [->val]
+
+  // int sq = val * val;
+    iload 5
+    iload 5
+    imul
+    istore 6 [->sq]
+
+  // squared[i] = sq;
+    aload_2
+    iload 4
+    iload 6
+    iastore
+
+  // if (sq % 2 == 0)
+    iload 6
+    iconst_2
+    irem
+    ifne SkipAdd
+
+  // sum += sq;
+    iload_3
+    iload 6
+    iadd
+    istore_3
+
+  SkipAdd:
+    iinc 4 1
+    goto LoopStart
+  LoopEnd:
+
+  // 出力
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Sum of even squares:"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload_3
+    invokevirtual java/io/PrintStream->println(I)V
+
+    return
+  }
+}

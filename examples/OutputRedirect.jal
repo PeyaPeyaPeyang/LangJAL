@@ -1,0 +1,46 @@
+public class OutputRedirectTest (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+
+  // Backup System.out
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    astore_0 [->original]
+
+
+  // ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    new java/io/ByteArrayOutputStream
+    dup
+    invokespecial java/io/ByteArrayOutputStream-><init>()V
+    astore_1 [->baos]
+
+  // PrintStream ps = new PrintStream(baos);
+    new java/io/PrintStream
+    dup
+    aload_1
+    invokespecial java/io/PrintStream-><init>(Ljava/io/OutputStream;)V
+    astore_2 [->ps]
+
+  // System.setOut(ps);
+    aload_2
+    invokestatic java/lang/System->setOut(Ljava/io/PrintStream;)V
+
+  // System.out.println("Hello, redirected world!");
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Hello, redirected world!"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+  // String result = baos.toString();
+    aload_1
+    invokevirtual java/io/ByteArrayOutputStream->toString()Ljava/lang/String;
+    astore_3 [->result]
+
+  // Print the result to original System.out
+    aload_0
+    aload_3
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    return
+  }
+}

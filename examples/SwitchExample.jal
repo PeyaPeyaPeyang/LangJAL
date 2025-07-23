@@ -1,0 +1,50 @@
+public class SwitchExample (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+  // int value = 2;
+    iconst_2
+    istore_1
+
+  Switch:
+    iload_1
+    tableswitch 1 {
+      Case1,
+      Case2,
+      Case3
+    } default Default
+
+  Case1:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "One"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto NextCase
+
+  Case2:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Two"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto NextCase
+
+  Case3:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Three"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto NextCase
+
+  Default:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Other"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto End
+
+  NextCase:
+    iconst_5
+    istore_1
+    goto Switch
+
+  End:
+    return
+  }
+}
