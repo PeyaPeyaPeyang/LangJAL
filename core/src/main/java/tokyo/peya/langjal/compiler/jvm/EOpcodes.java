@@ -6,6 +6,18 @@ import org.objectweb.asm.util.Printer;
 
 import java.util.Locale;
 
+/**
+ * An extended version of {@link Opcodes} that includes additional
+ * opcodes and utility methods for working with JVM opcodes.
+ * <p>
+ * This interface provides constants for various opcodes, including
+ * those for loading and storing local variables, as well as utility
+ * methods to find an opcode by its name and to get the size of an opcode.
+ * </p>
+ *
+ * @see Opcodes
+ * @see Printer
+ */
 public interface EOpcodes extends Opcodes
 {
     int ILOAD_0 = 26;
@@ -66,6 +78,12 @@ public interface EOpcodes extends Opcodes
     int GOTO_W = 200;
     int JSR_W = 201;
 
+    /**
+     * Finds the opcode value by its name.
+     *
+     * @param opcodeName The name of the opcode.
+     * @return The opcode value, or -1 if not found.
+     */
     static int findOpcode(@NotNull String opcodeName)
     {
         opcodeName = opcodeName.toUpperCase(Locale.ENGLISH);
@@ -76,6 +94,13 @@ public interface EOpcodes extends Opcodes
         return -1;
     }
 
+    /**
+     * Gets the name of the opcode for the given value.
+     *
+     * @param opcode The opcode value.
+     * @return The opcode name in lower case.
+     * @throws IllegalArgumentException if the opcode is unknown.
+     */
     static String getName(int opcode)
     {
         String name = Printer.OPCODES[opcode];
@@ -84,6 +109,13 @@ public interface EOpcodes extends Opcodes
         return name.toLowerCase(Locale.ENGLISH);
     }
 
+    /**
+     * Gets the size in bytes of the instruction for the given opcode.
+     *
+     * @param opcode The opcode value.
+     * @return The size of the instruction in bytes.
+     * @throws IllegalArgumentException if the instruction size cannot be determined.
+     */
     static byte getOpcodeSize(int opcode)
     {
         return switch (opcode)

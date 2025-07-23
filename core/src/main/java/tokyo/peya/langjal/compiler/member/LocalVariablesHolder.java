@@ -15,13 +15,32 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Manages local variables for a method, including registration, resolution, and scope checks.
+ * Handles both parameters and regular local variables, and finalizes them for ASM.
+ */
 public class LocalVariablesHolder
 {
+    /**
+     * Reporter for compilation messages and errors.
+     */
     private final FileEvaluatingReporter reporter;
+    /**
+     * Holder for labels in the method.
+     */
     private final LabelsHolder labelsHolder;
 
+    /**
+     * List of all local variables registered.
+     */
     private final List<LocalVariableInfo> locals;
 
+    /**
+     * Constructs a LocalVariablesHolder for the given reporter and labels holder.
+     *
+     * @param reporter     The reporter for messages.
+     * @param labelsHolder The labels holder.
+     */
     public LocalVariablesHolder(@NotNull FileEvaluatingReporter reporter, @NotNull LabelsHolder labelsHolder)
     {
         this.reporter = reporter;
@@ -30,6 +49,13 @@ public class LocalVariablesHolder
         this.locals = new ArrayList<>();
     }
 
+    /**
+     * Registers a method parameter as a local variable.
+     *
+     * @param paramName The parameter name.
+     * @param type      The type descriptor.
+     * @param index     The variable index.
+     */
     /* non-public */ void registerParameter(@NotNull String paramName,
                                             @NotNull TypeDescriptor type,
                                             int index)
@@ -46,6 +72,11 @@ public class LocalVariablesHolder
         this.locals.add(localVar);
     }
 
+    /**
+     * Finalizes local variables and adds them to the method node.
+     *
+     * @param method The method node.
+     */
     public void evaluateLocals(@NotNull MethodNode method)
     {
         if (this.locals.isEmpty())
@@ -73,6 +104,12 @@ public class LocalVariablesHolder
         }
     }
 
+    /**
+     * Resolves a local variable by its index, or returns null if not found.
+     *
+     * @param localIndex The variable index.
+     * @return The LocalVariableInfo or null.
+     */
     @Nullable
     public LocalVariableInfo resolveSafe(int localIndex)
     {
@@ -82,6 +119,12 @@ public class LocalVariablesHolder
         return null;
     }
 
+    /**
+     * Checks if a local variable is alive at the current label.
+     *
+     * @param local The local variable.
+     * @return True if alive, false otherwise.
+     */
     public boolean isLocalLiving(@NotNull LocalVariableInfo local)
     {
         LabelInfo startLabel = local.start();
@@ -89,6 +132,13 @@ public class LocalVariablesHolder
         return this.labelsHolder.isInScope(startLabel, endLabel);
     }
 
+    /**
+     * Checks if a local variable is alive at a specific label.
+     *
+     * @param local    The local variable.
+     * @param atLabel  The label to check.
+     * @return True if alive, false otherwise.
+     */
     public boolean isLocalLiving(@NotNull LocalVariableInfo local, @NotNull LabelInfo atLabel)
     {
         LabelInfo startLabel = local.start();
@@ -96,6 +146,12 @@ public class LocalVariablesHolder
         return LabelsHolder.isInScope(startLabel, endLabel, atLabel);
     }
 
+    /**
+     * Resolves a local variable by its name, or returns null if not found or not alive.
+     *
+     * @param localName The variable name.
+     * @return The LocalVariableInfo or null.
+     */
     @Nullable
     public LocalVariableInfo resolveSafe(@NotNull String localName)
     {
@@ -106,6 +162,14 @@ public class LocalVariablesHolder
         return null;
     }
 
+    /**
+     * Resolves a local variable by its parser context, throwing if not found.
+     *
+     * @param localRef   The local reference context.
+     * @param callerInsn The caller instruction name.
+     * @return The resolved LocalVariableInfo.
+     * @throws UnknownLocalVariableException If not found.
+     */
     @NotNull
     public LocalVariableInfo resolve(@NotNull JALParser.JvmInsArgLocalRefContext localRef,
                                      @NotNull String callerInsn)
@@ -159,6 +223,12 @@ public class LocalVariablesHolder
         );
     }
 
+    /**
+     * Resolves a local variable by its parser context, returning null if not found.
+     *
+     * @param localRef The local reference context.
+     * @return The LocalVariableInfo or null.
+     */
     @Nullable
     public LocalVariableInfo resolveSafe(@NotNull JALParser.JvmInsArgLocalRefContext localRef)
     {
@@ -224,6 +294,15 @@ public class LocalVariablesHolder
             );
     }
 
+    /**
+     * Registers a new local variable by parser context and type.
+     *
+     * @param localRef   The local reference context.
+     * @param type       The type descriptor.
+     * @param name       The variable name.
+     * @param endLabel   The end label.
+     * @return The registered LocalVariableInfo.
+     */
     @NotNull
     public LocalVariableInfo register(
             @NotNull JALParser.JvmInsArgLocalRefContext localRef,
@@ -238,6 +317,15 @@ public class LocalVariablesHolder
         return this.register(localRef, type, name, this.labelsHolder.getCurrentLabel(), endLabel);
     }
 
+    /**
+     * Registers a new local variable by index and type.
+     *
+     * @param idx      The variable index.
+     * @param type     The type descriptor.
+     * @param name     The variable name.
+     * @param endLabel The end label.
+     * @return The registered LocalVariableInfo.
+     */
     @NotNull
     public LocalVariableInfo register(int idx,
                                       @NotNull TypeDescriptor type,
@@ -250,6 +338,16 @@ public class LocalVariablesHolder
         return this.register(idx, type, name, this.labelsHolder.getCurrentLabel(), endLabel);
     }
 
+    /**
+     * Registers a new local variable by parser context, type, and explicit scope.
+     *
+     * @param localRef   The local reference context.
+     * @param type       The type descriptor.
+     * @param name       The variable name.
+     * @param startLabel The start label.
+     * @param endLabel   The end label.
+     * @return The registered LocalVariableInfo.
+     */
     @NotNull
     public LocalVariableInfo register(
             @NotNull JALParser.JvmInsArgLocalRefContext localRef,
@@ -308,6 +406,16 @@ public class LocalVariablesHolder
         return registeredLocal;
     }
 
+    /**
+     * Registers a new local variable by index, type, and explicit scope.
+     *
+     * @param idx        The variable index.
+     * @param type       The type descriptor.
+     * @param name       The variable name.
+     * @param startLabel The start label.
+     * @param endLabel   The end label.
+     * @return The registered LocalVariableInfo.
+     */
     @NotNull
     public LocalVariableInfo register(int idx,
                                       @NotNull TypeDescriptor type,
@@ -354,6 +462,12 @@ public class LocalVariablesHolder
         ));
     }
 
+    /**
+     * Returns all local variables alive at the given label.
+     *
+     * @param globalStart The label to check.
+     * @return Array of LocalVariableInfo.
+     */
     public LocalVariableInfo[] getAvailableLocalsAt(@NotNull LabelInfo globalStart)
     {
         return this.locals.stream()
@@ -361,6 +475,11 @@ public class LocalVariablesHolder
                           .toArray(LocalVariableInfo[]::new);
     }
 
+    /**
+     * Returns all parameters registered as local variables.
+     *
+     * @return Array of LocalVariableInfo.
+     */
     @NotNull
     public LocalVariableInfo[] getParameters()
     {

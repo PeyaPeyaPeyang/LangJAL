@@ -27,6 +27,36 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * Analyses a set of JVM instructions grouped by label (basic block).
+ * <p>
+ * This class simulates the stack and local variable changes for each instruction,
+ * computes frame differences, and determines control flow propagations (jumps/branches).
+ * <br>
+ * It is used to verify stack consistency and generate frame information for bytecode verification.
+ * <br>
+ * <b>JVM Spec Reference:</b> <a href="https://docs.oracle.com/javase/specs/jvms/se24/html/jvms-4.html#jvms-4.9.2">4.9.2. Verification of Stack Map Frames</a>
+ * <br>
+ * <b>Usage Example:</b>
+ * <pre>{@code
+ * // Prepare context, labels, and instructions for a method
+ * FileEvaluatingReporter context = ...;
+ * LabelsHolder labels = ...;
+ * LabelInfo label = ...;
+ * List<InstructionInfo> instructions = ...;
+ *
+ * // Create an analyser for a basic block
+ * InstructionSetAnalyser analyser = new InstructionSetAnalyser(context, labels, label, instructions);
+ *
+ * // Analyse with initial frame propagation
+ * FramePropagation propagation = ...; // initial frame propagation
+ * InstructionSetAnalysisResult result = analyser.analyse(propagation);
+ *
+ * // Access analysis results
+ * System.out.println("Max stack size: " + result.maxStackSize());
+ * System.out.println("Max local size: " + result.maxLocalSize());
+ * }</pre>
+ */
 public class InstructionSetAnalyser
 {
     @NotNull
@@ -59,6 +89,13 @@ public class InstructionSetAnalyser
     private int maxStackSize;
     private int maxLocalSize;
 
+    /**
+     * Constructs an analyser for a set of instructions belonging to a label (basic block).
+     * @param context The reporting context.
+     * @param methodLabels The holder for all labels in the method.
+     * @param label The label (basic block) to analyse.
+     * @param instructions The instructions in this block.
+     */
     public InstructionSetAnalyser(@NotNull FileEvaluatingReporter context,
                                   @NotNull LabelsHolder methodLabels,
                                   @NotNull LabelInfo label,
@@ -78,6 +115,13 @@ public class InstructionSetAnalyser
         this.jumpTargets = new ArrayList<>();
     }
 
+    /**
+     * Analyses the instruction set with the given frame propagation.
+     * Simulates stack and local variable changes, computes frame differences,
+     * and determines control flow propagations.
+     * @param propagation The incoming frame propagation (stack/locals state).
+     * @return The analysis result, including analysed instructions, propagations, stack/locals state, and max sizes.
+     */
     @NotNull
     public InstructionSetAnalysisResult analyse(@NotNull FramePropagation propagation)
     {
@@ -383,6 +427,10 @@ public class InstructionSetAnalyser
         return existing;
     }
 
+    /**
+     * Returns an unmodifiable list of instructions in this block.
+     * @return The instructions.
+     */
     public List<InstructionInfo> getInstructions()
     {
         return Collections.unmodifiableList(this.instructions);

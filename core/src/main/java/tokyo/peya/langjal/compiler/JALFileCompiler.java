@@ -17,13 +17,35 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Compiles JAL source files or source code strings into JVM class files.
+ * <p>
+ * Handles reading input, invoking the parser and class compiler, and writing output class files.
+ */
 public class JALFileCompiler
 {
+    /**
+     * Reporter for compilation messages and errors.
+     */
     private final CompileReporter reporter;
+    /**
+     * Output directory for compiled class files.
+     */
     private final Path outputDir;
+    /**
+     * Compilation settings flags.
+     */
     @MagicConstant(valuesFromClass = CompileSettings.class)
     private final int settings;
 
+    /**
+     * Constructs a new JALFileCompiler instance.
+     *
+     * @param reporter  The reporter for compilation messages.
+     * @param outputDir The directory to write compiled class files.
+     * @param settings  Compilation settings flags.
+     * @throws IOException If the output directory cannot be created.
+     */
     public JALFileCompiler(@NotNull CompileReporter reporter, @NotNull Path outputDir,
                            @MagicConstant(valuesFromClass = CompileSettings.class) int settings) throws IOException
     {
@@ -37,6 +59,12 @@ public class JALFileCompiler
             Files.createDirectories(outputDir);
     }
 
+    /**
+     * Compiles the specified input file and writes the resulting class file to the output directory.
+     *
+     * @param inputFile The path to the input source file.
+     * @throws CompileErrorException If a compilation error occurs.
+     */
     @Nullable
     public void compile(@NotNull Path inputFile) throws CompileErrorException
     {
@@ -60,6 +88,13 @@ public class JALFileCompiler
         return;
     }
 
+    /**
+     * Compiles the given source code string and writes the resulting class file to the output directory.
+     *
+     * @param sourceCode The source code to compile.
+     * @return The compiled ASM ClassNode.
+     * @throws CompileErrorException If a compilation error occurs.
+     */
     @NotNull
     public ClassNode compile(@NotNull String sourceCode) throws CompileErrorException
     {
@@ -67,6 +102,25 @@ public class JALFileCompiler
         ClassNode compiled = compile(this.reporter, charStream, this.settings, null).getCompiledClass();
         this.writeClass(compiled);
         return compiled;
+    }
+
+    /**
+     * Compiles the given source code string and returns the class compiler instance.
+     * Does not write any files to disk.
+     *
+     * @param sourceCode The source code to compile.
+     * @param reporter   The reporter for compilation messages.
+     * @param settings   Compilation settings flags.
+     * @return The JALClassCompiler instance for the compiled class.
+     * @throws CompileErrorException If a compilation error occurs.
+     */
+    @NotNull
+    public static JALClassCompiler compileOnly(@NotNull String sourceCode, @NotNull CompileReporter reporter,
+                                        @MagicConstant(valuesFromClass = CompileSettings.class) int settings
+    ) throws CompileErrorException
+    {
+        CharStream charStream = CharStreams.fromString(sourceCode);
+        return compile(reporter, charStream, settings, null);
     }
 
     private void writeClass(@NotNull ClassNode classNode) throws CompileErrorException
@@ -104,16 +158,6 @@ public class JALFileCompiler
             throw new ClassWritingException(e);
         }
     }
-
-    @NotNull
-    public static JALClassCompiler compileOnly(@NotNull String sourceCode, @NotNull CompileReporter reporter,
-                                        @MagicConstant(valuesFromClass = CompileSettings.class) int settings
-    ) throws CompileErrorException
-    {
-        CharStream charStream = CharStreams.fromString(sourceCode);
-        return compile(reporter, charStream, settings, null);
-    }
-
 
     @NotNull
     private static JALClassCompiler compile(@NotNull CompileReporter reporter,

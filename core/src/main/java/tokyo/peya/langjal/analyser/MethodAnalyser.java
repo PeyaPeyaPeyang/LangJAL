@@ -24,6 +24,19 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Analyses a JVM method's instructions, stack frames, and control flow for bytecode verification.
+ * <p>
+ * This class simulates stack and local variable changes, propagates frames,
+ * and computes maximum stack and local sizes for the method.
+ * <br>
+ * <b>Usage Example:</b>
+ * <pre>{@code
+ * MethodAnalyser analyser = new MethodAnalyser(context, classNode, methodNode, instructions, labels, locals);
+ * MethodAnalysisResult result = analyser.analyse();
+ * System.out.println("Max stack: " + result.maxStack());
+ * }</pre>
+ */
 public class MethodAnalyser
 {
     private final FileEvaluatingReporter context;
@@ -67,6 +80,10 @@ public class MethodAnalyser
         this.confirmedPropagations = new ArrayList<>();
     }
 
+    /**
+     * Analyses the method and returns the analysis result, including frame propagations and max sizes.
+     * @return The method analysis result.
+     */
     public MethodAnalysisResult analyse()
     {
         this.context.postInfo("Analysing method: " + this.method.name + " in class: " + this.method.desc);

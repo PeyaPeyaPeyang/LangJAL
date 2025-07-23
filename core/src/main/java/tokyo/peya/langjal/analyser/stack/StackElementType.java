@@ -3,6 +3,9 @@ package tokyo.peya.langjal.analyser.stack;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Enum representing the types of elements that can appear on the JVM stack or in local variables.
+ */
 @Getter
 @AllArgsConstructor
 public enum StackElementType

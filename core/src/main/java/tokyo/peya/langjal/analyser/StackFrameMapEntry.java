@@ -13,6 +13,24 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a single entry in the stack frame map for JVM bytecode verification.
+ * <p>
+ * Encodes the frame type, label, previous label, changed stack and locals for ASM's FrameNode.
+ * Used to generate stack map frames for control flow transitions.
+ * <br>
+ * <b>Usage Example:</b>
+ * <pre>{@code
+ * StackFrameMapEntry entry = StackFrameMapEntry.full(prevFrame, nextFrame, stack, locals);
+ * FrameNode node = entry.toASMFrameNode();
+ * }</pre>
+ *
+ * @param type          The frame type.
+ * @param label         The label for this frame.
+ * @param previousLabel The previous label.
+ * @param changedStack  The changed stack elements.
+ * @param changedLocals The changed local elements.
+ */
 public record StackFrameMapEntry(
         @NotNull
         FrameType type,
@@ -26,6 +44,10 @@ public record StackFrameMapEntry(
         StackElement[] changedLocals
 )
 {
+    /**
+     * Converts this entry to an ASM FrameNode.
+     * @return The FrameNode for ASM.
+     */
     public FrameNode toASMFrameNode()
     {
         return new FrameNode(
@@ -37,6 +59,12 @@ public record StackFrameMapEntry(
         );
     }
 
+    /**
+     * Creates a SAME frame entry (no changes).
+     * @param previousFrame The previous frame.
+     * @param nextFrame The next frame.
+     * @return The SAME frame entry.
+     */
     public static StackFrameMapEntry same(
             @NotNull InstructionSetFrame previousFrame,
             @NotNull InstructionSetFrame nextFrame
@@ -51,6 +79,13 @@ public record StackFrameMapEntry(
         );
     }
 
+    /**
+     * Creates a SAME_LOCALS_1_STACK_ITEM frame entry.
+     * @param previous The previous frame.
+     * @param next The next frame.
+     * @param stackItem The stack item.
+     * @return The frame entry.
+     */
     public static StackFrameMapEntry sameLocals1StackItem(@NotNull InstructionSetFrame previous,
                                                           @NotNull InstructionSetFrame next,
                                                           @NotNull StackElement stackItem)
@@ -64,6 +99,14 @@ public record StackFrameMapEntry(
         );
     }
 
+    /**
+     * Creates a CHOP frame entry (removes locals).
+     * @param previous The previous frame.
+     * @param next The next frame.
+     * @param choppedStack The chopped locals.
+     * @return The frame entry.
+     * @throws IllegalArgumentException if choppedStack.length > 4
+     */
     public static StackFrameMapEntry chop(@NotNull InstructionSetFrame previous,
                                           @NotNull InstructionSetFrame next,
                                           @NotNull LocalStackElement[] choppedStack)
@@ -80,6 +123,14 @@ public record StackFrameMapEntry(
         );
     }
 
+    /**
+     * Creates an APPEND frame entry (adds locals).
+     * @param previous The previous frame.
+     * @param next The next frame.
+     * @param appendedLocals The appended locals.
+     * @return The frame entry.
+     * @throws IllegalArgumentException if appendedLocals.length > 4
+     */
     public static StackFrameMapEntry append(@NotNull InstructionSetFrame previous,
                                             @NotNull InstructionSetFrame next,
                                             @NotNull LocalStackElement[] appendedLocals)
@@ -96,6 +147,14 @@ public record StackFrameMapEntry(
         );
     }
 
+    /**
+     * Creates a FULL frame entry (full stack and locals).
+     * @param previous The previous frame.
+     * @param next The next frame.
+     * @param nextStack The stack for the next frame.
+     * @param nextLocals The locals for the next frame.
+     * @return The frame entry.
+     */
     public static StackFrameMapEntry full(@NotNull InstructionSetFrame previous,
                                           @NotNull InstructionSetFrame next,
                                           @NotNull StackElement[] nextStack,

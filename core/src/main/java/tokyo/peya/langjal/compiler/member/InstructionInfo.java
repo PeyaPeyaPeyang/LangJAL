@@ -11,22 +11,43 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
 import java.util.Objects;
 
+/**
+ * Represents a single JVM instruction within a method, including its evaluator, owner context,
+ * bytecode offset, assigned label, instruction size, and source line information.
+ * Used for tracking and manipulating instructions during compilation.
+ *
+ * @param evaluator        The instruction evaluator responsible for this instruction.
+ * @param ownerClass       The ASM ClassNode representing the owning class.
+ * @param owner            The ASM MethodNode representing the owning method.
+ * @param insn             The ASM instruction node.
+ * @param bytecodeOffset   The offset of this instruction in the bytecode.
+ * @param assignedLabel    The label assigned to this instruction, or null if none.
+ * @param instructionSize  The size of this instruction in bytes.
+ * @param sourceLine       The source line number corresponding to this instruction.
+ */
 public record InstructionInfo(
-        @NotNull
-        AbstractInstructionEvaluator<?> evaluator,
-        @NotNull
-        ClassNode ownerClass,
-        @NotNull
-        MethodNode owner,
-        @NotNull
-        AbstractInsnNode insn,
+        @NotNull AbstractInstructionEvaluator<?> evaluator,
+        @NotNull ClassNode ownerClass,
+        @NotNull MethodNode owner,
+        @NotNull AbstractInsnNode insn,
         int bytecodeOffset,
-        @Nullable
-        LabelInfo assignedLabel,
+        @Nullable LabelInfo assignedLabel,
         int instructionSize,
         int sourceLine
 )
 {
+    /**
+     * Constructs an InstructionInfo from an opcode integer.
+     *
+     * @param evaluator      The instruction evaluator.
+     * @param ownerClass     The owning class.
+     * @param owner          The owning method.
+     * @param insn           The opcode integer.
+     * @param bytecodeOffset The bytecode offset.
+     * @param assignedLabel  The assigned label, if any.
+     * @param instructionSize The instruction size in bytes.
+     * @param sourceLine     The source line number.
+     */
     public InstructionInfo(@NotNull AbstractInstructionEvaluator<?> evaluator,
                            @NotNull ClassNode ownerClass,
                            @NotNull MethodNode owner,
@@ -48,11 +69,22 @@ public record InstructionInfo(
         );
     }
 
+    /**
+     * Returns the opcode of this instruction.
+     *
+     * @return The opcode integer.
+     */
     public int opcode()
     {
         return this.insn.getOpcode();
     }
 
+    /**
+     * Checks equality based on evaluator, instruction node, bytecode offset, label, and size.
+     *
+     * @param obj The object to compare.
+     * @return True if equal, false otherwise.
+     */
     @Override
     public boolean equals(Object obj)
     {
@@ -66,6 +98,11 @@ public record InstructionInfo(
                 this.instructionSize == that.instructionSize;
     }
 
+    /**
+     * Returns a string representation of this instruction, including opcode name, offset, and label.
+     *
+     * @return String representation.
+     */
     @Override
     public @NotNull String toString()
     {

@@ -13,17 +13,42 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Holds and manages a list of {@link InstructionInfo} objects for a method,
+ * tracking bytecode offsets and providing methods to add, finalize, and query instructions.
+ */
 public class InstructionsHolder
 {
+    /**
+     * The class that owns these instructions.
+     */
     private final ClassNode ownerClass;
+    /**
+     * The method that owns these instructions.
+     */
     private final MethodNode ownerMethod;
-
+    /**
+     * Holder for labels associated with instructions.
+     */
     private final LabelsHolder labels;
+    /**
+     * List of instructions in this holder.
+     */
     private final List<InstructionInfo> instructions;
 
+    /**
+     * Current bytecode offset for the next instruction.
+     */
     @Getter
     private int bytecodeOffset;
 
+    /**
+     * Constructs an InstructionsHolder for the given class, method, and labels.
+     *
+     * @param ownerClass  The owning class.
+     * @param ownerMethod The owning method.
+     * @param labels      The labels holder.
+     */
     public InstructionsHolder(@NotNull ClassNode ownerClass,
                               @NotNull MethodNode ownerMethod,
                               @NotNull LabelsHolder labels)
@@ -36,11 +61,21 @@ public class InstructionsHolder
         this.bytecodeOffset = 0;
     }
 
+    /**
+     * Returns the number of instructions held.
+     *
+     * @return The instruction count.
+     */
     public int getSize()
     {
         return this.instructions.size();
     }
 
+    /**
+     * Adds a RETURN instruction to the holder.
+     *
+     * @return The added InstructionInfo.
+     */
     public InstructionInfo addReturn()
     {
         int returnOpcode = EOpcodes.RETURN;
@@ -59,6 +94,14 @@ public class InstructionsHolder
         return instruction;
     }
 
+    /**
+     * Adds a generic instruction to the holder.
+     *
+     * @param evaluatedInstruction The evaluated instruction.
+     * @param labelAssignation     The label to assign, if any.
+     * @param sourceLine           The source line number.
+     * @return The added InstructionInfo.
+     */
     public InstructionInfo addInstruction(@NotNull EvaluatedInstruction evaluatedInstruction,
                                           @Nullable LabelInfo labelAssignation,
                                           int sourceLine)
@@ -78,6 +121,9 @@ public class InstructionsHolder
         return instruction;
     }
 
+    /**
+     * Finalizes instructions by adding them to the method and handling labels and line numbers.
+     */
     public void finaliseInstructions()
     {
         for (InstructionInfo instruction : this.instructions)
@@ -104,11 +150,22 @@ public class InstructionsHolder
         }
     }
 
+    /**
+     * Checks if there are no instructions.
+     *
+     * @return True if empty, false otherwise.
+     */
     public boolean isEmpty()
     {
         return this.instructions.isEmpty();
     }
 
+    /**
+     * Gets the instruction at the specified index, or null if out of bounds.
+     *
+     * @param index The instruction index.
+     * @return The InstructionInfo or null.
+     */
     @Nullable
     public InstructionInfo getInstruction(int index)
     {
@@ -117,6 +174,12 @@ public class InstructionsHolder
         return this.instructions.get(index);
     }
 
+    /**
+     * Gets the last instruction in the holder.
+     *
+     * @return The last InstructionInfo.
+     * @throws IllegalStateException If there are no instructions.
+     */
     @NotNull
     public InstructionInfo getLastInstruction()
     {
@@ -125,6 +188,13 @@ public class InstructionsHolder
         return this.instructions.get(this.instructions.size() - 1);
     }
 
+    /**
+     * Returns an unmodifiable list of instructions starting from the given label.
+     *
+     * @param instructionSet The label marking the start of the instruction set.
+     * @return List of InstructionInfo objects.
+     * @throws IndexOutOfBoundsException If the start index is invalid.
+     */
     public List<InstructionInfo> getInstructions(LabelInfo instructionSet)
     {
         int startIndex = instructionSet.instructionIndex();

@@ -16,17 +16,42 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Compiles a parsed JAL class definition into an ASM ClassNode.
+ * <p>
+ * This class is responsible for transforming the JAL AST into JVM bytecode structures,
+ * handling class information, fields, and methods.
+ */
 public class JALClassCompiler
 {
+    /**
+     * Reporter used during compilation for error and info messages.
+     */
     private final FileEvaluatingReporter reporter;
+    /**
+     * Name of the source file being compiled.
+     */
     private final String fileName;
+    /**
+     * Compilation flags controlling the compilation process.
+     */
     @MagicConstant(valuesFromClass = CompileSettings.class)
     private final int compileFlags;
 
+    /**
+     * The compiled ASM ClassNode representing the output class.
+     */
     @Getter
     private final ClassNode compiledClass;
     private final List<JALMethodCompiler> methodCompilers;
 
+    /**
+     * Constructs a new JALClassCompiler instance.
+     *
+     * @param reporter     The reporter for compilation messages.
+     * @param fileName     The name of the source file.
+     * @param compileFlags Compilation flags.
+     */
     public JALClassCompiler(@NotNull FileEvaluatingReporter reporter, @Nullable String fileName,
                             @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags)
     {
@@ -38,6 +63,13 @@ public class JALClassCompiler
         this.methodCompilers = new ArrayList<>();
     }
 
+    /**
+     * Compiles the given class AST context into a ClassNode.
+     *
+     * @param clazz The parsed class definition context.
+     * @return The compiled ASM ClassNode.
+     * @throws CompileErrorException If a compilation error occurs.
+     */
     public ClassNode compileClassAST(@NotNull JALParser.ClassDefinitionContext clazz) throws CompileErrorException
     {
         this.visitClassInformation(this.compiledClass, clazz);
@@ -46,6 +78,11 @@ public class JALClassCompiler
         return this.compiledClass;
     }
 
+    /**
+     * Returns an unmodifiable list of method compilers for the compiled class.
+     *
+     * @return List of JALMethodCompiler instances.
+     */
     public List<JALMethodCompiler> getMethodCompilers()
     {
         return Collections.unmodifiableList(this.methodCompilers);

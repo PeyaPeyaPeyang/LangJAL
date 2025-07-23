@@ -21,20 +21,55 @@ import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
+/**
+ * Compiles a JAL method definition into JVM bytecode using ASM.
+ * Handles parsing, instruction evaluation, local variable management, and try-catch directives.
+ */
 @Getter
 public class JALMethodCompiler
 {
+    /**
+     * Reporter for compilation messages and errors.
+     */
     private final FileEvaluatingReporter context;
+    /**
+     * The class node representing the owner class.
+     */
     private final ClassNode clazz;
+    /**
+     * Compilation flags controlling the compilation process.
+     */
     private final int compileFlags;
 
+    /**
+     * The ASM method node being compiled.
+     */
     private final MethodNode method;
 
+    /**
+     * Holder for instructions in this method.
+     */
     private final InstructionsHolder instructions;
+    /**
+     * Holder for labels in this method.
+     */
     private final LabelsHolder labels;
+    /**
+     * Holder for local variables in this method.
+     */
     private final LocalVariablesHolder locals;
+    /**
+     * Holder for try-catch directives in this method.
+     */
     private final TryCatchDirectivesHolder tryCatchDirectives;
 
+    /**
+     * Constructs a JALMethodCompiler for the given class and reporter.
+     *
+     * @param reporter     The reporter for compilation messages.
+     * @param cn           The class node.
+     * @param compileFlags Compilation flags.
+     */
     public JALMethodCompiler(@NotNull FileEvaluatingReporter reporter, @NotNull ClassNode cn,
                              @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags)
     {
@@ -49,6 +84,11 @@ public class JALMethodCompiler
         this.tryCatchDirectives = new TryCatchDirectivesHolder(this.context, this.labels);
     }
 
+    /**
+     * Evaluates and compiles the given method definition context.
+     *
+     * @param method The method definition context.
+     */
     public void evaluateMethod(@NotNull JALParser.MethodDefinitionContext method)
     {
         this.clazz.methods.add(this.method);
@@ -60,6 +100,11 @@ public class JALMethodCompiler
             this.addStackMapTable();
     }
 
+    /**
+     * Analyses the method for stack frames and other metadata.
+     *
+     * @return The method analysis result.
+     */
     public MethodAnalysisResult analyseMethod()
     {
         MethodAnalyser analyser = new MethodAnalyser(
@@ -196,7 +241,7 @@ public class JALMethodCompiler
         this.method.visitEnd();
     }
 
-    public void evaluateTryCatchDirectives(JALParser.MethodBodyContext body)
+    private void evaluateTryCatchDirectives(JALParser.MethodBodyContext body)
     {
         for (JALParser.InstructionSetContext bodyItem : body.instructionSet())
         {

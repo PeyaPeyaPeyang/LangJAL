@@ -156,6 +156,10 @@ import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorLStor
 
 import java.util.List;
 
+/**
+ * Provides evaluation logic for JAL instructions by delegating to registered evaluators.
+ * Maintains a list of supported instruction evaluators and selects the appropriate one for each instruction.
+ */
 public class JALInstructionEvaluator
 {
     private static final List<AbstractInstructionEvaluator<?>> EVALUATORS = List.of(
@@ -366,6 +370,14 @@ public class JALInstructionEvaluator
             new InstructionEvaluatorInvokeDynamic()
     );
 
+    /**
+     * Evaluates a JAL instruction using the appropriate evaluator.
+     *
+     * @param methodEvaluator The method compiler context.
+     * @param instruction     The instruction context.
+     * @return The evaluated instruction, or null if not applicable.
+     * @throws InternalCompileErrorException If the instruction is unsupported.
+     */
     @Nullable
     static EvaluatedInstruction evaluateInstruction(@NotNull JALMethodCompiler methodEvaluator,
                                                     @NotNull JALParser.InstructionContext instruction)

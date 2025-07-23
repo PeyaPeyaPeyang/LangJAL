@@ -12,6 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Creates a map of stack frames for a given method based on frame propagations.
+ * This class is responsible for merging frames, computing the next frame, and
+ * generating the final stack frame map entries.
+ * <p>
+ * The stack frame map is used to optimize the bytecode by providing information
+ * about how the stack and local variables change at each instruction.
+ */
 public class StackFrameMapCreator
 {
     private final FileEvaluatingReporter context;
@@ -19,6 +27,12 @@ public class StackFrameMapCreator
 
     private final Map<LabelInfo, InstructionSetFrame> frames;
 
+    /**
+     * Constructor for StackFrameMapCreator.
+     * Initializes the map of stack frames for a given method.
+     * @param context the context for reporting evaluation messages
+     * @param method the method for which the stack frame map is created
+     */
     public StackFrameMapCreator(@NotNull FileEvaluatingReporter context, @NotNull MethodNode method)
     {
         this.context = context;
@@ -27,6 +41,14 @@ public class StackFrameMapCreator
         this.frames = new HashMap<>();
     }
 
+    /**
+     * Updates the stack frames based on the provided frame propagations.
+     * This method processes each propagation and updates the corresponding
+     * stack frame in the map, merging frames when necessary.
+     *
+     * @param propagations the array of frame propagations containing the stack and local variables
+     *                    for each instruction in the method
+     */
     public void updateFrames(@NotNull FramePropagation[] propagations)
     {
         this.context.postInfo("Updating stack frames for method: " + this.method.name);
@@ -35,6 +57,16 @@ public class StackFrameMapCreator
         this.context.postInfo("Finished updating stack frames for method: " + this.method.name);
     }
 
+    /**
+     * Updates a single stack frame based on the provided propagation.
+     * This method creates a new frame and merges it with the existing frame if necessary.
+     * If the frame does not exist, it is added to the map.
+     * @param propagation the frame propagation containing the stack and local variables for a specific instruction
+     *                    in the method
+     * <p>
+     * This method is used internally by {@link #updateFrames(FramePropagation[])} to process each propagation.
+     *                    </p>
+     */
     public void updateFrame(@NotNull FramePropagation propagation)
     {
         LabelInfo label = propagation.receiver();  // StacKFrameMap はジャンプ先に貼っつけるため。
@@ -65,6 +97,20 @@ public class StackFrameMapCreator
         this.frames.put(label, mergedFrame);
     }
 
+    /**
+     * Creates a stack frame map for the method.
+     * This method processes all the frames collected and computes the next frame
+     * based on the changes in stack and local variables.
+     * <p>
+     * The resulting stack frame map is an array of {@link StackFrameMapEntry} that describes
+     * how the stack and local variables change from one instruction to the next.
+     * </p>
+     * @return an array of {@link StackFrameMapEntry} representing the stack frame map
+     *         for the method, or an empty array if there are no frames to process.
+     * <p>
+     * Note: The stack frame map is created only if there are multiple frames to process.
+     * If there is only one frame or none, it returns an empty array.
+     */
     public StackFrameMapEntry[] createStackFrameMap()
     {
         this.context.postInfo("Creating stack frame map for method: " + this.method.name);

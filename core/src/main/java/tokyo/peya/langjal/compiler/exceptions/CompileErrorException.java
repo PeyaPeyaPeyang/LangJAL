@@ -5,14 +5,38 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Exception thrown when a compile error occurs.
+ * Stores detailed message and location information for error reporting.
+ */
 @Getter
 public class CompileErrorException extends RuntimeException
 {
+    /**
+     * Detailed error message.
+     */
     private final String detailedMessage;
+    /**
+     * Line number where the error occurred.
+     */
     private final long line;
+    /**
+     * Column number where the error occurred.
+     */
     private final long column;
+    /**
+     * Length of the error region.
+     */
     private final long length;
 
+    /**
+     * Constructs a CompileErrorException with message and location info.
+     *
+     * @param detailedMessage Detailed error message.
+     * @param line            Line number.
+     * @param column          Column number.
+     * @param length          Length of the error region.
+     */
     public CompileErrorException(@NotNull String detailedMessage,
                                  long line, long column, long length)
     {
@@ -23,6 +47,12 @@ public class CompileErrorException extends RuntimeException
         this.length = length;
     }
 
+    /**
+     * Constructs a CompileErrorException from a parser rule context.
+     *
+     * @param detailedMessage Detailed error message.
+     * @param node            Parser rule context.
+     */
     public CompileErrorException(@NotNull String detailedMessage, @NotNull ParserRuleContext node)
     {
         this(
@@ -33,6 +63,12 @@ public class CompileErrorException extends RuntimeException
         );
     }
 
+    /**
+     * Constructs a CompileErrorException from a terminal node.
+     *
+     * @param detailedMessage Detailed error message.
+     * @param node            Terminal node.
+     */
     public CompileErrorException(@NotNull String detailedMessage, @NotNull TerminalNode node)
     {
         this(
@@ -43,6 +79,16 @@ public class CompileErrorException extends RuntimeException
         );
     }
 
+    /**
+     * Constructs a CompileErrorException with a cause and location info.
+     *
+     * @param message         Error message.
+     * @param cause           Cause of the error.
+     * @param detailedMessage Detailed error message.
+     * @param line            Line number.
+     * @param column          Column number.
+     * @param length          Length of the error region.
+     */
     public CompileErrorException(@NotNull String message, @NotNull Throwable cause,
                                  @NotNull String detailedMessage, long line,
                                  long column, long length)
@@ -54,6 +100,13 @@ public class CompileErrorException extends RuntimeException
         this.length = length;
     }
 
+    /**
+     * Constructs a CompileErrorException with a cause and no location info.
+     *
+     * @param message         Error message.
+     * @param cause           Cause of the error.
+     * @param detailedMessage Detailed error message.
+     */
     public CompileErrorException(@NotNull String message, @NotNull Throwable cause,
                                  @NotNull String detailedMessage)
     {

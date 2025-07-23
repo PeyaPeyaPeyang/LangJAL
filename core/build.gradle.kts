@@ -1,7 +1,8 @@
 plugins {
     id("java")
     id("antlr")
-    id("maven-publish")
+    id("io.github.sgtsilvio.gradle.maven-central-publishing") version "0.4.1"
+    id("io.github.sgtsilvio.gradle.metadata") version "0.6.0"
 }
 
 group = "tokyo.peya"
@@ -48,11 +49,43 @@ sourceSets {
     }
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+
+    withSourcesJar()
+    withJavadocJar()
+}
+
+metadata {
+    readableName = "JAL: Java Assembly Language"
+    description = "The official implementation of Java Assembly Language."
+    license {
+        shortName = "MIT"
+        fullName = "MIT License"
+        url = "https://github.com/PeyaPeyaPeyang/LangJAL/blob/main/LICENSE"
+    }
+    developers {
+        register("peyang") {
+            fullName = "Peyang"
+            email = "peyang@peya.tokyo"
+        }
+    }
+
+    github {
+        org = "PeyaPeyaPeyang"
+        repo = "LangJAL"
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign(publishing.publications)
+}
+
 publishing {
     publications {
-        create<MavenPublication>("maven") {
-            artifactId = "langjal"
-
+        register<MavenPublication>("main") {
             from(components["java"])
         }
     }

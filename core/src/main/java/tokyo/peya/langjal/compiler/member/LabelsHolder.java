@@ -15,20 +15,44 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Manages labels within a method, including registration, resolution, and scope checks.
+ * Provides access to global start/end labels and supports label-based instruction grouping.
+ */
 public class LabelsHolder
 {
+    /**
+     * The method compiler that owns this label holder.
+     */
     private final JALMethodCompiler methodEvaluator;
+    /**
+     * List of all labels registered in this holder.
+     */
     private final List<LabelInfo> labels;
 
+    /**
+     * The global start label for the method.
+     */
     @Getter
     private LabelInfo globalStart;
+    /**
+     * The global end label for the method.
+     */
     @Getter
     private final LabelInfo globalEnd;
 
+    /**
+     * The current label being processed.
+     */
     @Getter
     @Setter
     private LabelInfo currentLabel; // 現在解析中の最後のラベル
 
+    /**
+     * Constructs a LabelsHolder for the given method compiler.
+     *
+     * @param methodEvaluator The owning method compiler.
+     */
     public LabelsHolder(@NotNull JALMethodCompiler methodEvaluator)
     {
         this.methodEvaluator = methodEvaluator;
@@ -39,6 +63,12 @@ public class LabelsHolder
         this.globalEnd = new LabelInfo("MEND", new Label(), 50);
     }
 
+    /**
+     * Sets the global start label.
+     *
+     * @param globalStart The label to set as global start.
+     * @throws IllegalStateException If already initialized.
+     */
     public void setGlobalStart(@NotNull LabelInfo globalStart)
     {
         if (!this.globalStart.name().equals("MBEGIN"))
@@ -49,6 +79,13 @@ public class LabelsHolder
         // グローバル開始ラベルをメソッドに登録
     }
 
+    /**
+     * Resolves a label by its parser context, throwing if not found.
+     *
+     * @param labelName The label name context.
+     * @return The resolved LabelInfo.
+     * @throws UnknownLabelException If not found.
+     */
     @NotNull
     public LabelInfo resolve(@NotNull JALParser.LabelNameContext labelName)
     {
@@ -63,6 +100,12 @@ public class LabelsHolder
         return resolvedLabel;  // すでに登録されているラベルを返す
     }
 
+    /**
+     * Resolves a label by its name, returning null if not found.
+     *
+     * @param labelName The label name.
+     * @return The resolved LabelInfo or null.
+     */
     @Nullable
     public LabelInfo resolveSafe(@NotNull String labelName)
     {
@@ -75,6 +118,14 @@ public class LabelsHolder
         return null;  // ラベルが見つからない場合は null を返す
     }
 
+    /**
+     * Registers a new label at the given instruction index.
+     *
+     * @param labelName        The label name context.
+     * @param instructionIndex The instruction index.
+     * @return The registered LabelInfo.
+     * @throws UnknownLabelException If already defined.
+     */
     @NotNull
     public LabelInfo register(@NotNull JALParser.LabelNameContext labelName, int instructionIndex)
     {
@@ -101,11 +152,24 @@ public class LabelsHolder
         return this.methodEvaluator.getInstructions().getSize();
     }
 
+    /**
+     * Checks if a label is in scope between two labels.
+     *
+     * @param scopeStart The start label.
+     * @param scopeEnd   The end label.
+     * @return True if current label is in scope.
+     */
     public boolean isInScope(@NotNull LabelInfo scopeStart, @NotNull LabelInfo scopeEnd)
     {
         return isInScope(scopeStart, scopeEnd, this.currentLabel);
     }
 
+    /**
+     * Gets the next label block after the given label.
+     *
+     * @param label The current label.
+     * @return The next LabelInfo or null.
+     */
     public LabelInfo getNextBlock(@NotNull LabelInfo label)
     {
         int currentIndex = label.instructionIndex();
@@ -115,6 +179,11 @@ public class LabelsHolder
         return null;  // 次のラベルが見つからない場合は null を返す
     }
 
+    /**
+     * Finalizes labels by adding the global end label to the method.
+     *
+     * @param method The method node.
+     */
     public void finalise(@NotNull MethodNode method)
     {
         LabelNode globalEndNode = this.globalEnd.node();
@@ -123,6 +192,11 @@ public class LabelsHolder
         // ↑ END なので，いっちゃんさいご
     }
 
+    /**
+     * Registers the global start label in the method.
+     *
+     * @param method The method node.
+     */
     public void registerGlobalStart(@NotNull MethodNode method)
     {
         LabelNode globalStartNode = this.globalStart.node();
@@ -130,12 +204,23 @@ public class LabelsHolder
         this.labels.add(this.globalStart);  // グローバル開始ラベルも登録
     }
 
+    /**
+     * Returns an unmodifiable list of all labels.
+     *
+     * @return List of LabelInfo.
+     */
     @NotNull
     public List<LabelInfo> getLabels()
     {
         return Collections.unmodifiableList(this.labels);
     }
 
+    /**
+     * Gets a label by its ASM node.
+     *
+     * @param targetNode The label node.
+     * @return The LabelInfo or null.
+     */
     @Nullable
     public LabelInfo getLabelByNode(@NotNull LabelNode targetNode)
     {
@@ -146,6 +231,14 @@ public class LabelsHolder
         return null;  // 見つからなかった場合は null を返す
     }
 
+    /**
+     * Checks if a label is in scope between two labels.
+     *
+     * @param scopeStart   The start label.
+     * @param scopeEnd     The end label.
+     * @param currentLabel The label to check.
+     * @return True if in scope.
+     */
     public static boolean isInScope(@NotNull LabelInfo scopeStart, @NotNull LabelInfo scopeEnd,
                                     @NotNull LabelInfo currentLabel)
     {

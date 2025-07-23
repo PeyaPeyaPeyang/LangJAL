@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
 
+/**
+ * Represents Java primitive types for JVM bytecode.
+ */
 @Getter
 @AllArgsConstructor
 public enum PrimitiveTypes implements Type
@@ -82,23 +85,44 @@ public enum PrimitiveTypes implements Type
                 }
             };
 
+    /**
+     * The name of the primitive type.
+     */
     private final String name;
+    /**
+     * The JVM descriptor character for the type.
+     */
     @Getter(AccessLevel.NONE)
     private final char descriptor;
+    /**
+     * The ASM type constant for the type.
+     */
     private final int asmType;
 
+    /**
+     * Returns true if this is a primitive type.
+     * @return Always true.
+     */
     @Override
     public boolean isPrimitive()
     {
         return true;
     }
 
+    /**
+     * Gets the JVM descriptor string for this type.
+     * @return The descriptor string.
+     */
     @Override
     public String getDescriptor()
     {
         return String.valueOf(this.descriptor);
     }
 
+    /**
+     * Gets the JVM category for this type (1 or 2).
+     * @return The category number.
+     */
     @Override
     public int getCategory()
     {
@@ -108,6 +132,11 @@ public enum PrimitiveTypes implements Type
         return 1; // その他のプリミティブ型はカテゴリー1
     }
 
+    /**
+     * Gets the PrimitiveTypes from a descriptor character.
+     * @param descriptorChar The JVM descriptor character.
+     * @return The corresponding PrimitiveTypes, or null if not found.
+     */
     public static PrimitiveTypes fromDescriptor(char descriptorChar)
     {
         for (PrimitiveTypes type : PrimitiveTypes.values())
@@ -117,12 +146,21 @@ public enum PrimitiveTypes implements Type
         return null; // 該当するプリミティブ型がない場合はnullを返す
     }
 
+    /**
+     * Returns the JVM descriptor string for this type.
+     * @return The descriptor string.
+     */
     @Override
     public String toString()
     {
         return String.valueOf(this.descriptor);
     }
 
+    /**
+     * Gets the PrimitiveTypes from an ASM type constant.
+     * @param asmType The ASM type constant.
+     * @return The corresponding PrimitiveTypes, or null if not found.
+     */
     public static PrimitiveTypes fromASMType(int asmType)
     {
         for (PrimitiveTypes type : PrimitiveTypes.values())
@@ -132,4 +170,3 @@ public enum PrimitiveTypes implements Type
         return null; // 該当するプリミティブ型がない場合はnullを返す
     }
 }
-

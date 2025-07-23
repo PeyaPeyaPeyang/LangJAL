@@ -16,9 +16,33 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Utility class for manipulating and merging JVM stack and local variable elements during bytecode analysis.
+ * <p>
+ * Provides static methods for cleaning up, merging, and comparing stack and local variable arrays,
+ * as well as for finding common super types and converting stack elements to string representations.
+ * <br>
+ * These utilities are essential for stack frame verification and merging in JVM analysis.
+ * <br>
+ * <b>Usage Example:</b>
+ * <pre>{@code
+ * LocalStackElement[] cleaned = StackElementUtils.cleanUpLocals(locals);
+ * StackElement[] mergedStack = StackElementUtils.mergeStack(label, stack1, stack2);
+ * }</pre>
+ */
 @UtilityClass
 public class StackElementUtils
 {
+    /**
+     * Removes trailing TOP elements from the local variable array, except when preceded by category 2 elements.
+     * For example:
+     * <ul>
+     *   <li>[I, I, TOP, TOP, TOP] -> [I, I]</li>
+     *   <li>[I, I, TOP, D, TOP, TOP] -> [I, I, TOP, D, TOP]</li>
+     * </ul>
+     * @param locals The local variable array.
+     * @return A cleaned local variable array.
+     */
     public static LocalStackElement[] cleanUpLocals(@NotNull LocalStackElement[] locals)
     {
         // ローカルスタック要素の中で，末尾から連続して続く TOP 要素を削除する。
@@ -55,12 +79,25 @@ public class StackElementUtils
     }
 
 
+    /**
+     * Merges two local variable arrays, checking type consistency and removing trailing TOP elements.
+     * @param existingLocal The first local variable array.
+     * @param newLocal The second local variable array.
+     * @return The merged local variable array.
+     */
     public static LocalStackElement[] mergeLocals(@NotNull LocalStackElement[] existingLocal,
                                                   @NotNull LocalStackElement[] newLocal)
     {
         return mergeLocals(existingLocal, newLocal, Math.min(existingLocal.length, newLocal.length));
     }
 
+    /**
+     * Merges two local variable arrays up to the specified minimum size.
+     * @param existingLocal The first local variable array.
+     * @param newLocal The second local variable array.
+     * @param minLocalSize The minimum size to merge.
+     * @return The merged local variable array.
+     */
     public static LocalStackElement[] mergeLocals(@NotNull LocalStackElement[] existingLocal,
                                                   @NotNull LocalStackElement[] newLocal,
                                                   int minLocalSize)
@@ -113,6 +150,14 @@ public class StackElementUtils
             );
     }
 
+    /**
+     * Merges two stack arrays, checking type consistency.
+     * Throws if stack sizes or types differ.
+     * @param frameLabel The label for error reporting.
+     * @param existingStack The first stack array.
+     * @param newStack The second stack array.
+     * @return The merged stack array.
+     */
     public static StackElement[] mergeStack(@NotNull LabelInfo frameLabel,
                                             @NotNull StackElement[] existingStack,
                                             @NotNull StackElement[] newStack)
@@ -155,6 +200,12 @@ public class StackElementUtils
         );
     }
 
+    /**
+     * Checks if two stack elements have the same type, throws if not.
+     * @param element The first stack element.
+     * @param expectedElement The second stack element.
+     * @throws StackElementMismatchedException if types differ.
+     */
     public static void checkSameType(@NotNull StackElement element, @NotNull StackElement expectedElement)
     {
         if (element.type() != expectedElement.type())
@@ -166,6 +217,13 @@ public class StackElementUtils
             );
     }
 
+    /**
+     * Merges two stack elements, handling object types and nulls.
+     * For object types, finds a common super type if needed.
+     * @param existingElement The first stack element.
+     * @param newElement The second stack element.
+     * @return The merged stack element.
+     */
     public static StackElement mergeElement(@NotNull StackElement existingElement, @NotNull StackElement newElement)
     {
         StackElementUtils.checkSameType(existingElement, newElement);
@@ -189,6 +247,12 @@ public class StackElementUtils
         };
     }
 
+    /**
+     * Merges two object stack elements, finding their common super type if needed.
+     * @param existingObject The first object element.
+     * @param newObject The second object element.
+     * @return The merged object element.
+     */
     public static ObjectElement mergeObjects(@NotNull ObjectElement existingObject, @NotNull ObjectElement newObject)
     {
         TypeDescriptor existingType = existingObject.content();
@@ -237,6 +301,13 @@ public class StackElementUtils
         return new ObjectElement(newObject.producer(), mergedType);
     }
 
+    /**
+     * Finds the common super type of two class reference types.
+     * If either is an interface, returns Object.
+     * @param type1 The first class reference type.
+     * @param type2 The second class reference type.
+     * @return The common super type.
+     */
     public static ClassReferenceType getCommonSuperType(@NotNull ClassReferenceType type1,
                                                         @NotNull ClassReferenceType type2)
     {
