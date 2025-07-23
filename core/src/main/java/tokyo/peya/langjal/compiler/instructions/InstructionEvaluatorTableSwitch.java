@@ -23,8 +23,9 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
         JALParser.JvmInsArgTableSwitchContext args = ctxt.jvmInsArgTableSwitch();
 
         int low = EvaluatorCommons.asInteger(args.NUMBER());
-        List<JALParser.LabelNameContext> branches = args.labelName();
-        JALParser.LabelNameContext defaultBranch = args.labelName(branches.size() - 1);  // default は最後の要素
+        JALParser.JvmInsArgTableSwitchCaseListContext caseList = args.jvmInsArgTableSwitchCaseList();
+        List<JALParser.LabelNameContext> branches = caseList.labelName();
+        JALParser.LabelNameContext defaultBranch = args.labelName();
         int high = low + branches.size() - 1; // low から default までの範囲
 
         LabelNode defaultLabel = toLabel(compiler, defaultBranch);
@@ -68,7 +69,8 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
     private static int calcSize(@NotNull JALParser.JvmInsTableswitchContext ctxt, long startOffset)
     {
         JALParser.JvmInsArgTableSwitchContext args = ctxt.jvmInsArgTableSwitch();
-        List<JALParser.LabelNameContext> branches = args.labelName();
+        JALParser.JvmInsArgTableSwitchCaseListContext caseList = args.jvmInsArgTableSwitchCaseList();
+        List<JALParser.LabelNameContext> branches = caseList.labelName();
 
         int padding = (int) ((4 - (startOffset + 1) % 4) % 4);
         int numCases = branches.size() - 1; // 最後の要素は default ブランチなので除外

@@ -23,7 +23,8 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
                                                      JALParser.@NotNull JvmInsLookupswitchContext ctxt)
     {
         JALParser.JvmInsArgLookupSwitchContext args = ctxt.jvmInsArgLookupSwitch();
-        List<JALParser.JvmInsArgLookupSwitchCaseContext> cases = args.jvmInsArgLookupSwitchCase();
+        JALParser.JvmInsArgLookupSwitchCaseListContext caseList = args.jvmInsArgLookupSwitchCaseList();
+        List<JALParser.JvmInsArgLookupSwitchCaseContext> cases = caseList.jvmInsArgLookupSwitchCase();
 
         List<Integer> keys = new LinkedList<>();
         List<LabelNode> labels = new LinkedList<>();
@@ -81,7 +82,8 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
     private static int calcSize(@NotNull JALParser.JvmInsLookupswitchContext ctxt, long startOffset)
     {
         JALParser.JvmInsArgLookupSwitchContext args = ctxt.jvmInsArgLookupSwitch();
-        List<JALParser.JvmInsArgLookupSwitchCaseContext> cases = args.jvmInsArgLookupSwitchCase();
+        JALParser.JvmInsArgLookupSwitchCaseListContext caseList = args.jvmInsArgLookupSwitchCaseList();
+        List<JALParser.JvmInsArgLookupSwitchCaseContext> cases = caseList.jvmInsArgLookupSwitchCase();
 
         int nPairs = 0;
         for (JALParser.JvmInsArgLookupSwitchCaseContext c : cases)

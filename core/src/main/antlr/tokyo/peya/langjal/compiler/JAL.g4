@@ -352,9 +352,11 @@ jvmInsArgMethodRefOwnerType : FULL_QUALIFIED_CLASS_NAME | ID;
 
 jvmInsArgLocalRef : NUMBER | ID;
 
-jvmInsArgTableSwitch : NUMBER LBR labelName (COMMA labelName)* RBR KWD_SWITCH_DEFAULT labelName;
+jvmInsArgTableSwitch : NUMBER LBR jvmInsArgTableSwitchCaseList RBR KWD_SWITCH_DEFAULT labelName;
+jvmInsArgTableSwitchCaseList: labelName (COMMA labelName)*;
 
-jvmInsArgLookupSwitch : LBR jvmInsArgLookupSwitchCase (SEMI jvmInsArgLookupSwitchCase)* RBR;
+jvmInsArgLookupSwitch : LBR jvmInsArgLookupSwitchCaseList RBR;
+jvmInsArgLookupSwitchCaseList : jvmInsArgLookupSwitchCase (COMMA jvmInsArgLookupSwitchCase)*;
 jvmInsArgLookupSwitchCase : jvmInsArgLookupSwitchCaseName COLON labelName;
 jvmInsArgLookupSwitchCaseName : NUMBER | KWD_SWITCH_DEFAULT;
 
