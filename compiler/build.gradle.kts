@@ -20,7 +20,7 @@ dependencies {
     annotationProcessor("org.jetbrains:annotations:26.0.2")
 
     implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
-    implementation(project(":core"))
+    implementation(project(":langjal"))
 }
 
 

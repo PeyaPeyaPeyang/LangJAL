@@ -58,6 +58,7 @@ java {
 }
 
 metadata {
+    moduleName = "langjal"
     readableName = "JAL: Java Assembly Language"
     description = "The official implementation of Java Assembly Language."
     license {
