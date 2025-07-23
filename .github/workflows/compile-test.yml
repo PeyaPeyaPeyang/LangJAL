@@ -1,4 +1,4 @@
-name: LangJAL compiling and execution test
+name: JAL compiling/execution test
 on:
   push:
     branches: [main]
