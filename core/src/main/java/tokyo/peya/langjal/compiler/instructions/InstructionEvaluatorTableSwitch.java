@@ -26,7 +26,7 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
         JALParser.JvmInsArgTableSwitchCaseListContext caseList = args.jvmInsArgTableSwitchCaseList();
         List<JALParser.LabelNameContext> branches = caseList.labelName();
         JALParser.LabelNameContext defaultBranch = args.labelName();
-        int high = low + branches.size();
+        int high = low + branches.size() - 1;
 
         LabelNode defaultLabel = toLabel(compiler, defaultBranch);
         LabelNode[] labels = branches.stream()

@@ -276,47 +276,37 @@ public class InstructionSetAnalyser
         if (info.insn() instanceof JumpInsnNode jumpNode)
         {
             this.analyseJumpTarget(info, jumpNode);
-            LabelInfo targetLabel = this.methodLabels.getLabelByNode(jumpNode.label);
-            if (targetLabel == null)
-                throw new UnknownJumpException(
-                        "Unknown jump target specified by instruction: " + info,
-                        info
-                );
-
-            propagations.add(this.createPropagations(targetLabel));
+            propagations.add(this.createPropagations(jumpNode.label, info));
         }
         else if (info.insn() instanceof TableSwitchInsnNode tableSwitchNode)
         {
             // テーブルスイッチの場合は，すべてのターゲットラベルを登録
-            for (LabelNode labelNode : tableSwitchNode.labels)
-            {
-                LabelInfo targetLabel = this.methodLabels.getLabelByNode(labelNode);
-                if (targetLabel == null)
-                    throw new UnknownJumpException(
-                            "Unknown jump target specified by instruction: " + info,
-                            info
-                    );
-
-                propagations.add(this.createPropagations(targetLabel));
-            }
+            for (LabelNode label : tableSwitchNode.labels)
+                propagations.add(this.createPropagations(label, info));
+            // デフォルトラベルも登録
+            LabelNode defaultLabelNode = tableSwitchNode.dflt;
+            propagations.add(this.createPropagations(defaultLabelNode, info));
         }
         else if (info.insn() instanceof LookupSwitchInsnNode lookupSwitchNode)
         {
             // ルックアップスイッチの場合は，すべてのターゲットラベルを登録
             for (LabelNode label : lookupSwitchNode.labels)
-            {
-                LabelInfo targetLabel = this.methodLabels.getLabelByNode(label);
-                if (targetLabel == null)
-                    throw new UnknownJumpException(
-                            "Unknown jump target specified by instruction: " + info,
-                            info
-                    );
-
-                propagations.add(this.createPropagations(targetLabel));
-            }
+                propagations.add(this.createPropagations(label, info));
         }
 
         return propagations;
+    }
+
+    private FramePropagation createPropagations(@NotNull LabelNode label, @NotNull InstructionInfo info)
+    {
+        LabelInfo targetLabel = this.methodLabels.getLabelByNode(label);
+        if (targetLabel == null)
+            throw new UnknownJumpException(
+                    "Unknown jump target specified by instruction: " + label,
+                    info
+            );
+
+        return this.createPropagations(targetLabel);
     }
 
     private void updateMaxes()
