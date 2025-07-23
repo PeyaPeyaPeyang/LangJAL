@@ -1,4 +1,4 @@
-public class BinarySearch (
+public class LinearSearch (
   major_version=55,
   minor_version=0) {
 
