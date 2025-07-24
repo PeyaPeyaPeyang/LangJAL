@@ -16,21 +16,21 @@ import java.util.Objects;
  * bytecode offset, assigned label, instruction size, and source line information.
  * Used for tracking and manipulating instructions during compilation.
  *
- * @param evaluator        The instruction evaluator responsible for this instruction.
- * @param ownerClass       The ASM ClassNode representing the owning class.
- * @param owner            The ASM MethodNode representing the owning method.
- * @param insn             The ASM instruction node.
- * @param bytecodeOffset   The offset of this instruction in the bytecode.
- * @param assignedLabel    The label assigned to this instruction, or null if none.
- * @param instructionSize  The size of this instruction in bytes.
- * @param sourceLine       The source line number corresponding to this instruction.
+ * @param bytecodeOffset  The offset of this instruction in the bytecode.
+ * @param insn            The ASM instruction node.
+ * @param ownerClass      The ASM ClassNode representing the owning class.
+ * @param owner           The ASM MethodNode representing the owning method.
+ * @param producer        The instruction evaluator responsible for this instruction.
+ * @param assignedLabel   The label assigned to this instruction, or null if none.
+ * @param instructionSize The size of this instruction in bytes.
+ * @param sourceLine      The source line number corresponding to this instruction.
  */
 public record InstructionInfo(
-        @NotNull AbstractInstructionEvaluator<?> evaluator,
+        int bytecodeOffset,
+        @NotNull AbstractInsnNode insn,
         @NotNull ClassNode ownerClass,
         @NotNull MethodNode owner,
-        @NotNull AbstractInsnNode insn,
-        int bytecodeOffset,
+        @NotNull AbstractInstructionEvaluator<?> producer,
         @Nullable LabelInfo assignedLabel,
         int instructionSize,
         int sourceLine
@@ -58,11 +58,7 @@ public record InstructionInfo(
                            int sourceLine)
     {
         this(
-                evaluator,
-                ownerClass,
-                owner,
-                new InsnNode(insn),
-                bytecodeOffset,
+                bytecodeOffset, new InsnNode(insn), ownerClass, owner, evaluator,
                 assignedLabel,
                 instructionSize,
                 sourceLine
@@ -91,7 +87,7 @@ public record InstructionInfo(
         if (!(obj instanceof InstructionInfo that))
             return false;
 
-        return Objects.equals(this.evaluator, that.evaluator) &&
+        return Objects.equals(this.producer, that.producer) &&
                 Objects.equals(this.insn, that.insn) &&
                 this.bytecodeOffset == that.bytecodeOffset &&
                 Objects.equals(this.assignedLabel, that.assignedLabel) &&

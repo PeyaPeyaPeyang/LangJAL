@@ -244,7 +244,7 @@ public class InstructionSetAnalyser
         List<FramePropagation> propagations = new ArrayList<>();
         for (InstructionInfo instruction : this.instructions)
         {
-            AbstractInstructionEvaluator<?> instructionProducer = instruction.evaluator();
+            AbstractInstructionEvaluator<?> instructionProducer = instruction.producer();
             FrameDifferenceInfo frameDifference = instructionProducer.getFrameDifferenceInfo(instruction);
 
             StackOperation[] stackOperations = frameDifference.getStackOperations();

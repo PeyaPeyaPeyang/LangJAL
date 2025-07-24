@@ -114,11 +114,11 @@ public class InstructionsHolder
                                           int sourceLine)
     {
         InstructionInfo instruction = new InstructionInfo(
-                evaluatedInstruction.evaluator(),
+                this.bytecodeOffset,
+                evaluatedInstruction.insn(),
                 this.ownerClass,
                 this.ownerMethod,
-                evaluatedInstruction.insn(),
-                this.bytecodeOffset,
+                evaluatedInstruction.evaluator(),
                 labelAssignation,
                 evaluatedInstruction.getInstructionSize(),
                 sourceLine
