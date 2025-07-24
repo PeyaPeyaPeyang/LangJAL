@@ -27,7 +27,7 @@ public class FileCompiler
             compiler = new JALFileCompiler(
                     reporter,
                     outputter.getActualCompileOutput(),
-                    CompileSettings.COMPUTE_STACK_FRAME_MAP);
+                    CompileSettings.FULL);
         }
         catch (IOException e)
         {

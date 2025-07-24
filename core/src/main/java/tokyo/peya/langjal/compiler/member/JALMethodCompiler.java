@@ -79,7 +79,7 @@ public class JALMethodCompiler
         this.method = new MethodNode();
 
         this.labels = new LabelsHolder(this);
-        this.instructions = new InstructionsHolder(cn, this.method, this.labels);
+        this.instructions = new InstructionsHolder(cn, this.method, this.labels, compileFlags);
         this.locals = new LocalVariablesHolder(this.context, this.labels);
         this.tryCatchDirectives = new TryCatchDirectivesHolder(this.context, this.labels);
     }

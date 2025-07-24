@@ -1,11 +1,13 @@
 package tokyo.peya.langjal.compiler.member;
 
 import lombok.Getter;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.CompileSettings;
 import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorReturn;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
@@ -36,6 +38,9 @@ public class InstructionsHolder
      */
     private final List<InstructionInfo> instructions;
 
+    @MagicConstant(valuesFromClass = CompileSettings.class)
+    private final int compileSettings;
+
     /**
      * Current bytecode offset for the next instruction.
      */
@@ -51,11 +56,13 @@ public class InstructionsHolder
      */
     public InstructionsHolder(@NotNull ClassNode ownerClass,
                               @NotNull MethodNode ownerMethod,
-                              @NotNull LabelsHolder labels)
+                              @NotNull LabelsHolder labels,
+                              int compileSettings)
     {
         this.ownerClass = ownerClass;
         this.ownerMethod = ownerMethod;
         this.labels = labels;
+        this.compileSettings = compileSettings;
 
         this.instructions = new ArrayList<>();
         this.bytecodeOffset = 0;
@@ -126,27 +133,36 @@ public class InstructionsHolder
      */
     public void finaliseInstructions()
     {
+        boolean includeLineNumberTable =
+                (this.compileSettings & CompileSettings.INCLUDE_LINE_NUMBER_TABLE) != 0;
         for (InstructionInfo instruction : this.instructions)
         {
             if (instruction.assignedLabel() != null)  // 命令にラベルが割り当てられている場合
                 this.ownerMethod.instructions.add(instruction.assignedLabel().node());
 
             // 行番号を付加する。それにはラベルが必要なので，もし命令にラベルが貼っ付いていたら再利用する。
-            int lineNumber = instruction.sourceLine();
-            if (lineNumber >= 0)
-            {
-                Label label;
-                if (instruction.assignedLabel() == null)
-                {
-                    label = new Label();
-                    this.ownerMethod.visitLabel(label);
-                }
-                else
-                    label = instruction.assignedLabel().node().getLabel();
-                this.ownerMethod.visitLineNumber(lineNumber, label);
-            }
+            if (includeLineNumberTable)
+                // 行番号を付加する。
+                this.addLineNumberOnCurrentInstruction(instruction);
 
             this.ownerMethod.instructions.add(instruction.insn());
+        }
+    }
+
+    private void addLineNumberOnCurrentInstruction(@NotNull InstructionInfo instruction)
+    {
+        int lineNumber = instruction.sourceLine();
+        if (lineNumber >= 0)
+        {
+            Label label;
+            if (instruction.assignedLabel() == null)
+            {
+                label = new Label();
+                this.ownerMethod.visitLabel(label);
+            }
+            else
+                label = instruction.assignedLabel().node().getLabel();
+            this.ownerMethod.visitLineNumber(lineNumber, label);
         }
     }
 

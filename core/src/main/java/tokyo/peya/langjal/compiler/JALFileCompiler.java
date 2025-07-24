@@ -65,7 +65,6 @@ public class JALFileCompiler
      * @param inputFile The path to the input source file.
      * @throws CompileErrorException If a compilation error occurs.
      */
-    @Nullable
     public void compile(@NotNull Path inputFile) throws CompileErrorException
     {
         CharStream charStream;
@@ -142,16 +141,6 @@ public class JALFileCompiler
             Files.createDirectories(outputFile.getParent());
 
             Files.write(outputFile, classWriter.toByteArray());
-            /*
-            this.outputConsumer.registerCompiledClass(
-                    this.target,
-                    new CompiledClass(
-                            this.file.toFile(),
-                            outputFile.toFile(),
-                            toClassName(classNode.name),
-                            binaryContent
-                    )
-            );*/
         }
         catch (IOException e)
         {
