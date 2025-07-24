@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.cli;
 
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.compiler.CompileSettings;
 import tokyo.peya.langjal.compiler.JALFileCompiler;
@@ -13,7 +14,9 @@ import java.util.stream.Stream;
 public class DirectoryCompiler
 {
     public static void runCompiler(@NotNull Path sourceDirectory, @NotNull Path output,
-                                   boolean isOutputDirectoryLike, boolean verbose)
+                                   boolean isOutputDirectoryLike,
+                                   @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags,
+                                   boolean verbose)
     {
         FileOutputter outputter = new FileOutputter(output, isOutputDirectoryLike, verbose);
         if (!outputter.prepareOutput(output, verbose))
@@ -33,10 +36,7 @@ public class DirectoryCompiler
         JALFileCompiler compiler;
         try
         {
-             compiler = new JALFileCompiler(
-                    reporter,
-                    outputter.getActualCompileOutput(),
-                    CompileSettings.FULL);
+             compiler = new JALFileCompiler(reporter, outputter.getActualCompileOutput(), compileFlags);
         }
         catch (IOException e)
         {

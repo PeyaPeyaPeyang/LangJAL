@@ -1,6 +1,8 @@
 package tokyo.peya.langjal.cli;
 
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.CompileSettings;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,7 +12,9 @@ public class CompilerCLI
     public static String[] ALLOWED_INPUT_EXTENSIONS = {".jal"};
     public static String[] ALLOWED_OUTPUT_EXTENSIONS = {".jar", ".zip"};
 
-    public static void runCompiler(@NotNull String input, @NotNull String output, boolean verbose)
+    public static void runCompiler(@NotNull String input, @NotNull String output,
+                                   @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags,
+                                   boolean verbose)
     {
         Path inputPath = resolveAbsolutePath(input);
         Path outputPath = resolveAbsolutePath(output);
@@ -29,9 +33,20 @@ public class CompilerCLI
 
         // ファイルがディレクトリの場合は，専用のコンパイラを使用
         if (Files.isDirectory(inputPath))
-            DirectoryCompiler.runCompiler(inputPath, outputPath, isDirectoryLike(output), verbose);
+            DirectoryCompiler.runCompiler(
+                    inputPath, outputPath,
+                    isDirectoryLike(output),
+                    compileFlags,
+                    verbose
+            );
         else
-            FileCompiler.runCompiler(inputPath, outputPath, isDirectoryLike(output),  verbose);
+            FileCompiler.runCompiler(
+                    inputPath,
+                    outputPath,
+                    isDirectoryLike(output),
+                    compileFlags,
+                    verbose
+            );
     }
 
     public static boolean hasValidInputFileName(@NotNull Path path)
