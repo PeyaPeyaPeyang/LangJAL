@@ -80,7 +80,7 @@ public class InstructionEvaluatorInvokeSpecial
                         TypeDescriptor.className(method.owner)
                 );
 
-            return new NopElement(instruction);
+            return actualElm; // 通常の ObjectElement であればそのまま返す
         }
         );
         if (method.name.equals("<init>"))
