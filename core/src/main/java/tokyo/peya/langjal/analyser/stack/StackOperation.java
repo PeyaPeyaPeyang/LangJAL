@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a stack operation (push or pop) for JVM stack analysis.
+ * {@link StackElement} is used to represent the elements being pushed or popped.
+ * {@link LocalStackElement} is a specific type of stack element that can be used in local variable operations.
  *
  * @param type    The type of stack operation (PUSH or POP).
  * @param element The stack element involved in the operation.
