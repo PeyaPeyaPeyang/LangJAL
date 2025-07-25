@@ -19,6 +19,11 @@ import java.util.List;
 public class InstructionEvaluatorInvokeDynamic
         extends AbstractInstructionEvaluator<JALParser.JvmInsInvokedynamicContext>
 {
+    public InstructionEvaluatorInvokeDynamic()
+    {
+        super(EOpcodes.INVOKEDYNAMIC);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsInvokedynamicContext ctxt)

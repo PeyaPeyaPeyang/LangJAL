@@ -13,6 +13,11 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 
 public class InstructionEvaluatorIfNonNull extends AbstractInstructionEvaluator<JALParser.JvmInsIfNonnullContext>
 {
+    public InstructionEvaluatorIfNonNull()
+    {
+        super(EOpcodes.IFNONNULL);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsIfNonnullContext ctxt)

@@ -13,6 +13,11 @@ import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 public class InstructionEvaluatorCheckCast extends AbstractInstructionEvaluator<JALParser.JvmInsCheckcastContext>
 {
+    public InstructionEvaluatorCheckCast()
+    {
+        super(EOpcodes.CHECKCAST);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsCheckcastContext ctxt)

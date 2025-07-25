@@ -5,8 +5,14 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import tokyo.peya.langjal.compiler.CompileSettings;
 import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorReturn;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
@@ -38,8 +44,6 @@ public class InstructionsHolder
      */
     private final List<InstructionInfo> instructions;
 
-    @MagicConstant(valuesFromClass = CompileSettings.class)
-    private final int compileSettings;
 
     /**
      * Current bytecode offset for the next instruction.
@@ -56,13 +60,11 @@ public class InstructionsHolder
      */
     public InstructionsHolder(@NotNull ClassNode ownerClass,
                               @NotNull MethodNode ownerMethod,
-                              @NotNull LabelsHolder labels,
-                              int compileSettings)
+                              @NotNull LabelsHolder labels)
     {
         this.ownerClass = ownerClass;
         this.ownerMethod = ownerMethod;
         this.labels = labels;
-        this.compileSettings = compileSettings;
 
         this.instructions = new ArrayList<>();
         this.bytecodeOffset = 0;
@@ -123,18 +125,102 @@ public class InstructionsHolder
                 evaluatedInstruction.getInstructionSize(),
                 sourceLine
         );
+
+        this.addInstruction(instruction);
+        return instruction;
+    }
+
+    public InstructionInfo importInstruction(@NotNull AbstractInsnNode instruction,
+                                             @Nullable LabelInfo labelAssignation,
+                                             int sourceLine)
+    {
+        int opcode = instruction.getOpcode();
+        if (opcode == -1)  // 無効な命令コードの場合
+            throw new IllegalArgumentException("Invalid opcode for instruction: " + instruction);
+
+        InstructionInfo instructionInfo = new InstructionInfo(
+                this.bytecodeOffset,
+                instruction,
+                this.ownerClass,
+                this.ownerMethod,
+                JALInstructionEvaluator.getEvaluatorByOpcode(opcode),
+                labelAssignation,
+                calcInstructionSize(instruction),
+                sourceLine
+        );
+
+        this.addInstruction(instructionInfo);
+        return instructionInfo;
+    }
+
+    private int calcInstructionSize(@NotNull AbstractInsnNode instruction)
+    {
+        int opcode = instruction.getOpcode();
+        if (opcode == -1)  // 無効な命令コードの場合
+            throw new IllegalArgumentException("Invalid opcode for instruction: " + instruction);
+
+        // tableswitch/lookupswitch/wide は可変だが，その他は固定なのでらくらく。
+        return switch (opcode)
+        {
+            case EOpcodes.TABLESWITCH -> {
+                TableSwitchInsnNode tableSwitch = (TableSwitchInsnNode) instruction;
+                int padding = this.calcSwitchPadding(); // パディングを計算
+                int cases = tableSwitch.labels.size();
+                yield 1  // opcode
+                        + 4 // default label
+                        + 4 // low
+                        + 4 // high
+                        + (cases * 4) // 各caseのラベル
+                        + padding; // パディング
+            }
+            case EOpcodes.LOOKUPSWITCH -> {
+                LookupSwitchInsnNode lookupSwitch = (LookupSwitchInsnNode) instruction;
+                int padding = this.calcSwitchPadding(); // パディングを計算
+                int cases = lookupSwitch.keys.size();
+                yield 1  // opcode
+                        + 4 // default label
+                        + (cases * 8) // 各caseのキーとラベル
+                        + padding; // パディング
+            }
+            // WIDE 命令は ASM が卸してくれないので，手動
+            case EOpcodes.ILOAD, EOpcodes.FLOAD, EOpcodes.ALOAD, EOpcodes.LLOAD, EOpcodes.DLOAD,
+                 EOpcodes.ISTORE, EOpcodes.FSTORE, EOpcodes.ASTORE, EOpcodes.LSTORE, EOpcodes.DSTORE,
+                 EOpcodes.RET -> {
+                VarInsnNode varInsn = (VarInsnNode) instruction;
+                int idx = varInsn.var;
+
+                yield (idx < 0xFF) ? 2 : 4; // idx が 0xFF(255) 未満なら 2 バイト，それ以上なら 4 バイト
+            }
+            case EOpcodes.IINC -> {
+                IincInsnNode iincInsn = (IincInsnNode) instruction;
+                int idx = iincInsn.var;
+                int increment = iincInsn.incr;
+                // idx が 0xFF(255) 未満なら 3 バイト，それ以上なら 6 バイト
+                yield (idx <= 0xFF && increment >= Byte.MIN_VALUE && increment <= Byte.MAX_VALUE) ? 3 : 6;
+            }
+            default -> EOpcodes.getOpcodeSize(opcode);
+        };
+    }
+
+    private int calcSwitchPadding()
+    {
+        // パディングは 4 バイト境界に合わせる
+        return (4 - (this.bytecodeOffset + 1) % 4) % 4;
+    }
+
+    private void addInstruction(@NotNull InstructionInfo instruction)
+    {
         this.instructions.add(instruction);
         this.bytecodeOffset += instruction.instructionSize();
-        return instruction;
     }
 
     /**
      * Finalizes instructions by adding them to the method and handling labels and line numbers.
      */
-    public void finaliseInstructions()
+    public void finaliseInstructions(@MagicConstant(flagsFromClass = CompileSettings.class) int compileSettings)
     {
         boolean includeLineNumberTable =
-                (this.compileSettings & CompileSettings.INCLUDE_LINE_NUMBER_TABLE) != 0;
+                (compileSettings & CompileSettings.INCLUDE_LINE_NUMBER_TABLE) != 0;
         for (InstructionInfo instruction : this.instructions)
         {
             if (instruction.assignedLabel() != null)  // 命令にラベルが割り当てられている場合

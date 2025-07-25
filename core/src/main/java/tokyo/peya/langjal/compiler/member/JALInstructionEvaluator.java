@@ -379,7 +379,7 @@ public class JALInstructionEvaluator
      * @throws InternalCompileErrorException If the instruction is unsupported.
      */
     @Nullable
-    static EvaluatedInstruction evaluateInstruction(@NotNull JALMethodCompiler methodEvaluator,
+    public static EvaluatedInstruction evaluateInstruction(@NotNull JALMethodCompiler methodEvaluator,
                                                     @NotNull JALParser.InstructionContext instruction)
     {
         for (AbstractInstructionEvaluator<?> evaluator : EVALUATORS)
@@ -387,5 +387,16 @@ public class JALInstructionEvaluator
                 return evaluator.evaluate(methodEvaluator, instruction);
 
         throw new InternalCompileErrorException("Unsupported instruction: " + instruction.getText(), instruction);
+    }
+
+    @NotNull
+    public static AbstractInstructionEvaluator<?> getEvaluatorByOpcode(int opcode)
+    {
+        for (AbstractInstructionEvaluator<?> evaluator : EVALUATORS)
+            for (int supportedOpcode : evaluator.getEvaluatableOpcodes())
+                if (supportedOpcode == opcode)
+                    return evaluator;
+
+        throw new IllegalArgumentException("No evaluator found for opcode: " + opcode);
     }
 }

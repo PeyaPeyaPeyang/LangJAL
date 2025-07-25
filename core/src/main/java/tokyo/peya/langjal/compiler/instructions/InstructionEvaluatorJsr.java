@@ -12,6 +12,11 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 
 public class InstructionEvaluatorJsr extends AbstractInstructionEvaluator<JALParser.JvmInsJsrContext>
 {
+    public InstructionEvaluatorJsr()
+    {
+        super(EOpcodes.JSR);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsJsrContext ctxt)

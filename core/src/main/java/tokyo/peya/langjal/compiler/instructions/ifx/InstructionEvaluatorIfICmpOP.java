@@ -15,6 +15,11 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 
 public class InstructionEvaluatorIfICmpOP extends AbstractInstructionEvaluator<JALParser.JvmInsIfIcmpOPContext>
 {
+    public InstructionEvaluatorIfICmpOP()
+    {
+        super(EOpcodes.IF_ICMPEQ, EOpcodes.IF_ICMPNE);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsIfIcmpOPContext ctxt)

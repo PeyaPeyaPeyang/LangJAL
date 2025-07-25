@@ -2,7 +2,9 @@ package tokyo.peya.langjal.compiler.jvm;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a set of access attributes for a class, method, or field.
@@ -91,5 +93,44 @@ public class AccessAttributeSet
                 return false;
         }
         return true;
+    }
+
+    public static AccessAttributeSet fromAccess(int access)
+    {
+        List<AccessAttribute> attributes = new ArrayList<>();
+        if ((access & EOpcodes.ACC_STATIC) != 0)  // 0x0008
+            attributes.add(AccessAttribute.STATIC);
+        if ((access & EOpcodes.ACC_FINAL) != 0)  // 0x0010
+            attributes.add(AccessAttribute.FINAL);
+        if ((access & EOpcodes.ACC_SUPER) != 0)  // 0x0020
+            attributes.add(AccessAttribute.SUPER);
+        if ((access & EOpcodes.ACC_SYNCHRONIZED) != 0)  // 0x0020
+            attributes.add(AccessAttribute.SYNCHRONIZED);
+        if ((access & EOpcodes.ACC_VOLATILE) != 0)  // 0x0040
+            attributes.add(AccessAttribute.VOLATILE);
+        if ((access & EOpcodes.ACC_BRIDGE) != 0)  // 0x0040
+            attributes.add(AccessAttribute.BRIDGE);
+        if ((access & EOpcodes.ACC_VARARGS) != 0)  // 0x0080
+            attributes.add(AccessAttribute.VARARGS);
+        if ((access & EOpcodes.ACC_TRANSIENT) != 0)  // 0x0080
+            attributes.add(AccessAttribute.TRANSIENT);
+        if ((access & EOpcodes.ACC_NATIVE) != 0)  // 0x0100
+            attributes.add(AccessAttribute.NATIVE);
+        if ((access & EOpcodes.ACC_INTERFACE) != 0)  // 0x0200
+            attributes.add(AccessAttribute.INTERFACE);
+        if ((access & EOpcodes.ACC_ABSTRACT) != 0)  // 0x0400
+            attributes.add(AccessAttribute.ABSTRACT);
+        if ((access & EOpcodes.ACC_STRICT) != 0)  // 0x0800
+            attributes.add(AccessAttribute.STRICTFP);
+        if ((access & EOpcodes.ACC_SYNTHETIC) != 0)  // 0x1000
+            attributes.add(AccessAttribute.SYNTHETIC);
+        if ((access & EOpcodes.ACC_ANNOTATION) != 0)  // 0x2000
+            attributes.add(AccessAttribute.ANNOTATION);
+        if ((access & EOpcodes.ACC_ENUM) != 0)  // 0x4000
+            attributes.add(AccessAttribute.ENUM);
+        if ((access & EOpcodes.ACC_MANDATED) != 0)  // 0x20000
+            attributes.add(AccessAttribute.MANDATED);
+
+        return new AccessAttributeSet(attributes);
     }
 }

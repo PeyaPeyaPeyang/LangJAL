@@ -13,6 +13,11 @@ import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 public class InstructionEvaluatorInstanceOf extends AbstractInstructionEvaluator<JALParser.JvmInsInstanceofContext>
 {
+    public InstructionEvaluatorInstanceOf()
+    {
+        super(EOpcodes.INSTANCEOF);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsInstanceofContext ctxt)

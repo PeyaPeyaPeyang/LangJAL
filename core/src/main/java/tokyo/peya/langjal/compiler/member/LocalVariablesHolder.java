@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
@@ -487,5 +488,37 @@ public class LocalVariablesHolder
                           .filter(LocalVariableInfo::isParameter)
                           .sorted(Comparator.comparingInt(LocalVariableInfo::index))
                           .toArray(LocalVariableInfo[]::new);
+    }
+
+    public void importLocalVariable(@NotNull LocalVariableNode node)
+    {
+        LabelNode startLabel = node.start;
+        LabelNode endLabel = node.end;
+
+        // ラベルノードからラベル情報を取得
+        LabelInfo startInfo = null;
+        LabelInfo endInfo = null;
+        if (startLabel != null)
+            startInfo = this.labelsHolder.getLabelByNode(startLabel);
+        if (endLabel != null)
+            endInfo = this.labelsHolder.getLabelByNode(endLabel);
+
+        // フォールバック
+        if (startInfo == null)
+            startInfo = this.labelsHolder.getGlobalStart();  // 開始ラベルがない場合はグローバル開始ラベルを使用
+        if (endInfo == null)
+            endInfo = this.labelsHolder.getGlobalEnd();  // 終了ラベルがない場合はグローバル終了ラベルを使用
+
+        String name = node.name;
+        TypeDescriptor type = TypeDescriptor.parse(node.desc);
+        int index = node.index;
+
+        this.locals.add(new LocalVariableInfo(
+                name,
+                type,
+                startInfo,
+                endInfo,
+                index
+        ));
     }
 }

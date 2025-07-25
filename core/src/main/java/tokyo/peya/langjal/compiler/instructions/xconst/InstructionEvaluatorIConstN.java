@@ -13,6 +13,12 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorIConstN extends AbstractInstructionEvaluator<JALParser.JvmInsIconstNContext>
 {
+    public InstructionEvaluatorIConstN()
+    {
+        super(EOpcodes.ICONST_0, EOpcodes.ICONST_1, EOpcodes.ICONST_2, EOpcodes.ICONST_3,
+              EOpcodes.ICONST_4, EOpcodes.ICONST_5);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsIconstNContext ctxt)

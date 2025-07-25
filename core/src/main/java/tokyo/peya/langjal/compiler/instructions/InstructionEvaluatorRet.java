@@ -13,6 +13,11 @@ import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
 
 public class InstructionEvaluatorRet extends AbstractInstructionEvaluator<JALParser.JvmInsRetContext>
 {
+    public InstructionEvaluatorRet()
+    {
+        super(EOpcodes.RET);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsRetContext ctxt)

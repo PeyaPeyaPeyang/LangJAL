@@ -12,6 +12,11 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 
 public class InstructionEvaluatorGoto extends AbstractInstructionEvaluator<JALParser.JvmInsGotoContext>
 {
+    public InstructionEvaluatorGoto()
+    {
+        super(EOpcodes.GOTO);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsGotoContext ctxt)

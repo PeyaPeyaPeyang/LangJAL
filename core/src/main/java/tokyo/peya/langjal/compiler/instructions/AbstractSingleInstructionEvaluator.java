@@ -2,6 +2,8 @@ package tokyo.peya.langjal.compiler.instructions;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.InsnNode;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
@@ -22,6 +24,7 @@ public abstract class AbstractSingleInstructionEvaluator<T extends ParserRuleCon
      */
     public AbstractSingleInstructionEvaluator(int opcode)
     {
+        super(opcode);
         this.opcode = opcode;
     }
 

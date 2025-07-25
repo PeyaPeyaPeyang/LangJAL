@@ -105,6 +105,7 @@ public class ClassReferenceType implements Type
      */
     public static ClassReferenceType parse(@NotNull String typeName)
     {
+        // 構文糖衣
         if (typeName.startsWith("L"))
             typeName = typeName.substring(1);
         if (typeName.endsWith(";"))

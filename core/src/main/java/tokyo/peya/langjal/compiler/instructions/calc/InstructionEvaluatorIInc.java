@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
@@ -14,6 +15,11 @@ import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 public class InstructionEvaluatorIInc extends AbstractInstructionEvaluator<JALParser.JvmInsIincContext>
 {
+    public InstructionEvaluatorIInc()
+    {
+        super(EOpcodes.IINC);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsIincContext ctxt)

@@ -14,6 +14,11 @@ import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 public class InstructionEvaluatorSiPush extends AbstractInstructionEvaluator<JALParser.JvmInsSipushContext>
 {
+    public InstructionEvaluatorSiPush()
+    {
+        super(EOpcodes.SIPUSH);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsSipushContext ctxt)

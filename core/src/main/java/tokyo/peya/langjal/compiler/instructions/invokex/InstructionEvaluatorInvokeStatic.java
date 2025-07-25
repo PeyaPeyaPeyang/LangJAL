@@ -11,6 +11,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorInvokeStatic extends AbstractInstructionEvaluator<JALParser.JvmInsInvokestaticContext>
 {
+    public InstructionEvaluatorInvokeStatic()
+    {
+        super(EOpcodes.INVOKESTATIC);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsInvokestaticContext ctxt)

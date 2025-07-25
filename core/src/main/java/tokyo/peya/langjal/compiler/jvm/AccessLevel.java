@@ -61,4 +61,21 @@ public enum AccessLevel
             default -> throw new IllegalArgumentException("Unknown access level: " + name);
         };
     }
+
+    /**
+     * Returns the AccessLevel corresponding to the given JVM access flags.
+     * @param access The JVM access flags to check.
+     * @return The AccessLevel corresponding to the flags.
+     */
+    public static AccessLevel fromAccess(int access)
+    {
+        if ((access & EOpcodes.ACC_PUBLIC) != 0)
+            return PUBLIC;
+        else if ((access & EOpcodes.ACC_PROTECTED) != 0)
+            return PROTECTED;
+        else if ((access & EOpcodes.ACC_PRIVATE) != 0)
+            return PRIVATE;
+
+        return PACKAGE_PRIVATE;
+    }
 }

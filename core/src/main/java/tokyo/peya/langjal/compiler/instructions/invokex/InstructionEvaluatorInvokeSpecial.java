@@ -22,6 +22,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 public class InstructionEvaluatorInvokeSpecial
         extends AbstractInstructionEvaluator<JALParser.JvmInsInvokespecialContext>
 {
+    public InstructionEvaluatorInvokeSpecial()
+    {
+        super(EOpcodes.INVOKESPECIAL);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsInvokespecialContext ctxt)

@@ -15,6 +15,11 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 
 public class InstructionEvaluatorIfOP extends AbstractInstructionEvaluator<JALParser.JvmInsIfOPContext>
 {
+    public InstructionEvaluatorIfOP()
+    {
+        super(EOpcodes.IFEQ, EOpcodes.IFNE, EOpcodes.IFLT, EOpcodes.IFGE, EOpcodes.IFGT, EOpcodes.IFLE);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsIfOPContext ctxt)

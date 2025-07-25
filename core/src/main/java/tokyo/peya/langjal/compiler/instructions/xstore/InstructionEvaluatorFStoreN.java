@@ -14,6 +14,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorFStoreN extends AbstractInstructionEvaluator<JALParser.JvmInsFstoreNContext>
 {
+    public InstructionEvaluatorFStoreN()
+    {
+        super(EOpcodes.FSTORE_0, EOpcodes.FSTORE_1, EOpcodes.FSTORE_2, EOpcodes.FSTORE_3);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsFstoreNContext ctxt)

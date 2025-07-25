@@ -18,13 +18,13 @@ import java.util.List;
 /**
  * Manages labels within a method, including registration, resolution, and scope checks.
  * Provides access to global start/end labels and supports label-based instruction grouping.
+ * <p>
+ * Methods managed by this holder have a global start label (<code>MBEGIN</code>) and a global end label (<code>MEND</code>).
+ * When a method explicitly defines a label as its start, it will be registered as the global start label,
+ * replacing the default <code>MBEGIN</code>.
  */
 public class LabelsHolder
 {
-    /**
-     * The method compiler that owns this label holder.
-     */
-    private final JALMethodCompiler methodEvaluator;
     /**
      * List of all labels registered in this holder.
      */
@@ -49,14 +49,10 @@ public class LabelsHolder
     private LabelInfo currentLabel; // 現在解析中の最後のラベル
 
     /**
-     * Constructs a LabelsHolder for the given method compiler.
-     *
-     * @param methodEvaluator The owning method compiler.
+     * Creates a new LabelsHolder with default global start and end labels.
      */
-    public LabelsHolder(@NotNull JALMethodCompiler methodEvaluator)
+    public LabelsHolder()
     {
-        this.methodEvaluator = methodEvaluator;
-
         this.labels = new ArrayList<>();
 
         this.globalStart = this.currentLabel = new LabelInfo("MBEGIN", new Label(), 0);
@@ -147,9 +143,31 @@ public class LabelsHolder
         return labelInfo;
     }
 
-    private int currentInstructionIndex()
+    /**
+     * Imports an ASM label node and registers it in the method.
+     * This method is used to convert ASM's LabelNode into a LabelInfo
+     * and register it in the LabelsHolder.
+     * <p>
+     * Each label is associated with a random-generated name like <code>L123456</code> which is identifiable and unique within the method.
+     * @param asmLabelNode The ASM label node to import.
+     * @param instructionIndex The instruction index where the label is defined.
+     * @return The registered LabelInfo.
+     */
+    public LabelInfo importASMLabel(@NotNull LabelNode asmLabelNode, int instructionIndex)
     {
-        return this.methodEvaluator.getInstructions().getSize();
+        // ASMのラベルノードからラベル情報を登録
+        LabelInfo existingLabel = this.getLabelByNode(asmLabelNode);
+        if (existingLabel != null)
+            throw new IllegalStateException("Label '" + asmLabelNode.getLabel() + "' is already defined in the method.");
+
+        // 新しいラベルを登録
+        String labelName = asmLabelNode.getLabel().toString();  // ラベル名を取得
+        Label newLabel = asmLabelNode.getLabel();
+        LabelInfo labelInfo = new LabelInfo(labelName, newLabel, instructionIndex);
+        this.labels.add(labelInfo);
+        this.labels.sort(Comparator.comparingInt(LabelInfo::instructionIndex));
+
+        return labelInfo;  // 登録したラベル情報を返す
     }
 
     /**
@@ -224,9 +242,17 @@ public class LabelsHolder
     @Nullable
     public LabelInfo getLabelByNode(@NotNull LabelNode targetNode)
     {
+        Label targetLabel = targetNode.getLabel();
+
         for (LabelInfo label : this.labels)
-            if (label.node().equals(targetNode))
-                return label;  // ラベルが見つかったら返す
+        {
+            LabelNode node = label.node();
+            Label asmLabel = label.label();
+            if (node.getLabel() == targetLabel
+                    || asmLabel == targetLabel
+                    || targetLabel.toString().equals(node.getLabel().toString()))
+                return label;  // ラベルノードが一致するものを返す
+        }
 
         return null;  // 見つからなかった場合は null を返す
     }

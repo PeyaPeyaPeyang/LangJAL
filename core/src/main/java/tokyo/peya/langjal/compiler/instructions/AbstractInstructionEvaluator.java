@@ -4,8 +4,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.InsnNode;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.InternalCompileErrorException;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
@@ -20,6 +20,27 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
  */
 public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
 {
+    private final int[] evaluatableOpcodes;
+
+    /**
+     * Constructs an evaluator with the specified opcodes.
+     *
+     * @param evaluatableOpcodes The opcodes for the instruction.
+     */
+    public AbstractInstructionEvaluator(int... evaluatableOpcodes)
+    {
+        this.evaluatableOpcodes = evaluatableOpcodes;
+    }
+
+    /**
+     * Returns the opcodes that this evaluator can handle.
+     * @return An array of opcodes that this evaluator can handle.
+     */
+    public int[] getEvaluatableOpcodes()
+    {
+        return this.evaluatableOpcodes;
+    }
+
     /**
      * Evaluates the instruction using the given compiler and context.
      *
@@ -46,6 +67,7 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
      */
     @Nullable
     protected abstract T map(@NotNull JALParser.InstructionContext instruction);
+
 
     /**
      * Evaluates the instruction using the given compiler and instruction context.

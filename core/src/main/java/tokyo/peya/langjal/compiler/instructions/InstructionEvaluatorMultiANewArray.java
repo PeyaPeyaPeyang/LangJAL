@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
@@ -14,6 +15,11 @@ import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 public class InstructionEvaluatorMultiANewArray
         extends AbstractInstructionEvaluator<JALParser.JvmInsMultianewarrayContext>
 {
+    public InstructionEvaluatorMultiANewArray()
+    {
+        super(EOpcodes.MULTIANEWARRAY);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsMultianewarrayContext ctxt)

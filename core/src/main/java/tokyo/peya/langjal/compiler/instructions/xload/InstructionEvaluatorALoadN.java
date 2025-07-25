@@ -14,6 +14,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorALoadN extends AbstractInstructionEvaluator<JALParser.JvmInsAloadNContext>
 {
+    public InstructionEvaluatorALoadN()
+    {
+        super(EOpcodes.ALOAD_0, EOpcodes.ALOAD_1, EOpcodes.ALOAD_2, EOpcodes.ALOAD_3);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsAloadNContext ctxt)

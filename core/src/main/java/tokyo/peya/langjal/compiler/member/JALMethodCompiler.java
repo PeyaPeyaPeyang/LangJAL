@@ -78,8 +78,8 @@ public class JALMethodCompiler
         this.compileFlags = compileFlags;
         this.method = new MethodNode();
 
-        this.labels = new LabelsHolder(this);
-        this.instructions = new InstructionsHolder(cn, this.method, this.labels, compileFlags);
+        this.labels = new LabelsHolder();
+        this.instructions = new InstructionsHolder(cn, this.method, this.labels);
         this.locals = new LocalVariablesHolder(this.context, this.labels);
         this.tryCatchDirectives = new TryCatchDirectivesHolder(this.context, this.labels);
     }
@@ -187,7 +187,7 @@ public class JALMethodCompiler
 
     private void finaliseMethod()
     {
-        this.instructions.finaliseInstructions();
+        this.instructions.finaliseInstructions(this.compileFlags);
         this.tryCatchDirectives.finaliseTryCatchDirectives(this.method);
         this.labels.finalise(this.method);
         this.locals.evaluateLocals(this.method);
@@ -277,7 +277,7 @@ public class JALMethodCompiler
                     "Try-catch directive must have at least one catch or finally block.",
                     entry
             );
-        // finally は, catcHDirective 内に指定される場合がある
+        // finally は, catchDirective 内に指定される場合がある
         if (finallyDirective == null)
             finallyDirective = catchDirective.finallyDirective();
 

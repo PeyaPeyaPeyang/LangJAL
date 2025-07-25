@@ -16,6 +16,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<JALParser.JvmInsNewarrayContext>
 {
+    public InstructionEvaluatorNewArray()
+    {
+        super(EOpcodes.NEWARRAY);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsNewarrayContext ctxt)

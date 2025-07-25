@@ -10,6 +10,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorLDCW extends AbstractInstructionEvaluator<JALParser.JvmInsLdcWContext>
 {
+    public InstructionEvaluatorLDCW()
+    {
+        super(InstructionEvaluationHelperLDC.LDC_W);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsLdcWContext ctxt)

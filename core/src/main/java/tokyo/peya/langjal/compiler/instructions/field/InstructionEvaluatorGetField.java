@@ -13,6 +13,11 @@ import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 
 public class InstructionEvaluatorGetField extends AbstractInstructionEvaluator<JALParser.JvmInsGetfieldContext>
 {
+    public InstructionEvaluatorGetField()
+    {
+        super(EOpcodes.GETFIELD);
+    }
+
     @Override
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsGetfieldContext ctxt)
