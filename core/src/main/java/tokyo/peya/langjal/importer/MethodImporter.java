@@ -80,6 +80,8 @@ public class MethodImporter
                 labels,
                 locals,
                 tryCatchDirectives,
+                instructions,
+                this.ownerClass,
                 asmMethod
         );
     }
