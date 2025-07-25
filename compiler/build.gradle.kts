@@ -30,7 +30,6 @@ tasks.test {
 }
 
 tasks.jar {
-    archiveFileName.set("jalc-original.jar")
     manifest {
         attributes(
             "Main-Class" to "tokyo.peya.langjal.cli.Main",
