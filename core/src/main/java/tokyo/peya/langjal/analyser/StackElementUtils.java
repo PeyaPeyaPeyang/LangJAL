@@ -333,7 +333,10 @@ public class StackElementUtils
 
         do
         {
-            class1 = class1.getSuperclass();
+            Class<?> newClass1 = class1.getSuperclass();
+            if (newClass1 == null)
+                break;  // Object まで到達したらループを抜ける
+            class1 = newClass1;  // スーパークラスに移動
         }
         while (class1.isAssignableFrom(class2));
 
