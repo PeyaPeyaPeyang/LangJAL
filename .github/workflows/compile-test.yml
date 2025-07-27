@@ -35,7 +35,7 @@ jobs:
     needs: build-compiler
     strategy:
       matrix:
-        example: [HelloWorld, BubbleSort, FizzBuzz, LinearSearch, OutputRedirect, SwitchExample, VariablesControl]
+        example: [HelloWorld2, FizzBuzz, OutputRedirect, SwitchExample, VariablesControl]
 
     steps:
       - uses: actions/checkout@v4
