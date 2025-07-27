@@ -6,7 +6,7 @@ import tokyo.peya.langjal.analyser.stack.StackElementType;
  * Represents a type in the compiler's JVM type system.
  * Implementations define specific type behaviors and properties.
  */
-public interface Type
+public sealed interface Type permits PrimitiveTypes, ClassReferenceType
 {
     /**
      * Returns whether this type is a primitive type.

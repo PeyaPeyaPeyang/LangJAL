@@ -1,0 +1,16 @@
+public class HelloWorld2 (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+    // Print "Hello, World!"
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    astore_1 [Ljava/io/PrintStream;->out]  // Store the PrintStream in the local variable #1 and name it 'out'
+    aload out // Load the PrintStream by its name 'out' (is local variable #1)
+    ldc "Hello, World!"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    // Return from main
+    return
+  }
+}

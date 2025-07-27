@@ -332,7 +332,7 @@ tryCatchDirectiveEntry : catchDirective | finallyDirective;
 catchDirective : COMMA FULL_QUALIFIED_CLASS_NAME COLON labelName finallyDirective?;
 finallyDirective : REF labelName;
 
-localInstigation: LBK (TIL labelName)? REF ID RBK;
+localInstigation: LBK typeDescriptor? (TIL labelName)? REF ID RBK;
 
 jvmInsArgScalarType : STRING | NUMBER | BOOLEAN;
 

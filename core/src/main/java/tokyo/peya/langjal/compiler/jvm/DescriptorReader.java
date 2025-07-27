@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.compiler.jvm;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An utility class for reading and parsing JVM descriptors.
@@ -28,7 +29,7 @@ public class DescriptorReader
     private final String source;
     private int pos;
 
-    private DescriptorReader(String source)
+    private DescriptorReader(@NotNull String source)
     {
         this.source = source;
     }
@@ -125,8 +126,8 @@ public class DescriptorReader
      * @param source The descriptor string to read.
      * @return A new DescriptorReader instance for the given string.
      */
-    public static DescriptorReader fromString(String source)
+    public static DescriptorReader fromString(@NotNull String source)
     {
-        return new DescriptorReader(source);
+        return new DescriptorReader(source.trim());
     }
 }

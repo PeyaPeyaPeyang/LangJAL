@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.VarInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
+import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
@@ -50,38 +51,53 @@ public class InstructionEvaluateHelperXStore
     public static @NotNull EvaluatedInstruction evaluateN(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                           int opcode, int idx,
                                                           @NotNull JALMethodCompiler compiler,
-                                                          @NotNull String type,
+                                                          @NotNull String defaultType,
                                                           @Nullable JALParser.LocalInstigationContext instigation)
     {
         LocalVariableInfo registeredLocal = compiler.getLocals().resolveSafe(idx);
         if (registeredLocal == null)
-            registeredLocal = registerNewLocal(compiler, idx, type, instigation);
+            registeredLocal = registerNewLocal(compiler, idx, defaultType, instigation);
 
         // 0~3 が確定だから， wide は不要
         VarInsnNode insn = new VarInsnNode(opcode, registeredLocal.index());
         return EvaluatedInstruction.of(evaluator, insn, 1);  // 大体で astore だが，本来は astore_X などカテ１
     }
 
-    private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler evaluator,
+    private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler compiler,
                                                       int idx,
-                                                      @NotNull String typeName,
+                                                      @NotNull String defaultType,
                                                       @Nullable JALParser.LocalInstigationContext instigation)
     {
-        String localName = pickLocalName(evaluator, null, idx, instigation);
-        LabelInfo endLabel = resolveEndLabel(evaluator, instigation);
-        TypeDescriptor localType = TypeDescriptor.parse(typeName);
+        String localName = pickLocalName(compiler, null, idx, instigation);
+        LabelInfo endLabel = resolveEndLabel(compiler, instigation);
+        TypeDescriptor localType = getType(defaultType, instigation);
+        return compiler.getLocals().register(idx, localType, localName, endLabel);
+    }
 
-        return evaluator.getLocals().register(idx, localType, localName, endLabel);
+    private static TypeDescriptor getType(@NotNull String defaultType, @Nullable JALParser.LocalInstigationContext inst)
+    {
+        if (inst == null)
+            return TypeDescriptor.parse(defaultType);
+
+        JALParser.TypeDescriptorContext typeNode = inst.typeDescriptor();
+        if (typeNode != null)
+        {
+            String typeText = typeNode.getText();
+            return TypeDescriptor.parse(typeText);
+        }
+
+        // インスティゲーションがあっても型指定がない場合はデフォルト型を使用
+        return TypeDescriptor.parse(defaultType);
     }
 
     private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler evaluator,
                                                       @NotNull JALParser.JvmInsArgLocalRefContext localRef,
-                                                      @NotNull String type,
+                                                      @NotNull String defaultType,
                                                       @Nullable JALParser.LocalInstigationContext instigation)
     {
         String localName = pickLocalName(evaluator, localRef, 0, instigation);
         LabelInfo endLabel = resolveEndLabel(evaluator, instigation);
-        TypeDescriptor localType = TypeDescriptor.parse(type);
+        TypeDescriptor localType = getType(defaultType, instigation);
 
         return evaluator.getLocals().register(localRef, localType, localName, endLabel);
     }

@@ -6,6 +6,7 @@ import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
+import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
@@ -28,7 +29,7 @@ public class InstructionEvaluatorAStore extends AbstractInstructionEvaluator<JAL
                 compiler,
                 ctxt.jvmInsArgLocalRef(),
                 ctxt.localInstigation(),
-                "Ljava/lang/Object;",
+                ClassReferenceType.OBJECT.toString(),
                 "astore",
                 ctxt.INSN_WIDE()
         );

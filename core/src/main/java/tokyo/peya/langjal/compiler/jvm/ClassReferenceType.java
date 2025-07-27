@@ -9,7 +9,7 @@ import java.util.Objects;
  * Represents a reference type for a class in the JVM type system.
  * Stores package and class name information and provides utility methods for descriptors and names.
  */
-public class ClassReferenceType implements Type
+public final class ClassReferenceType implements Type
 {
     /**
      * Reference to the java/lang/Object type.
@@ -141,6 +141,11 @@ public class ClassReferenceType implements Type
                 && Objects.equals(this.className, that.className);
     }
 
+    public TypeDescriptor asTypeDescriptor()
+    {
+        return new TypeDescriptor(this);
+    }
+
     /**
      * Returns the hash code for this class reference type.
      *
@@ -150,5 +155,11 @@ public class ClassReferenceType implements Type
     public int hashCode()
     {
         return Objects.hash(this.packageName, this.className);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "L" + (this.packageName.isEmpty() ? "" : this.packageName + "/") + this.className + ";";
     }
 }
