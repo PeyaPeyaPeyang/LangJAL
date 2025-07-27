@@ -5,9 +5,10 @@ public class SwitchExample (
   public static main([Ljava/lang/String;)V {
   // int value = 2;
     iconst_2
-    istore_1
+    istore_1 [->value]
 
-  Switch:
+  // Switch on linear value with a tableswitch instruction
+  TableSwitch:
     iload_1
     tableswitch 1 {
       Case1,
@@ -19,30 +20,60 @@ public class SwitchExample (
     getstatic java/lang/System->out:Ljava/io/PrintStream;
     ldc "One"
     invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
-    goto NextCase
+    goto LookupSwitchStart
 
   Case2:
     getstatic java/lang/System->out:Ljava/io/PrintStream;
     ldc "Two"
     invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
-    goto NextCase
+    goto LookupSwitchStart
 
   Case3:
     getstatic java/lang/System->out:Ljava/io/PrintStream;
     ldc "Three"
     invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
-    goto NextCase
+    goto LookupSwitchStart
 
   Default:
     getstatic java/lang/System->out:Ljava/io/PrintStream;
     ldc "Other"
     invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
-    goto End
 
-  NextCase:
-    iconst_5
-    istore_1
-    goto Switch
+  LookupSwitchStart:
+
+  // int value = 11; // Change value to 11 for the lookup switch example
+  bipush 11
+  istore_1
+
+  // Switch on discriminated value with a lookupswitch instruction
+  LookupSwitch:
+    iload_1
+    lookupswitch {
+      1: LCase1,
+      3: LCase3,
+      11: LCase11,
+      default: LDefault
+    }
+
+  LCase1:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "One (lookup)"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto End
+  LCase3:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Three (lookup)"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto End
+  LCase11:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Eleven (lookup)"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto End
+  LDefault:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "Other (lookup)"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
 
   End:
     return

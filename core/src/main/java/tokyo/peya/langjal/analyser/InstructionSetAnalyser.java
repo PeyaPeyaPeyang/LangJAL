@@ -292,6 +292,9 @@ public class InstructionSetAnalyser
             // ルックアップスイッチの場合は，すべてのターゲットラベルを登録
             for (LabelNode label : lookupSwitchNode.labels)
                 propagations.add(this.createPropagations(label, info));
+            // デフォルトラベルも登録
+            LabelNode defaultLabelNode = lookupSwitchNode.dflt;
+            propagations.add(this.createPropagations(defaultLabelNode, info));
         }
 
         return propagations;
