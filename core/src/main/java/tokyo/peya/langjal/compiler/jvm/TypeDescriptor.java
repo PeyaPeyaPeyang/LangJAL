@@ -132,6 +132,19 @@ public class TypeDescriptor
     }
 
     /**
+     * Returns a stack element capsule for this type descriptor as non-array object reference.
+     * @param producer The instruction info that produces the element.
+     * @return The corresponding StackElement capsule.
+     */
+    public StackElement atomicElement(@NotNull InstructionInfo producer)
+    {
+        if (this.baseType.isPrimitive())
+            return new PrimitiveElement(producer, this.baseType.getStackElementType());
+        else
+            return new ObjectElement(producer, TypeDescriptor.parse(this.baseType.getDescriptor()));
+    }
+
+    /**
      * Checks equality with another object.
      * @param o The object to compare.
      * @return True if equal, false otherwise.

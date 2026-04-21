@@ -1,6 +1,8 @@
 package tokyo.peya.langjal.compiler.instructions.xaload;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.analyser.stack.ObjectElement;
+import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
@@ -19,10 +21,11 @@ public class InstructionEvaluatorAALoad extends AbstractSingleInstructionEvaluat
     @Override
     public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
     {
+        StackElementCapsule popObject = new StackElementCapsule(instruction, elm -> ((ObjectElement) elm).content().atomicElement(instruction));
         return FrameDifferenceInfo.builder(instruction)
                                   .popPrimitive(StackElementType.INTEGER)
-                                  .popObjectRef(TypeDescriptor.parse("[Ljava/lang/Object;"))
-                                  .pushObjectRef()
+                                  .popToCapsule(popObject)
+                                  .pushFromCapsule(popObject)
                                   .build();
     }
 
