@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.analyser;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
@@ -21,8 +22,10 @@ import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Analyses a JVM method's instructions, stack frames, and control flow for bytecode verification.
@@ -48,7 +51,7 @@ public class MethodAnalyser
 
     private final List<InstructionSetAnalyser> analysers;
     private final List<FramePropagation> pendingPropagations;
-    private final List<FramePropagation> confirmedPropagations;
+    private final Map<FramePropagation, InstructionSetAnalysisResult> confirmedAnalysisResults;
 
     private int maxStackSize;
     private int maxLocalSize;
@@ -77,7 +80,7 @@ public class MethodAnalyser
         );
         this.analysers = new ArrayList<>();
         this.pendingPropagations = new ArrayList<>();
-        this.confirmedPropagations = new ArrayList<>();
+        this.confirmedAnalysisResults = new HashMap<>();
     }
 
     /**
@@ -106,7 +109,8 @@ public class MethodAnalyser
         // 分析が完了したら，結果を返答
         return new MethodAnalysisResult(
                 this.method,
-                this.confirmedPropagations.toArray(new FramePropagation[0]),
+                this.confirmedAnalysisResults.keySet().toArray(new FramePropagation[0]),
+                this.confirmedAnalysisResults.values().toArray(new InstructionSetAnalysisResult[0]),
                 this.maxStackSize,
                 this.maxLocalSize
         );
@@ -162,7 +166,7 @@ public class MethodAnalyser
                 continue;
 
             InstructionSetAnalysisResult analysisResult = analyser.analyse(propagation);
-            this.confirmedPropagations.add(propagation);  // 現在の伝播を処理済み
+            this.confirmedAnalysisResults.put(propagation, analysisResult);  // 分析結果を確定
             this.updateMaxes(analysisResult);
             for (FramePropagation nextPropagation : analysisResult.framePropagations())
             {
@@ -177,7 +181,7 @@ public class MethodAnalyser
 
     private boolean checkConfirmedPropagation(@NotNull FramePropagation propagation)
     {
-        Iterator<FramePropagation> iterator = this.confirmedPropagations.iterator();
+        Iterator<FramePropagation> iterator = this.confirmedAnalysisResults.keySet().iterator();
         while (iterator.hasNext())
         {
             FramePropagation confirmed = iterator.next();
@@ -294,23 +298,32 @@ public class MethodAnalyser
             if (label == this.labels.getGlobalEnd())
                 continue;  // これはグローバル終了ラベルなのでスキップ
             List<InstructionInfo> instructions = this.instructions.getInstructions(label);
-            if (instructions.isEmpty())
-            {
+
+            InstructionSetAnalyser analyser = createAnalyser(this.context, this.labels, label, instructions);
+            if (analyser == null) {
                 this.context.postInfo(String.format(
-                        "No instructions found for label: %s in method: %s, skipping.",
-                        label.name(),
-                        this.method.name
+                        "No instructions found for label: %s, creating empty analyser.",
+                        label.name()
                 ));
                 continue;
             }
 
-            InstructionSetAnalyser analyser = new InstructionSetAnalyser(
-                    this.context,
-                    this.labels,
-                    label,
-                    instructions
-            );
             this.analysers.add(analyser);
         }
+    }
+
+    @Nullable
+    private static InstructionSetAnalyser createAnalyser(
+            @NotNull FileEvaluatingReporter context,
+            @NotNull LabelsHolder labels,
+            @NotNull LabelInfo label,
+            @NotNull List<InstructionInfo> instructions)
+    {
+        if (instructions.isEmpty())
+        {
+            return null;
+        }
+
+        return new InstructionSetAnalyser(context, labels, label, instructions);
     }
 }

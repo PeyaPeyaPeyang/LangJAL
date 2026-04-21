@@ -20,6 +20,7 @@ import org.objectweb.asm.tree.MethodNode;
  *
  * @param node       The ASM MethodNode for the method.
  * @param propagations The frame propagations (control flow transitions).
+ * @param instructionAnalysisResults The analysis results for each instruction set in the method.
  * @param maxStack   The maximum stack size required.
  * @param maxLocals  The maximum local variable size required.
  */
@@ -28,6 +29,8 @@ public record MethodAnalysisResult(
         MethodNode node,
         @NotNull
         FramePropagation[] propagations,
+        @NotNull
+        InstructionSetAnalysisResult[] instructionAnalysisResults,
         int maxStack,
         int maxLocals
 )
@@ -40,6 +43,6 @@ public record MethodAnalysisResult(
     @NotNull
     public static MethodAnalysisResult empty(@NotNull MethodNode node)
     {
-        return new MethodAnalysisResult(node, new FramePropagation[0], 0, 0);
+        return new MethodAnalysisResult(node, new FramePropagation[0], new InstructionSetAnalysisResult[0], 0, 0);
     }
 }
