@@ -50,12 +50,15 @@ public record StackFrameMapEntry(
      */
     public FrameNode toASMFrameNode()
     {
+        Object[] locals = toASMStackElements(this.changedLocals);
+        Object[] stack = toASMStackElements(this.changedStack);
+
         return new FrameNode(
                 this.type.getOpcode(),
-                this.changedLocals.length,
-                toASMStackElements(this.changedLocals),
-                this.changedStack.length,
-                toASMStackElements(this.changedStack)
+                locals.length,
+                locals,
+                stack.length,
+                stack
         );
     }
 
