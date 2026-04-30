@@ -30,8 +30,7 @@ public class InstructionEvaluatorPutStatic extends AbstractInstructionEvaluator<
     {
         FieldInsnNode fieldInsnNode = (FieldInsnNode) instruction.insn();
         return FrameDifferenceInfo.builder(instruction)
-                                  .popObjectRef(TypeDescriptor.className(fieldInsnNode.owner))
-                                  .pushObjectRef(TypeDescriptor.className(fieldInsnNode.desc))
+                                  .popUnknownType(TypeDescriptor.parse(fieldInsnNode.desc))
                                   .build();
     }
 

@@ -174,6 +174,36 @@ public class FrameDifferenceInfo
         }
 
         /**
+         * Pushes an unknown type onto the stack, determining the appropriate stack element based on the type descriptor.
+         *
+         * @param reference The type descriptor.
+         * @return This builder.
+         */
+        public Builder pushUnknownType(@NotNull TypeDescriptor reference){
+            if (reference.isArray())
+                return this.pushObjectRef(reference);
+            else if (reference.getBaseType().isPrimitive())
+                return this.pushPrimitive(reference.getBaseType().getStackElementType());
+            else
+                return this.pushObjectRef(reference);
+        }
+
+        /**
+         * Pops an unknown type from the stack, determining the appropriate stack element based on the type descriptor.
+         *
+         * @param reference The type descriptor.
+         * @return This builder.
+         */
+        public Builder popUnknownType(@NotNull TypeDescriptor reference){
+            if (reference.isArray())
+                return this.popObjectRef(reference);
+            else if (reference.getBaseType().isPrimitive())
+                return this.popPrimitive(reference.getBaseType().getStackElementType());
+            else
+                return this.popObjectRef(reference);
+        }
+
+        /**
          * Pushes an uninitialized value onto the stack.
          *
          * @return This builder.
