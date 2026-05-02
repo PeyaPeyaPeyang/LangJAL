@@ -3,7 +3,6 @@ package tokyo.peya.langjal.compiler.jvm;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,9 +26,9 @@ public class AccessAttributeSet
      *
      * @param attributes The collection of access attributes.
      */
-    public AccessAttributeSet(Collection<AccessAttribute> attributes)
+    public AccessAttributeSet(AccessAttribute... attributes)
     {
-        this.attributes = attributes.toArray(new AccessAttribute[0]);
+        this.attributes = attributes;
     }
 
     /**
@@ -42,6 +41,11 @@ public class AccessAttributeSet
         this.attributes = new AccessAttribute[attributeNames.length];
         for (int i = 0; i < attributeNames.length; i++)
             this.attributes[i] = AccessAttribute.valueOf(attributeNames[i].toUpperCase());
+    }
+
+    private AccessAttributeSet()
+    {
+        this.attributes = new AccessAttribute[0];
     }
 
     /**
@@ -131,6 +135,6 @@ public class AccessAttributeSet
         if ((access & EOpcodes.ACC_MANDATED) != 0)  // 0x20000
             attributes.add(AccessAttribute.MANDATED);
 
-        return new AccessAttributeSet(attributes);
+        return new AccessAttributeSet(attributes.toArray(new AccessAttribute[0]));
     }
 }
