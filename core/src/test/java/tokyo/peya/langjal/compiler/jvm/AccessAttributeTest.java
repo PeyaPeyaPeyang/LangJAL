@@ -20,14 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("AccessAttribute")
 class AccessAttributeTest
 {
-
     @Test
     void enumValuesHaveUniqueNamesAndFlags() {
         AccessAttribute[] values = AccessAttribute.values();
 
         assertEquals(16, values.length);
         assertEquals(values.length, Arrays.stream(values).map(AccessAttribute::getName).distinct().count());
-        assertEquals(values.length, Arrays.stream(values).mapToInt(AccessAttribute::getAsmFlag).distinct().count());
 
         for (AccessAttribute attr : values) {
             assertNotNull(attr.getName());

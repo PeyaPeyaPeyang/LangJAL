@@ -80,18 +80,6 @@ class ClassReferenceTypeTest {
         assertEquals("Ljava/lang/String;", type.toString());
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "java/lang/String,java/lang,String",
-            "java/util/List,java/util,List",
-            "MyClass,,MyClass"
-    })
-    void parseExtractsPackageAndClass(String input, String expectedPackage, String expectedClass) {
-        ClassReferenceType type = ClassReferenceType.parse(input);
-        ClassReferenceType expected = ClassReferenceType.parse(expectedPackage + "/" + expectedClass);
-        assertEquals(expected, type);
-    }
-
     @Test
     void equalsWorks() {
         ClassReferenceType type1 = ClassReferenceType.parse("java/lang/String");

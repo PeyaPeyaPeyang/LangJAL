@@ -74,7 +74,7 @@ public final class ClassReferenceType implements Type
     @Override
     public String getDescriptor()
     {
-        return "L" + this.packageName + "/" + this.className + ";";
+        return "L" + (this.packageName.isEmpty() ? "" : this.packageName + "/") + this.className + ";";
     }
 
     /**

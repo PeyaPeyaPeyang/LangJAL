@@ -102,14 +102,15 @@ class PrimitiveTypesTest {
 
     @ParameterizedTest
     @CsvSource({
-            "BYTE,5",
-            "SHORT,6",
-            "INT,3",
-            "LONG,4",
-            "FLOAT,2",
-            "DOUBLE,1",
+            "BYTE,8",
+            "SHORT,9",
+            "INT,10",
+            "LONG,11",
+            "FLOAT,6",
+            "DOUBLE,7",
             "BOOLEAN,4",
-            "CHAR,5"
+            "CHAR,5",
+            "VOID,-1"
     })
     void fromASMTypeRecognizesAllTypes(String typeName, int asmType) {
         PrimitiveTypes type = PrimitiveTypes.valueOf(typeName);
@@ -119,7 +120,7 @@ class PrimitiveTypesTest {
     @Test
     void fromASMTypeReturnsNullForInvalid() {
         assertNull(PrimitiveTypes.fromASMType(999));
-        assertNull(PrimitiveTypes.fromASMType(-1));
+        assertNull(PrimitiveTypes.fromASMType(-999));
     }
 
     static Stream<PrimitiveTypes> allPrimitiveTypes() {

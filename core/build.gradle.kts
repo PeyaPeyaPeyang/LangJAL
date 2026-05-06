@@ -13,19 +13,19 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:6.0.3"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
     compileOnly("org.jetbrains:annotations:26.0.2")
-    annotationProcessor("org.jetbrains:annotations:26.0.2")
+    testCompileOnly("org.jetbrains:annotations:26.0.2")
 
     antlr("org.antlr:antlr4:4.13.2")
     implementation("org.antlr:antlr4-runtime:4.13.2")
-
     api("org.ow2.asm:asm:9.8")
     implementation("org.ow2.asm:asm-commons:9.8")
+
+    testImplementation(platform("org.junit:junit-bom:5.14.4"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 tasks.test {

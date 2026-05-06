@@ -311,9 +311,10 @@ public interface EOpcodes extends Opcodes
      */
     static String getName(int opcode)
     {
+        if (opcode < 0 || opcode >= INSTRUCTION_NAMES.length)
+            throw new IllegalArgumentException("Opcode out of range: " + opcode);
+
         String name = INSTRUCTION_NAMES[opcode];
-        if (name == null)
-            throw new IllegalArgumentException("Unknown opcode: " + opcode);
         return name.toLowerCase(Locale.ENGLISH);
     }
 
