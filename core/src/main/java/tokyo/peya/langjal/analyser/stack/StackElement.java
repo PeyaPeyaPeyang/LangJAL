@@ -8,7 +8,7 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
  */
 public sealed interface StackElement
         permits ObjectElement, PrimitiveElement, UninitializedElement,
-        UninitializedThisElement, NullElement, LocalStackElement, StackElementCapsule, TopElement, NopElement
+        UninitializedThisElement, NullElement, LocalStackElement, StackElementCapsule, TopElement
 {
     /**
      * Returns the instruction that produced this stack element.
