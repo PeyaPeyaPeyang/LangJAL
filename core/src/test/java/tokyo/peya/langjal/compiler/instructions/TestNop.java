@@ -4,7 +4,7 @@ import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-public class TestNop extends AbstractInstructionTestCase<JALParser.JvmInsNopContext, InstructionEvaluatorNop>
+public class TestNop extends AbstractInstructionTestCase.Same<JALParser.JvmInsNopContext, InstructionEvaluatorNop>
 {
     public TestNop()
     {
@@ -12,7 +12,7 @@ public class TestNop extends AbstractInstructionTestCase<JALParser.JvmInsNopCont
     }
 
     @Override
-    public String[] getValidInstructions()
+    public String[] getValidInstructionSyntaxes()
     {
         return new String[] {
                 "nop",

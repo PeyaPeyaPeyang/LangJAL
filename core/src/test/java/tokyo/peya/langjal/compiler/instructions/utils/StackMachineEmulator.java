@@ -37,9 +37,22 @@ public class StackMachineEmulator
         return new StackMachineEmulator();
     }
 
+    public static StackMachineEmulator create(StackValue... initialStack)
+    {
+        StackMachineEmulator emulator = new StackMachineEmulator();
+        emulator.push(initialStack);
+        return emulator;
+    }
+
     public StackMachineEmulator push(StackValue... value)
     {
-        Collections.addAll(this.initialStack, value);
+        for (StackValue v : value) {
+            this.initialStack.add(v);
+            if (v instanceof LongStackValue || v instanceof DoubleStackValue) {
+                // long と double はスタック上で2スロットを占有するので，もう1スロット分の Top を追加する。
+                this.initialStack.add(StackValues.top());
+            }
+        }
         return this;
     }
 
