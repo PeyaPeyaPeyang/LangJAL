@@ -1,7 +1,6 @@
 package tokyo.peya.langjal.compiler.member;
 
 import lombok.Getter;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -284,10 +283,10 @@ public class JALMethodCompiler
         TypeDescriptor exceptionType = null;
         if (catchDirective != null)
         {
-            TerminalNode exceptionTypeNode = catchDirective.FULL_QUALIFIED_CLASS_NAME();
-            if (exceptionTypeNode == null)
+            JALParser.FullQualifiedClassNameContext exceptionTypeName = catchDirective.fullQualifiedClassName();
+            if (exceptionTypeName == null)
                 throw new IllegalValueException("Catch directive must have an exception type.", entry);
-            exceptionType = TypeDescriptor.parse(exceptionTypeNode.getText());
+            exceptionType = TypeDescriptor.parse(exceptionTypeName.getText());
         }
 
         // 各ラベルを解決

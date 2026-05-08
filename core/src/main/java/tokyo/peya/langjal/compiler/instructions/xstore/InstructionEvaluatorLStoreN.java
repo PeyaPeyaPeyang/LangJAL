@@ -24,7 +24,7 @@ public class InstructionEvaluatorLStoreN extends AbstractInstructionEvaluator<JA
                                                      JALParser.@NotNull JvmInsLstoreNContext ctxt)
     {
 
-        JALParser.LocalInstigationContext ins = ctxt.localInstigation();
+        JALParser.LocalDeclarationContext ins = ctxt.localDeclaration();
         if (has(ctxt.INSN_LSTORE_0()))
             return InstructionEvaluateHelperXStore.evaluateN(this, EOpcodes.LSTORE, 0, compiler, "J", ins);
         else if (has(ctxt.INSN_LSTORE_1()))

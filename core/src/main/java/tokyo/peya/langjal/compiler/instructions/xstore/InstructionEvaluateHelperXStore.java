@@ -24,7 +24,7 @@ public class InstructionEvaluateHelperXStore
                                                          int opcode,
                                                          @NotNull JALMethodCompiler compiler,
                                                          @NotNull JALParser.JvmInsArgLocalRefContext localRef,
-                                                         @NotNull JALParser.LocalInstigationContext instigation,
+                                                         @NotNull JALParser.LocalDeclarationContext instigation,
                                                          @NotNull String type,
                                                          @NotNull String callerInsn,
                                                          @Nullable TerminalNode wide)
@@ -52,7 +52,7 @@ public class InstructionEvaluateHelperXStore
                                                           int opcode, int idx,
                                                           @NotNull JALMethodCompiler compiler,
                                                           @NotNull String defaultType,
-                                                          @Nullable JALParser.LocalInstigationContext instigation)
+                                                          @Nullable JALParser.LocalDeclarationContext instigation)
     {
         LocalVariableInfo registeredLocal = compiler.getLocals().resolveSafe(idx);
         if (registeredLocal == null)
@@ -66,7 +66,7 @@ public class InstructionEvaluateHelperXStore
     private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler compiler,
                                                       int idx,
                                                       @NotNull String defaultType,
-                                                      @Nullable JALParser.LocalInstigationContext instigation)
+                                                      @Nullable JALParser.LocalDeclarationContext instigation)
     {
         String localName = pickLocalName(compiler, null, idx, instigation);
         LabelInfo endLabel = resolveEndLabel(compiler, instigation);
@@ -74,7 +74,7 @@ public class InstructionEvaluateHelperXStore
         return compiler.getLocals().register(idx, localType, localName, endLabel);
     }
 
-    private static TypeDescriptor getType(@NotNull String defaultType, @Nullable JALParser.LocalInstigationContext inst)
+    private static TypeDescriptor getType(@NotNull String defaultType, @Nullable JALParser.LocalDeclarationContext inst)
     {
         if (inst == null)
             return TypeDescriptor.parse(defaultType);
@@ -93,7 +93,7 @@ public class InstructionEvaluateHelperXStore
     private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler evaluator,
                                                       @NotNull JALParser.JvmInsArgLocalRefContext localRef,
                                                       @NotNull String defaultType,
-                                                      @Nullable JALParser.LocalInstigationContext instigation)
+                                                      @Nullable JALParser.LocalDeclarationContext instigation)
     {
         String localName = pickLocalName(evaluator, localRef, 0, instigation);
         LabelInfo endLabel = resolveEndLabel(evaluator, instigation);
@@ -103,7 +103,7 @@ public class InstructionEvaluateHelperXStore
     }
 
     private static LabelInfo resolveEndLabel(@NotNull JALMethodCompiler evaluator,
-                                             @Nullable JALParser.LocalInstigationContext instigation)
+                                             @Nullable JALParser.LocalDeclarationContext instigation)
     {
         if (instigation == null)
             return null;
@@ -119,7 +119,7 @@ public class InstructionEvaluateHelperXStore
             @NotNull JALMethodCompiler evaluator,
             @Nullable JALParser.JvmInsArgLocalRefContext localRef,
             int idx,
-            @Nullable JALParser.LocalInstigationContext instigation
+            @Nullable JALParser.LocalDeclarationContext instigation
     )
     {
         String instigationName = null;

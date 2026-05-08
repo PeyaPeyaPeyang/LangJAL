@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ClassReferenceType")
 class ClassReferenceTypeTest {
@@ -65,7 +66,7 @@ class ClassReferenceTypeTest {
     })
     void parseRemovesSemicolon(String input) {
         ClassReferenceType type = ClassReferenceType.parse(input);
-        assertFalse(!type.getDescriptor().contains(";") || type.getDescriptor().endsWith(";"));
+        assertTrue(type.getDescriptor().contains(";") && type.getDescriptor().endsWith(";"));
     }
 
     @Test

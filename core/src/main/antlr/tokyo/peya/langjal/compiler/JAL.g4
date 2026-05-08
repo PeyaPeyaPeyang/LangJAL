@@ -1,9 +1,15 @@
 grammar JAL;
+
 options {
     language = Java;
 }
 
 @header {package tokyo.peya.langjal.compiler;}
+
+// ====================================================================
+// LEXER
+// ====================================================================
+
 
 KWD_CLASS: 'class';
 KWD_INTERFACE: 'interface';
@@ -243,122 +249,451 @@ INSN_SWAP: 'swap';
 INSN_TABLESWITCH: 'tableswitch';
 INSN_WIDE: 'wide';
 
-TYPE_DESC_BYTE: 'B';
-TYPE_DESC_CHAR: 'C';
-TYPE_DESC_DOUBLE: 'D';
-TYPE_DESC_FLOAT: 'F';
-TYPE_DESC_INT: 'I';
-TYPE_DESC_LONG: 'J';
-TYPE_DESC_SHORT: 'S';
-TYPE_DESC_VOID: 'V';
-TYPE_DESC_BOOLEAN: 'Z';
-TYPE_DESC_OBJECT: 'L' [a-zA-Z0-9_/$]+ ';';
+TYPE_DESC_BYTE    : 'B';
+TYPE_DESC_CHAR    : 'C';
+TYPE_DESC_DOUBLE  : 'D';
+TYPE_DESC_FLOAT   : 'F';
+TYPE_DESC_INT     : 'I';
+TYPE_DESC_LONG    : 'J';
+TYPE_DESC_SHORT   : 'S';
+TYPE_DESC_VOID    : 'V';
+TYPE_DESC_BOOLEAN : 'Z';
+TYPE_DESC_OBJECT
+ : 'L' ~[; \t\r\n(){}[\],:]+ ';'
+ ;
 
-SPACE: [ \t\r\n]+ -> channel(HIDDEN);
-NUMBER:   '-'? ( '0x' [0-9a-fA-F]+ [lL]? | [0-9]+ ('.' [0-9]+)? [fFdDlL]?);
-BOOLEAN: 'true' | 'false';
-ID: [a-zA-Z$_] [a-zA-Z0-9$_]*;
-STRING: '\'' ( ~['\\] | '\\' . )* '\'' | '"' ( ~["\\] | '\\' . )* '"' ;
-LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
-BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
+SEMI  : ';';
+COMMA : ',';
+COLON : ':';
+SLASH : '/';
+DOT   : '.';
+EQ    : '=';
+LP    : '(';
+RP    : ')';
+LBR   : '{';
+RBR   : '}';
+LBK   : '[';
+RBK   : ']';
+REF   : '->';
+TIL   : '~';
+PIPE  : '|';
 
-METHOD_DESCRIPTOR_ARG: LP LBK* (TYPE_DESC_BYTE | TYPE_DESC_CHAR | TYPE_DESC_DOUBLE | TYPE_DESC_FLOAT | TYPE_DESC_INT
-                                | TYPE_DESC_LONG | TYPE_DESC_SHORT | TYPE_DESC_VOID
-                                | TYPE_DESC_BOOLEAN | TYPE_DESC_OBJECT)* RP;
-FULL_QUALIFIED_CLASS_NAME: [a-zA-Z$_][a-zA-Z$0-9_]+ (SLASH FULL_QUALIFIED_CLASS_NAME)*;
+SPACE
+ : [ \t\r\n]+ -> channel(HIDDEN)
+ ;
 
-SEMI: ';';
-COMMA: ',';
-COLON: ':';
-SLASH: '/';
-DOT: '.';
-EQ: '=';
-LP: '(';
-RP: ')';
-LBR: '{';
-RBR: '}';
-LBK: '[';
-RBK: ']';
-REF: '->';
-TIL: '~';
+NUMBER
+ : '-'?
+   (
+      '0x' [0-9a-fA-F]+
+      |
+      [0-9]+
+      (
+         '.' [0-9]+
+      )?
+      (
+         [eE] [+-]? [0-9]+
+      )?
+   )
+   [fFdDlL]?
+ ;
 
-root : classDefinition? EOF ;
+BOOLEAN
+ : 'true'
+ | 'false'
+ ;
 
-// -------------------------------------------------------------------- //
+ID
+ : [a-zA-Z$_] [a-zA-Z0-9$_]*
+ ;
 
+STRING
+ : '"' ( ~["\\] | '\\' . )* '"'
+ ;
 
-classDefinition : accModClass (KWD_CLASS | KWD_INTERFACE) className (LP classMeta? RP)? LBR classBody RBR;
-className : ID | FULL_QUALIFIED_CLASS_NAME;
-classMeta : classMetaItem (COMMA classMetaItem)*;
-classBody : classBodyItem*;
+LINE_COMMENT
+ : '//' ~[\r\n]* -> channel(HIDDEN)
+ ;
 
-classMetaItem: classPropMajor | classPropMinor | classPropSuperClass | classPropInterfaces;
-classPropMajor: KWD_CLASS_PROP_MAJOR EQ NUMBER;
-classPropMinor: KWD_CLASS_PROP_MINOR EQ NUMBER;
-classPropSuperClass: KWD_CLASS_PROP_SUPER_CLASS EQ className;
-classPropInterfaces: KWD_CLASS_PROP_INTERFACES EQ className (COMMA className)*;
+BLOCK_COMMENT
+ : '/*' .*? '*/' -> channel(HIDDEN)
+ ;
 
-classBodyItem : fieldDefinition | methodDefinition;
-fieldDefinition : accModField fieldName COLON typeDescriptor (EQ jvmInsArgScalarType)?;
-fieldName : ID;
-methodDefinition : accModMethod methodName methodDescriptor methodBody;
+// Lexer ルールにしないと， (II)I がパースできない
+METHOD_DESCRIPTOR
+ : '('
+   (
+      '['*
+      (
+         'B'|'C'|'D'|'F'|'I'|'J'|'S'|'V'|'Z'
+         |
+         'L' [a-zA-Z0-9_/$]+ ';'
+      )
+   )*
+   ')'
+   (
+      '['*
+      (
+         'B'|'C'|'D'|'F'|'I'|'J'|'S'|'V'|'Z'
+         |
+         'L' [a-zA-Z0-9_/$]+ ';'
+      )
+   )
+ ;
 
-methodName : ID | KWD_MNAME_INIT | KWD_MNAME_CLINIT;
-methodBody : LBR instructionSet* RBR;
-instructionSet : (label tryCatchDirective?)? (instruction SEMI?)+;
+// ====================================================================
+// ROOT
+// ====================================================================
 
-typeDescriptor : LBK* (typeDescriptorPrimitive | TYPE_DESC_OBJECT);
-typeDescriptorPrimitive : TYPE_DESC_BYTE | TYPE_DESC_CHAR | TYPE_DESC_DOUBLE | TYPE_DESC_FLOAT | TYPE_DESC_INT
-                          | TYPE_DESC_LONG | TYPE_DESC_SHORT | TYPE_DESC_VOID | TYPE_DESC_BOOLEAN;
-methodDescriptor : METHOD_DESCRIPTOR_ARG typeDescriptor;
+root
+ : classDefinition? EOF
+ ;
 
-accModClass : accessLevel? accAttrClass*;
-accModField : accessLevel? accAttrField*;
-accModMethod : accessLevel? accAttrMethod*;
-accessLevel : KWD_ACC_PUBLIC | KWD_ACC_PRIVATE | KWD_ACC_PROTECTED;
-accAttrClass : KWD_ACC_ATTR_FINAL | KWD_ACC_ATTR_SUPER | KWD_INTERFACE | KWD_ACC_ATTR_ABSTRACT | KWD_ACC_ATTR_SYNTHETIC
-                 | KWD_ACC_ATTR_ANNOTATION | KWD_ACC_ATTR_ENUM;
-accAttrMethod : KWD_ACC_ATTR_STATIC | KWD_ACC_ATTR_FINAL | KWD_ACC_ATTR_SYNCHRONIZED | KWD_ACC_ATTR_BRIDGE
-                  | KWD_ACC_ATTR_VARARGS | KWD_ACC_ATTR_NATIVE | KWD_ACC_ATTR_ABSTRACT | KWD_ACC_ATTR_STRICTFP
-                  | KWD_ACC_ATTR_SYNTHETIC;
-accAttrField : KWD_ACC_ATTR_STATIC | KWD_ACC_ATTR_FINAL | KWD_ACC_ATTR_VOLATILE | KWD_ACC_ATTR_TRANSIENT
-                 | KWD_ACC_ATTR_SYNTHETIC | KWD_ACC_ATTR_ENUM;
+// ====================================================================
+// CLASS
+// ====================================================================
 
-label : labelName COLON;
-labelName : ID;
+classDefinition
+ : accModClass
+   (KWD_CLASS | KWD_INTERFACE)
+   className
+   (LP classMeta? RP)?
+   LBR
+   classBody
+   RBR
+ ;
 
-tryCatchDirective : LBK TIL labelName tryCatchDirectiveEntry* RBK;
-tryCatchDirectiveEntry : catchDirective | finallyDirective;
-catchDirective : COMMA FULL_QUALIFIED_CLASS_NAME COLON labelName finallyDirective?;
-finallyDirective : REF labelName;
+className
+ : fullQualifiedClassName
+ ;
 
-localInstigation: LBK typeDescriptor? (TIL labelName)? REF ID RBK;
+fullQualifiedClassName
+ : ID (SLASH ID)*
+ ;
 
-jvmInsArgScalarType : STRING | NUMBER | BOOLEAN;
+classMeta
+ : classMetaItem (COMMA classMetaItem)*
+ ;
 
-jvmInsArgFieldRef : jvmInsArgFieldRefType REF jvmInsArgFieldRefName COLON typeDescriptor;
-jvmInsArgFieldRefType : FULL_QUALIFIED_CLASS_NAME;
-jvmInsArgFieldRefName : ID;
+classBody
+ : classBodyItem*
+ ;
 
-jvmInsArgInvokeDynamicRef: jvmInsArgScalarType | jvmInsArgInvokeDynamicMethodType | jvmInsArgInvokeDynamicMethodTypeMethodHandle;
-jvmInsArgInvokeDynamicMethodType: KWD_METHOD_TYPE methodDescriptor;
-jvmInsArgInvokeDynamicMethodTypeMethodHandle: KWD_METHOD_HANDLE jvmInsArgInvokeDynamicMethodHandleType '|' jvmInsArgMethodRef;
-jvmInsArgInvokeDynamicMethodHandleType: INSN_GETFIELD | INSN_GETSTATIC | INSN_PUTFIELD
-                                        | INSN_PUTSTATIC | INSN_INVOKEVIRTUAL | INSN_INVOKESPECIAL | INSN_INVOKESTATIC
-                                        | KWD_METHOD_HANDLE_TAG_NEWINVOKE | INSN_INVOKEINTERFACE;
+classBodyItem
+ : fieldDefinition
+ | methodDefinition
+ ;
 
-jvmInsArgMethodRef : (jvmInsArgMethodRefOwnerType REF)? methodName methodDescriptor;
-jvmInsArgMethodRefOwnerType : FULL_QUALIFIED_CLASS_NAME | ID;
+// ====================================================================
+// CLASS META
+// ====================================================================
 
-jvmInsArgLocalRef : NUMBER | ID;
+classMetaItem
+ : classPropMajor
+ | classPropMinor
+ | classPropSuperClass
+ | classPropInterfaces
+ ;
 
-jvmInsArgTableSwitch : NUMBER LBR jvmInsArgTableSwitchCaseList RBR KWD_SWITCH_DEFAULT labelName;
-jvmInsArgTableSwitchCaseList: labelName (COMMA labelName)*;
+classPropMajor
+ : KWD_CLASS_PROP_MAJOR EQ NUMBER
+ ;
 
-jvmInsArgLookupSwitch : LBR jvmInsArgLookupSwitchCaseList RBR;
-jvmInsArgLookupSwitchCaseList : jvmInsArgLookupSwitchCase (COMMA jvmInsArgLookupSwitchCase)*;
-jvmInsArgLookupSwitchCase : jvmInsArgLookupSwitchCaseName COLON labelName;
-jvmInsArgLookupSwitchCaseName : NUMBER | KWD_SWITCH_DEFAULT;
+classPropMinor
+ : KWD_CLASS_PROP_MINOR EQ NUMBER
+ ;
+
+classPropSuperClass
+ : KWD_CLASS_PROP_SUPER_CLASS EQ className
+ ;
+
+classPropInterfaces
+ : KWD_CLASS_PROP_INTERFACES EQ className
+   (COMMA className)*
+ ;
+
+// ====================================================================
+// FIELD
+// ====================================================================
+
+fieldDefinition
+ : accModField
+   fieldName
+   COLON
+   typeDescriptor
+   (EQ jvmInsArgScalarType)?
+ ;
+
+fieldName
+ : ID
+ ;
+
+// ====================================================================
+// METHOD
+// ====================================================================
+
+methodDefinition
+ : accModMethod
+   methodName
+   methodDescriptor
+   methodBody
+ ;
+
+methodName
+ : ID
+ | KWD_MNAME_INIT
+ | KWD_MNAME_CLINIT
+ ;
+
+methodBody
+ : LBR
+   instructionSet*
+   RBR
+ ;
+
+instructionSet
+ : (label tryCatchDirective?)?
+ instruction+
+ ;
+
+// ====================================================================
+// DESCRIPTORS
+// ====================================================================
+
+typeDescriptor
+ : arrayPrefix* nonArrayTypeDescriptor
+ ;
+
+arrayPrefix
+ : LBK
+ ;
+
+ nonArrayTypeDescriptor
+   : LBK*
+     (
+        TYPE_DESC_BYTE
+      | TYPE_DESC_CHAR
+      | TYPE_DESC_DOUBLE
+      | TYPE_DESC_FLOAT
+      | TYPE_DESC_INT
+      | TYPE_DESC_LONG
+      | TYPE_DESC_SHORT
+      | TYPE_DESC_VOID
+      | TYPE_DESC_BOOLEAN
+      | TYPE_DESC_OBJECT
+     )
+   ;
+
+methodDescriptor: METHOD_DESCRIPTOR;
+
+// ====================================================================
+// ACCESS MODIFIERS
+// ====================================================================
+
+accModClass
+ : accessLevel?
+   accAttrClass*
+ ;
+
+accModField
+ : accessLevel?
+   accAttrField*
+ ;
+
+accModMethod
+ : accessLevel?
+   accAttrMethod*
+ ;
+
+accessLevel
+ : KWD_ACC_PUBLIC
+ | KWD_ACC_PRIVATE
+ | KWD_ACC_PROTECTED
+ ;
+
+accAttrClass
+ : KWD_ACC_ATTR_FINAL
+ | KWD_ACC_ATTR_SUPER
+ | KWD_INTERFACE
+ | KWD_ACC_ATTR_ABSTRACT
+ | KWD_ACC_ATTR_SYNTHETIC
+ | KWD_ACC_ATTR_ANNOTATION
+ | KWD_ACC_ATTR_ENUM
+ ;
+
+accAttrMethod
+ : KWD_ACC_ATTR_STATIC
+ | KWD_ACC_ATTR_FINAL
+ | KWD_ACC_ATTR_SYNCHRONIZED
+ | KWD_ACC_ATTR_BRIDGE
+ | KWD_ACC_ATTR_VARARGS
+ | KWD_ACC_ATTR_NATIVE
+ | KWD_ACC_ATTR_ABSTRACT
+ | KWD_ACC_ATTR_STRICTFP
+ | KWD_ACC_ATTR_SYNTHETIC
+ ;
+
+accAttrField
+ : KWD_ACC_ATTR_STATIC
+ | KWD_ACC_ATTR_FINAL
+ | KWD_ACC_ATTR_VOLATILE
+ | KWD_ACC_ATTR_TRANSIENT
+ | KWD_ACC_ATTR_SYNTHETIC
+ | KWD_ACC_ATTR_ENUM
+ ;
+
+// ====================================================================
+// LABELS
+// ====================================================================
+
+label
+ : labelName COLON
+ ;
+
+labelName
+ : ID
+ ;
+
+// ====================================================================
+// TRY CATCH
+// ====================================================================
+
+tryCatchDirective
+ : LBK
+   TIL
+   labelName
+   tryCatchDirectiveEntry*
+   RBK
+ ;
+
+tryCatchDirectiveEntry
+ : catchDirective
+ | finallyDirective
+ ;
+
+catchDirective
+ : COMMA
+   fullQualifiedClassName
+   COLON
+   labelName
+   finallyDirective?
+ ;
+
+finallyDirective
+ : REF labelName
+ ;
+
+// ====================================================================
+// LOCAL VARIABLE DECLARATION
+// ====================================================================
+
+localDeclaration
+ : LBK
+   typeDescriptor?
+   (TIL labelName)?
+   REF
+   ID
+   RBK
+ ;
+
+// ====================================================================
+// INSTRUCTION ARGUMENTS
+// ====================================================================
+
+jvmInsArgScalarType
+ : STRING
+ | NUMBER
+ | BOOLEAN
+ ;
+
+jvmInsArgFieldRef
+ : fullQualifiedClassName
+   REF
+   ID
+   COLON
+   typeDescriptor
+ ;
+
+jvmInsArgMethodRef
+ : (fullQualifiedClassName REF)?
+   methodName
+   methodDescriptor
+ ;
+
+jvmInsArgLocalRef
+ : NUMBER
+ | ID
+ ;
+
+jvmInsArgInvokeDynamicRef
+ : jvmInsArgScalarType
+ | jvmInsArgInvokeDynamicMethodType
+ | jvmInsArgInvokeDynamicMethodHandle
+ ;
+
+jvmInsArgInvokeDynamicMethodType
+ : KWD_METHOD_TYPE
+   methodDescriptor
+ ;
+
+jvmInsArgInvokeDynamicMethodHandle
+ : KWD_METHOD_HANDLE
+   jvmInsArgInvokeDynamicMethodHandleType
+   PIPE
+   jvmInsArgMethodRef
+ ;
+
+jvmInsArgInvokeDynamicMethodHandleType
+ : INSN_GETFIELD
+ | INSN_GETSTATIC
+ | INSN_PUTFIELD
+ | INSN_PUTSTATIC
+ | INSN_INVOKEVIRTUAL
+ | INSN_INVOKESPECIAL
+ | INSN_INVOKESTATIC
+ | KWD_METHOD_HANDLE_TAG_NEWINVOKE
+ | INSN_INVOKEINTERFACE
+ ;
+
+// ====================================================================
+// SWITCH
+// ====================================================================
+
+jvmInsArgTableSwitch
+ : NUMBER
+   LBR
+   jvmInsArgTableSwitchCaseList
+   RBR
+   KWD_SWITCH_DEFAULT
+   labelName
+ ;
+
+jvmInsArgTableSwitchCaseList
+ : labelName
+   (COMMA labelName)*
+ ;
+
+jvmInsArgLookupSwitch
+ : LBR
+   jvmInsArgLookupSwitchCaseList
+   RBR
+ ;
+
+jvmInsArgLookupSwitchCaseList
+ : jvmInsArgLookupSwitchCase
+   (COMMA jvmInsArgLookupSwitchCase)*
+ ;
+
+jvmInsArgLookupSwitchCase
+ : jvmInsArgLookupSwitchCaseName
+   COLON
+   labelName
+ ;
+
+jvmInsArgLookupSwitchCaseName
+ : NUMBER
+ | KWD_SWITCH_DEFAULT
+ ;
 
 
 // ------------------------------------------------------------  //
@@ -395,8 +730,8 @@ jvmInsAloadN: INSN_ALOAD_0 | INSN_ALOAD_1 | INSN_ALOAD_2 | INSN_ALOAD_3 | INSN_A
 jvmInsAnewArray: INSN_ANEWARRAY typeDescriptor;
 jvmInsAreturn: INSN_ARETURN;
 jvmInsArraylength: INSN_ARRAYLENGTH;
-jvmInsAstore: INSN_WIDE? INSN_ASTORE jvmInsArgLocalRef localInstigation?;
-jvmInsAstoreN: (INSN_ASTORE_0 | INSN_ASTORE_1 | INSN_ASTORE_2 | INSN_ASTORE_3) localInstigation?;
+jvmInsAstore: INSN_WIDE? INSN_ASTORE jvmInsArgLocalRef localDeclaration?;
+jvmInsAstoreN: (INSN_ASTORE_0 | INSN_ASTORE_1 | INSN_ASTORE_2 | INSN_ASTORE_3) localDeclaration?;
 jvmInsAthrow: INSN_ATHROW;
 jvmInsBaload: INSN_BALOAD;
 jvmInsBastore: INSN_BASTORE;
@@ -419,8 +754,8 @@ jvmInsDmul: INSN_DMUL;
 jvmInsDneg: INSN_DNEG;
 jvmInsDrem: INSN_DREM;
 jvmInsDreturn: INSN_DRETURN;
-jvmInsDstore: INSN_WIDE? INSN_DSTORE jvmInsArgLocalRef localInstigation?;
-jvmInsDstoreN: (INSN_DSTORE_0 | INSN_DSTORE_1 | INSN_DSTORE_2 | INSN_DSTORE_3) localInstigation?;
+jvmInsDstore: INSN_WIDE? INSN_DSTORE jvmInsArgLocalRef localDeclaration?;
+jvmInsDstoreN: (INSN_DSTORE_0 | INSN_DSTORE_1 | INSN_DSTORE_2 | INSN_DSTORE_3) localDeclaration?;
 jvmInsDsub: INSN_DSUB;
 jvmInsDup: INSN_DUP;
 jvmInsDupX1: INSN_DUP_X1;
@@ -443,8 +778,8 @@ jvmInsFmul: INSN_FMUL;
 jvmInsFneg: INSN_FNEG;
 jvmInsFrem: INSN_FREM;
 jvmInsFreturn: INSN_FRETURN;
-jvmInsFstore: INSN_WIDE? INSN_FSTORE jvmInsArgLocalRef localInstigation?;
-jvmInsFstoreN: (INSN_FSTORE_0 | INSN_FSTORE_1 | INSN_FSTORE_2 | INSN_FSTORE_3) localInstigation?;
+jvmInsFstore: INSN_WIDE? INSN_FSTORE jvmInsArgLocalRef localDeclaration?;
+jvmInsFstoreN: (INSN_FSTORE_0 | INSN_FSTORE_1 | INSN_FSTORE_2 | INSN_FSTORE_3) localDeclaration?;
 jvmInsFsub: INSN_FSUB;
 jvmInsGetfield: INSN_GETFIELD jvmInsArgFieldRef;
 jvmInsGetstatic: INSN_GETSTATIC jvmInsArgFieldRef;
@@ -485,7 +820,7 @@ jvmInsIloadN: INSN_ILOAD_0 | INSN_ILOAD_1 | INSN_ILOAD_2 | INSN_ILOAD_3;
 jvmInsImul: INSN_IMUL;
 jvmInsIneg: INSN_INEG;
 jvmInsInstanceof: INSN_INSTANCEOF typeDescriptor;
-jvmInsInvokedynamic: INSN_INVOKEDYNAMIC methodName methodDescriptor jvmInsArgInvokeDynamicMethodTypeMethodHandle jvmInsArgInvokeDynamicRef*;
+jvmInsInvokedynamic: INSN_INVOKEDYNAMIC methodName methodDescriptor jvmInsArgInvokeDynamicMethodHandle jvmInsArgInvokeDynamicRef*;
 jvmInsInvokeinterface: INSN_INVOKEINTERFACE jvmInsArgMethodRef;
 jvmInsInvokespecial: INSN_INVOKESPECIAL jvmInsArgMethodRef;
 jvmInsInvokestatic: INSN_INVOKESTATIC jvmInsArgMethodRef;
@@ -495,8 +830,8 @@ jvmInsIrem: INSN_IREM;
 jvmInsIreturn: INSN_IRETURN;
 jvmInsIshl: INSN_ISHL;
 jvmInsIshr: INSN_ISHR;
-jvmInsIstore: INSN_WIDE? INSN_ISTORE jvmInsArgLocalRef localInstigation?;
-jvmInsIstoreN: (INSN_ISTORE_0 | INSN_ISTORE_1 | INSN_ISTORE_2 | INSN_ISTORE_3) localInstigation?;
+jvmInsIstore: INSN_WIDE? INSN_ISTORE jvmInsArgLocalRef localDeclaration?;
+jvmInsIstoreN: (INSN_ISTORE_0 | INSN_ISTORE_1 | INSN_ISTORE_2 | INSN_ISTORE_3) localDeclaration?;
 jvmInsIsub: INSN_ISUB;
 jvmInsIushr: INSN_IUSHR;
 jvmInsIxor: INSN_IXOR;
@@ -525,15 +860,15 @@ jvmInsLrem: INSN_LREM;
 jvmInsLreturn: INSN_LRETURN;
 jvmInsLshl: INSN_LSHL;
 jvmInsLshr: INSN_LSHR;
-jvmInsLstore: INSN_WIDE? INSN_LSTORE jvmInsArgLocalRef localInstigation?;
-jvmInsLstoreN: (INSN_LSTORE_0 | INSN_LSTORE_1 | INSN_LSTORE_2 | INSN_LSTORE_3) localInstigation?;
+jvmInsLstore: INSN_WIDE? INSN_LSTORE jvmInsArgLocalRef localDeclaration?;
+jvmInsLstoreN: (INSN_LSTORE_0 | INSN_LSTORE_1 | INSN_LSTORE_2 | INSN_LSTORE_3) localDeclaration?;
 jvmInsLsub: INSN_LSUB;
 jvmInsLushr: INSN_LUSHR;
 jvmInsLxor: INSN_LXOR;
 jvmInsMonitorenter: INSN_MONITORENTER;
 jvmInsMonitorexit: INSN_MONITOREXIT;
 jvmInsMultianewarray: INSN_MULTIANEWARRAY typeDescriptor NUMBER;
-jvmInsNew: INSN_NEW FULL_QUALIFIED_CLASS_NAME;
+jvmInsNew: INSN_NEW fullQualifiedClassName;
 jvmInsNewarray: INSN_NEWARRAY typeDescriptor;
 jvmInsNop: INSN_NOP;
 jvmInsPop: INSN_POP;

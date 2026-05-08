@@ -30,7 +30,7 @@ public class InstructionEvaluatorInvokeDynamic
     {
         String methodName = ctxt.methodName().getText();
         String methodDesc = ctxt.methodDescriptor().getText();
-        Handle bootstrapMethod = toHandle(ctxt.jvmInsArgInvokeDynamicMethodTypeMethodHandle());
+        Handle bootstrapMethod = toHandle(ctxt.jvmInsArgInvokeDynamicMethodHandle());
         List<JALParser.JvmInsArgInvokeDynamicRefContext> args = ctxt.jvmInsArgInvokeDynamicRef();
         List<Object> bootstrapArgs = args.stream()
                                          .map(InstructionEvaluatorInvokeDynamic::evaluateBootstrapArg)
@@ -60,7 +60,7 @@ public class InstructionEvaluatorInvokeDynamic
     private static int calcSize(JALParser.JvmInsInvokedynamicContext ctxt)
     {
         int size = 0;
-        if (ctxt.jvmInsArgInvokeDynamicMethodTypeMethodHandle() != null)
+        if (ctxt.jvmInsArgInvokeDynamicMethodHandle() != null)
             size += 1; // Handle
         for (JALParser.JvmInsArgInvokeDynamicRefContext arg : ctxt.jvmInsArgInvokeDynamicRef())
         {
@@ -84,20 +84,19 @@ public class InstructionEvaluatorInvokeDynamic
             String desc = arg.jvmInsArgInvokeDynamicMethodType().methodDescriptor().getText();
             return Type.getMethodType(desc);
         }
-        else if (arg.jvmInsArgInvokeDynamicMethodTypeMethodHandle() != null)
+        else if (arg.jvmInsArgInvokeDynamicMethodType() != null)
         {
-            JALParser.JvmInsArgInvokeDynamicMethodTypeMethodHandleContext handle
-                    = arg.jvmInsArgInvokeDynamicMethodTypeMethodHandle();
+            JALParser.JvmInsArgInvokeDynamicMethodHandleContext handle = arg.jvmInsArgInvokeDynamicMethodHandle();
             return toHandle(handle);
         }
         else
             throw new IllegalInstructionException("Invalid bootstrap argument type: " + arg.getText(), arg);
     }
 
-    private static Handle toHandle(JALParser.JvmInsArgInvokeDynamicMethodTypeMethodHandleContext handle)
+    private static Handle toHandle(JALParser.JvmInsArgInvokeDynamicMethodHandleContext handle)
     {
         JALParser.JvmInsArgMethodRefContext ref = handle.jvmInsArgMethodRef();
-        String ownerType = ref.jvmInsArgMethodRefOwnerType().getText();
+        String ownerType = ref.fullQualifiedClassName().getText();
         String methodName = ref.methodName().getText();
         String methodDesc = ref.methodDescriptor().getText();
         int tag = toTag(handle.jvmInsArgInvokeDynamicMethodHandleType());

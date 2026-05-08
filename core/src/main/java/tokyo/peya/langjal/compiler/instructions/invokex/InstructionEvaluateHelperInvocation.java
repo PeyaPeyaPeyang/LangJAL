@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.compiler.instructions.invokex;
 
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
@@ -21,7 +22,7 @@ public class InstructionEvaluateHelperInvocation
                                                 @NotNull ClassNode ownerClazz,
                                                 @NotNull JALParser.JvmInsArgMethodRefContext ref, int opcode)
     {
-        JALParser.JvmInsArgMethodRefOwnerTypeContext methodOwner = ref.jvmInsArgMethodRefOwnerType();
+        JALParser.FullQualifiedClassNameContext methodOwner = ref.fullQualifiedClassName();
         JALParser.MethodNameContext methodName = ref.methodName();
         JALParser.MethodDescriptorContext methodDescriptor = ref.methodDescriptor();
         return evaluate(

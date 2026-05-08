@@ -22,7 +22,7 @@ public class InstructionEvaluatorNew extends AbstractInstructionEvaluator<JALPar
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsNewContext ctxt)
     {
-        TerminalNode typeDescriptor = ctxt.FULL_QUALIFIED_CLASS_NAME();
+        JALParser.FullQualifiedClassNameContext typeDescriptor = ctxt.fullQualifiedClassName();
         TypeInsnNode type = new TypeInsnNode(EOpcodes.NEW, typeDescriptor.getText());
         return EvaluatedInstruction.of(this, type);
     }

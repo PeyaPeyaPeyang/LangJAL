@@ -23,7 +23,7 @@ public class InstructionEvaluatorFStoreN extends AbstractInstructionEvaluator<JA
     protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
                                                      JALParser.@NotNull JvmInsFstoreNContext ctxt)
     {
-        JALParser.LocalInstigationContext ins = ctxt.localInstigation();
+        JALParser.LocalDeclarationContext ins = ctxt.localDeclaration();
         if (has(ctxt.INSN_FSTORE_0()))
             return InstructionEvaluateHelperXStore.evaluateN(this, EOpcodes.FSTORE, 0, compiler, "F", ins);
         else if (has(ctxt.INSN_FSTORE_1()))

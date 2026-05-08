@@ -25,7 +25,7 @@ public class InstructionEvaluatorAStoreN extends AbstractInstructionEvaluator<JA
                                                      JALParser.@NotNull JvmInsAstoreNContext ctxt)
     {
         String type = ClassReferenceType.OBJECT.toString();
-        JALParser.LocalInstigationContext ins = ctxt.localInstigation();
+        JALParser.LocalDeclarationContext ins = ctxt.localDeclaration();
         if (has(ctxt.INSN_ASTORE_0()))
             return InstructionEvaluateHelperXStore.evaluateN(this, EOpcodes.ASTORE, 0, compiler, type, ins);
         else if (has(ctxt.INSN_ASTORE_1()))

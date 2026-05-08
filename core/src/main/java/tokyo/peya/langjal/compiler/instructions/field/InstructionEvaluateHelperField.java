@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.compiler.instructions.field;
 
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.FieldInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
@@ -12,8 +13,8 @@ public class InstructionEvaluateHelperField
     public static EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                 @NotNull JALParser.JvmInsArgFieldRefContext ref, int opcode)
     {
-        JALParser.JvmInsArgFieldRefTypeContext fieldOwner = ref.jvmInsArgFieldRefType();
-        JALParser.JvmInsArgFieldRefNameContext fieldName = ref.jvmInsArgFieldRefName();
+        JALParser.FullQualifiedClassNameContext fieldOwner = ref.fullQualifiedClassName();
+        TerminalNode fieldName = ref.ID();
         JALParser.TypeDescriptorContext fieldType = ref.typeDescriptor();
 
         FieldInsnNode fieldInsn = new FieldInsnNode(
