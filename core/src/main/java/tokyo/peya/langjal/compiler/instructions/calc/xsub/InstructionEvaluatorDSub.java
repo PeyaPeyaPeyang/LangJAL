@@ -26,7 +26,7 @@ public class InstructionEvaluatorDSub extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsDsubContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsDsubContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsDsub();
     }

@@ -36,7 +36,7 @@ public class InstructionEvaluatorInvokeInterface
     }
 
     @Override
-    protected JALParser.JvmInsInvokeinterfaceContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsInvokeinterfaceContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsInvokeinterface();
     }

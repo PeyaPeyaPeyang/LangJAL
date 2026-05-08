@@ -41,7 +41,7 @@ public class InstructionEvaluatorDCmpOp extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    protected JALParser.JvmInsDcmpOPContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsDcmpOPContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsDcmpOP();
     }

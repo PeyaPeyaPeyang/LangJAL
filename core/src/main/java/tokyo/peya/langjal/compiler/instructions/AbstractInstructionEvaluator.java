@@ -66,7 +66,7 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
      * @return The mapped context, or null if not applicable.
      */
     @Nullable
-    protected abstract T map(@NotNull JALParser.InstructionContext instruction);
+    public abstract T map(@NotNull JALParser.InstructionContext instruction);
 
 
     /**

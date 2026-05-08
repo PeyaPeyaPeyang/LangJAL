@@ -40,7 +40,7 @@ public class InstructionEvaluatorILoad extends AbstractInstructionEvaluator<JALP
     }
 
     @Override
-    protected JALParser.JvmInsIloadContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIloadContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIload();
     }

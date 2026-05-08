@@ -94,7 +94,7 @@ public class InstructionEvaluatorInvokeSpecial
     }
 
     @Override
-    protected JALParser.JvmInsInvokespecialContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsInvokespecialContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsInvokespecial();
     }

@@ -35,7 +35,7 @@ public class InstructionEvaluatorIReturn extends AbstractSingleInstructionEvalua
     }
 
     @Override
-    protected JALParser.JvmInsIreturnContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIreturnContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIreturn();
     }

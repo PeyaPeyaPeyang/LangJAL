@@ -26,7 +26,7 @@ public class InstructionEvaluatorDDiv extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsDdivContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsDdivContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsDdiv();
     }

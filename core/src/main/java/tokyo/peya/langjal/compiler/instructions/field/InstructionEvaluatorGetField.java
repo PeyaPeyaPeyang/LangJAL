@@ -36,7 +36,7 @@ public class InstructionEvaluatorGetField extends AbstractInstructionEvaluator<J
     }
 
     @Override
-    protected JALParser.JvmInsGetfieldContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsGetfieldContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsGetfield();
     }

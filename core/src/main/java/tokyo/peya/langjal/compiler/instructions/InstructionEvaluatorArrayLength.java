@@ -44,7 +44,7 @@ public class InstructionEvaluatorArrayLength
     }
 
     @Override
-    protected JALParser.JvmInsArraylengthContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsArraylengthContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsArraylength();
     }

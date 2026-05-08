@@ -8,7 +8,6 @@ import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
 import tokyo.peya.langjal.compiler.instructions.AbstractSingleInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
 public class InstructionEvaluatorAALoad extends AbstractSingleInstructionEvaluator<JALParser.JvmInsAaloadContext>
@@ -30,7 +29,7 @@ public class InstructionEvaluatorAALoad extends AbstractSingleInstructionEvaluat
     }
 
     @Override
-    protected JALParser.JvmInsAaloadContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsAaloadContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsAaload();
     }

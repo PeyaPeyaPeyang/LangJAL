@@ -28,7 +28,7 @@ public class InstructionEvaluatorSwap extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsSwapContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsSwapContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsSwap();
     }

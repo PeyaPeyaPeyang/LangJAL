@@ -26,7 +26,7 @@ public class InstructionEvaluatorLUShr extends AbstractSingleInstructionEvaluato
     }
 
     @Override
-    protected JALParser.JvmInsLushrContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsLushrContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsLushr();
     }

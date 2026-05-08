@@ -41,7 +41,7 @@ public class InstructionEvaluatorBiPush extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    protected JALParser.JvmInsBipushContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsBipushContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsBipush();
     }

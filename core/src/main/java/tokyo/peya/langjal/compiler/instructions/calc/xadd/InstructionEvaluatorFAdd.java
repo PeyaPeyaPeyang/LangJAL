@@ -26,7 +26,7 @@ public class InstructionEvaluatorFAdd extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsFaddContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsFaddContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsFadd();
     }

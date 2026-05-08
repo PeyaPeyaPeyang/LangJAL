@@ -40,7 +40,7 @@ public class InstructionEvaluatorInstanceOf extends AbstractInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsInstanceofContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsInstanceofContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsInstanceof();
     }

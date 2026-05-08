@@ -52,7 +52,7 @@ public class InstructionEvaluatorInvokeDynamic
     }
 
     @Override
-    protected JALParser.JvmInsInvokedynamicContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsInvokedynamicContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsInvokedynamic();
     }

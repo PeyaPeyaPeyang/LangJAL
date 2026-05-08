@@ -26,7 +26,7 @@ public class InstructionEvaluatorIAnd extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsIandContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIandContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIand();
     }

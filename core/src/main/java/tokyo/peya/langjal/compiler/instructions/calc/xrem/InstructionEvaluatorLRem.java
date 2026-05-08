@@ -26,7 +26,7 @@ public class InstructionEvaluatorLRem extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsLremContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsLremContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsLrem();
     }

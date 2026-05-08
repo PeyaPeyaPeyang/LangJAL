@@ -23,7 +23,7 @@ public class InstructionEvaluatorAThrow extends AbstractSingleInstructionEvaluat
     }
 
     @Override
-    protected JALParser.JvmInsAthrowContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsAthrowContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsAthrow();
     }

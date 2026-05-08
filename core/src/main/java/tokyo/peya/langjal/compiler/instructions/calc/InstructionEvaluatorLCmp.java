@@ -26,7 +26,7 @@ public class InstructionEvaluatorLCmp extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsLcmpContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsLcmpContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsLcmp();
     }

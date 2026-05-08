@@ -26,7 +26,7 @@ public class InstructionEvaluatorIXOr extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsIxorContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIxorContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIxor();
     }

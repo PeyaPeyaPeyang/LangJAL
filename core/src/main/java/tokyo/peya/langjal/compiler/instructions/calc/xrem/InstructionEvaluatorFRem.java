@@ -26,7 +26,7 @@ public class InstructionEvaluatorFRem extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsFremContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsFremContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsFrem();
     }

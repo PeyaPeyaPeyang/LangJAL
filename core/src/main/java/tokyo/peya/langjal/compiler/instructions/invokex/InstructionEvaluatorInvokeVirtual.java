@@ -36,7 +36,7 @@ public class InstructionEvaluatorInvokeVirtual
     }
 
     @Override
-    protected JALParser.JvmInsInvokevirtualContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsInvokevirtualContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsInvokevirtual();
     }

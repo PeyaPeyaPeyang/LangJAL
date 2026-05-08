@@ -67,7 +67,7 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
     }
 
     @Override
-    protected JALParser.JvmInsTableswitchContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsTableswitchContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsTableswitch();
     }

@@ -35,7 +35,7 @@ public class InstructionEvaluatorGotoW extends AbstractInstructionEvaluator<JALP
     }
 
     @Override
-    protected JALParser.JvmInsGotoWContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsGotoWContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsGotoW();
     }

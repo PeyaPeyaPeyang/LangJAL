@@ -80,7 +80,7 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
     }
 
     @Override
-    protected JALParser.JvmInsLookupswitchContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsLookupswitchContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsLookupswitch();
     }

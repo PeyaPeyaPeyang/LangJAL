@@ -48,7 +48,7 @@ public class InstructionEvaluatorMultiANewArray
     }
 
     @Override
-    protected JALParser.JvmInsMultianewarrayContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsMultianewarrayContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsMultianewarray();
     }

@@ -37,7 +37,7 @@ public class InstructionEvaluatorJsrW extends AbstractInstructionEvaluator<JALPa
     }
 
     @Override
-    protected JALParser.JvmInsJsrWContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsJsrWContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsJsrW();
     }

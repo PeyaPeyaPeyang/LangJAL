@@ -36,7 +36,7 @@ public class InstructionEvaluatorPutField extends AbstractInstructionEvaluator<J
     }
 
     @Override
-    protected JALParser.JvmInsPutfieldContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsPutfieldContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsPutfield();
     }

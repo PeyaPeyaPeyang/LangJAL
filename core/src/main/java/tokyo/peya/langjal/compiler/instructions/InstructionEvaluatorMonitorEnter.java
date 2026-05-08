@@ -23,7 +23,7 @@ public class InstructionEvaluatorMonitorEnter
     }
 
     @Override
-    protected JALParser.JvmInsMonitorenterContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsMonitorenterContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsMonitorenter();
     }

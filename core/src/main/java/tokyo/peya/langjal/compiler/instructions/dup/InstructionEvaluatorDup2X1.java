@@ -34,7 +34,7 @@ public class InstructionEvaluatorDup2X1 extends AbstractSingleInstructionEvaluat
     }
 
     @Override
-    protected JALParser.JvmInsDup2X1Context map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsDup2X1Context map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsDup2X1();
     }

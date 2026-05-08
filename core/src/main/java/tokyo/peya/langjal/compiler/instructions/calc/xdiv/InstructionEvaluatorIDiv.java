@@ -26,7 +26,7 @@ public class InstructionEvaluatorIDiv extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsIdivContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIdivContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIdiv();
     }

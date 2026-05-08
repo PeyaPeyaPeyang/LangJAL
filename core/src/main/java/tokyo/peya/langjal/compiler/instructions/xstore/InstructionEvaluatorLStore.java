@@ -45,7 +45,7 @@ public class InstructionEvaluatorLStore extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    protected JALParser.JvmInsLstoreContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsLstoreContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsLstore();
     }

@@ -24,7 +24,7 @@ public class InstructionEvaluatorAConstNull
     }
 
     @Override
-    protected JALParser.JvmInsAconstNullContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsAconstNullContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsAconstNull();
     }

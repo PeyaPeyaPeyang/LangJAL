@@ -41,7 +41,7 @@ public class InstructionEvaluatorIfOP extends AbstractInstructionEvaluator<JALPa
     }
 
     @Override
-    protected JALParser.JvmInsIfOPContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIfOPContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIfOP();
     }

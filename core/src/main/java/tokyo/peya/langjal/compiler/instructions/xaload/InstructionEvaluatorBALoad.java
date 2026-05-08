@@ -27,7 +27,7 @@ public class InstructionEvaluatorBALoad extends AbstractSingleInstructionEvaluat
     }
 
     @Override
-    protected JALParser.JvmInsBaloadContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsBaloadContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsBaload();
     }

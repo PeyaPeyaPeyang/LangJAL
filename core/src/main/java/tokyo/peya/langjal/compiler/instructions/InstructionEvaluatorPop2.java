@@ -24,7 +24,7 @@ public class InstructionEvaluatorPop2 extends AbstractSingleInstructionEvaluator
     }
 
     @Override
-    protected JALParser.JvmInsPop2Context map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsPop2Context map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsPop2();
     }

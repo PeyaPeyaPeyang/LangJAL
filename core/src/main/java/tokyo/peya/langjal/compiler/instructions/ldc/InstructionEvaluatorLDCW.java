@@ -31,7 +31,7 @@ public class InstructionEvaluatorLDCW extends AbstractInstructionEvaluator<JALPa
     }
 
     @Override
-    protected JALParser.JvmInsLdcWContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsLdcWContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsLdcW();
     }

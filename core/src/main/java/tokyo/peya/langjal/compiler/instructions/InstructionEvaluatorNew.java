@@ -1,6 +1,5 @@
 package tokyo.peya.langjal.compiler.instructions;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.TypeInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
@@ -37,7 +36,7 @@ public class InstructionEvaluatorNew extends AbstractInstructionEvaluator<JALPar
     }
 
     @Override
-    protected JALParser.JvmInsNewContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsNewContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsNew();
     }

@@ -62,7 +62,7 @@ public class InstructionEvaluatorIInc extends AbstractInstructionEvaluator<JALPa
     }
 
     @Override
-    protected JALParser.JvmInsIincContext map(JALParser.@NotNull InstructionContext instruction)
+    public JALParser.JvmInsIincContext map(JALParser.@NotNull InstructionContext instruction)
     {
         return instruction.jvmInsIinc();
     }
