@@ -18,7 +18,10 @@ class MethodDescriptorTest {
             "(I)V",
             "(ID)I",
             "()V",
-            "(Ljava/lang/String;)I"
+            "(Ljava/lang/String;)I",
+            "(LNoPackageClass;)LAnotherClass;",
+            "([[[[[[Ljava/lang/Object;BCDFIJZZZZLjava/lang/String;)[[[[[[Ljava/lang/Object;BCDFIJZZZZLjava/lang/String;",
+            "([[LB;LC;LD;LF;LZ;LJ;L[Ljava/lang/String;)[[LB;LC;LD;LF;LZ;LJ;L[Ljava/lang/String;"
     })
     void parseMethodDescriptors(String descriptor) {
         MethodDescriptor method = MethodDescriptor.parse(descriptor);
@@ -47,17 +50,6 @@ class MethodDescriptorTest {
     void parseRecognizesReturnType() {
         MethodDescriptor method = MethodDescriptor.parse("()I");
         assertEquals("I", method.getReturnType().toString());
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "(I)V,(I)V",
-            "(ID)I,(ID)I",
-            "()V,()V"
-    })
-    void toStringFormatsDescriptor(String input, String expected) {
-        MethodDescriptor method = MethodDescriptor.parse(input);
-        assertEquals(expected, method.toString());
     }
 
     @Test
