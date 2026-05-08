@@ -42,8 +42,8 @@ public class SwitchExample (
   LookupSwitchStart:
 
   // int value = 11; // Change value to 11 for the lookup switch example
-  bipush 11
-  istore_1
+    bipush 11
+    istore_1
 
   // Switch on discriminated value with a lookupswitch instruction
   LookupSwitch:
