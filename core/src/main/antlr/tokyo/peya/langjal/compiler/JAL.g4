@@ -804,23 +804,33 @@ jvmInsIadd: INSN_IADD;
 jvmInsIaload: INSN_IALOAD;
 jvmInsIand: INSN_IAND;
 jvmInsIastore: INSN_IASTORE;
-jvmInsIconstN: INSN_ICONST_M1 | INSN_ICONST_0 | INSN_ICONST_1 | INSN_ICONST_2 | INSN_ICONST_3 | INSN_ICONST_4
-               | INSN_ICONST_5;
+jvmInsIconstN: INSN_ICONST_M1 | INSN_ICONST_0 | INSN_ICONST_1 | INSN_ICONST_2 | INSN_ICONST_3 | INSN_ICONST_4 | INSN_ICONST_5;
 jvmInsIdiv: INSN_IDIV;
-jvmInsIfAcmpOP: INSN_IF_ACMPEQ labelName
-                | INSN_IF_ACMPNE labelName;
-jvmInsIfIcmpOP: INSN_IF_ICMPEQ labelName
-                | INSN_IF_ICMPNE labelName
-                | INSN_IF_ICMPLT labelName
-                | INSN_IF_ICMPGE labelName
-                | INSN_IF_ICMPGT labelName
-                | INSN_IF_ICMPLE labelName;
-jvmInsIfOP: INSN_IFEQ labelName
-            | INSN_IFNE labelName
-            | INSN_IFLT labelName
-            | INSN_IFGE labelName
-            | INSN_IFGT labelName
-            | INSN_IFLE labelName;
+jvmInsIfAcmpOP:
+  (INSN_IF_ACMPEQ | INSN_IF_ACMPNE) labelName
+  ;
+jvmInsIfIcmpOP
+  : (
+         INSN_IF_ICMPEQ
+       | INSN_IF_ICMPNE
+       | INSN_IF_ICMPLT
+       | INSN_IF_ICMPGE
+       | INSN_IF_ICMPGT
+       | INSN_IF_ICMPLE
+    )
+    labelName
+  ;
+jvmInsIfOP
+  : (
+        INSN_IFEQ
+      | INSN_IFNE
+      | INSN_IFLT
+      | INSN_IFGE
+      | INSN_IFGT
+      | INSN_IFLE
+    )
+    labelName
+  ;
 jvmInsIfNonnull: INSN_IFNONNULL labelName;
 jvmInsIfNull: INSN_IFNULL labelName;
 jvmInsIinc: INSN_WIDE? INSN_IINC jvmInsArgLocalRef NUMBER;
