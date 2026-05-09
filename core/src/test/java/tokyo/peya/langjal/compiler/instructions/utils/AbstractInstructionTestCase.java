@@ -95,11 +95,11 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
         }
     }
 
-    public abstract StackMachineEmulator[] validSituations();
+    public abstract StackMachine[] validSituations();
 
     @ParameterizedTest
     @MethodSource("validSituations")
-    public void testFrameDifferenceEvaluations(StackMachineEmulator situation)
+    public void testFrameDifferenceEvaluations(StackMachine situation)
     {
         if (this instanceof AbstractInstructionTestCase.Same<P,T>) {
             return;  // Same タイプのテストケースは，フレームの操作が無いため。
@@ -143,9 +143,9 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
         }
 
         @Override
-        public final StackMachineEmulator[] validSituations()
+        public final StackMachine[] validSituations()
         {
-            return new StackMachineEmulator[0];
+            return new StackMachine[0];
         }
     }
 }

@@ -1,5 +1,6 @@
 package tokyo.peya.langjal.compiler.instructions.utils;
 
+import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.LocalStackElement;
@@ -16,35 +17,36 @@ import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StackMachineEmulator
+public class StackMachine implements Cloneable
 {
     private final List<StackValue> initialStack;
     private final Map<Integer, StackValue> locals;
+    @Nullable
+    private StackMachine expected;
 
-    private StackMachineEmulator()
+    private StackMachine()
     {
         this.initialStack = new ArrayList<>();
         this.locals = new HashMap<>();
     }
 
-    public static StackMachineEmulator create()
+    public static StackMachine create()
     {
-        return new StackMachineEmulator();
+        return new StackMachine();
     }
 
-    public static StackMachineEmulator create(StackValue... initialStack)
+    public static StackMachine create(StackValue... initialStack)
     {
-        StackMachineEmulator emulator = new StackMachineEmulator();
+        StackMachine emulator = new StackMachine();
         emulator.push(initialStack);
         return emulator;
     }
 
-    public StackMachineEmulator push(StackValue... value)
+    public StackMachine push(StackValue... value)
     {
         for (StackValue v : value) {
             this.initialStack.add(v);
@@ -56,22 +58,89 @@ public class StackMachineEmulator
         return this;
     }
 
-    public StackMachineEmulator pop(int count)
+    public StackMachine pop(int count)
     {
         for (int i = 0; i < count; i++)
             this.initialStack.removeLast();
         return this;
     }
 
-    public StackMachineEmulator set(int index, StackValue value)
+    public StackMachine set(int index, StackValue value)
     {
         this.locals.put(index, value);
         return this;
     }
 
+    public StackMachine expected(StackMachine expected) {
+        if (expected.expected != null) {
+            throw new IllegalArgumentException("Expected StackMachine cannot have its own expected StackMachine.");
+        }
+
+        this.expected = expected.clone();
+        return this;
+    }
+
     public EmulateResult emulate(FrameDifferenceInfo frameDifferenceInfo) {
         Emulator emulator = new Emulator(this.initialStack, this.locals);
-        return emulator.emulate(frameDifferenceInfo);
+        EmulateResult result = emulator.emulate(frameDifferenceInfo);
+        if (this.expected != null) {
+            this.assertStacMachineResult(result, this.expected);
+        }
+
+        return result;
+    }
+
+    private void assertStacMachineResult(EmulateResult result, StackMachine expected) {
+        List<StackValue> expectedStack = expected.initialStack;
+        if (result.stack().size() != expectedStack.size()) {
+            throw new AssertionFailedError(
+                    "Expected stack size " + expectedStack.size() + " but got " + result.stack().size(),
+                    expectedStack,
+                    result.stack()
+            );
+        }
+
+        for (int i = 0; i < expectedStack.size(); i++) {
+            StackValue expectedValue = expectedStack.get(i);
+            StackValue actualValue = result.stack().get(i);
+            if (expectedValue.type() != actualValue.type()) {
+                throw new AssertionFailedError(
+                        "Stack value type mismatch at index " + i,
+                        expectedValue.type(),
+                        actualValue.type()
+                );
+            }
+        }
+
+        for (Map.Entry<Integer, StackValue> entry : expected.locals.entrySet()) {
+            int index = entry.getKey();
+            StackValue expectedValue = entry.getValue();
+            StackValue actualValue = result.locals().get(index);
+            if (actualValue == null) {
+                throw new AssertionFailedError(
+                        "Missing local variable at index " + index
+                );
+            }
+            if (expectedValue.type() != actualValue.type()) {
+                throw new AssertionFailedError(
+                        "Local variable type mismatch at index " + index,
+                        expectedValue.type(),
+                        actualValue.type()
+                );
+            }
+        }
+    }
+
+    @Override
+    @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod"})
+    protected StackMachine clone()
+    {
+        StackMachine cloned = new StackMachine();
+        cloned.initialStack.addAll(this.initialStack);
+        cloned.locals.putAll(this.locals);
+        cloned.expected = this.expected; // expected は参照をコピーするだけで十分
+
+        return cloned;
     }
 
     private static class Emulator {
@@ -100,7 +169,7 @@ public class StackMachineEmulator
                 this.stepOne(operations[i]);
             }
 
-            return new EmulateResult(this.stack, this.shelter);
+            return new EmulateResult(this.stack, this.shelter, this.locals);
         }
 
         private void stepOne(StackOperation operation) {
@@ -188,7 +257,8 @@ public class StackMachineEmulator
 
     public record EmulateResult(
             List<StackValue> stack,
-            Map<StackElementCapsule, StackValue> shelter
+            Map<StackElementCapsule, StackValue> shelter,
+            Map<Integer, StackValue> locals
     ) {
     }
 
@@ -203,7 +273,7 @@ public class StackMachineEmulator
         private static final StackValue STACK_VALUE_TOP = new TopStackValue();
 
 
-        public static StackValue integer() {
+        public static StackValue integerValue() {
             return STACK_VALUE_INTEGER;
         }
 

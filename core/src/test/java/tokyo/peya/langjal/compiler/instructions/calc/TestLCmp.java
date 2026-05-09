@@ -2,10 +2,12 @@ package tokyo.peya.langjal.compiler.instructions.calc;
 
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
-import tokyo.peya.langjal.compiler.instructions.utils.StackMachineEmulator;
+import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachineEmulator.StackValues.longValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
 public class TestLCmp extends AbstractInstructionTestCase<JALParser.JvmInsLcmpContext, InstructionEvaluatorLCmp>
 {
@@ -23,10 +25,10 @@ public class TestLCmp extends AbstractInstructionTestCase<JALParser.JvmInsLcmpCo
     }
 
     @Override
-    public StackMachineEmulator[] validSituations()
+    public StackMachine[] validSituations()
     {
-        return new StackMachineEmulator[] {
-                StackMachineEmulator.create(longValue(), longValue()),
+        return new StackMachine[] {
+                create(longValue(), longValue()).expected(create(longValue()))
         };
     }
 }
