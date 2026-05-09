@@ -20,7 +20,7 @@ public class InstructionEvaluatorD2L extends AbstractSingleInstructionEvaluator<
     {
         return FrameDifferenceInfo.builder(instruction)
                                   .popPrimitive(StackElementType.DOUBLE)
-                                  .pushPrimitive(StackElementType.INTEGER)
+                                  .pushPrimitive(StackElementType.LONG)
                                   .build();
     }
 
