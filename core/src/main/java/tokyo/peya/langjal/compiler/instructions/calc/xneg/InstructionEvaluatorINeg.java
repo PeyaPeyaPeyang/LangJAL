@@ -12,7 +12,7 @@ public class InstructionEvaluatorINeg extends AbstractSingleInstructionEvaluator
 {
     public InstructionEvaluatorINeg()
     {
-        super(EOpcodes.IREM);
+        super(EOpcodes.INEG);
     }
 
     @Override

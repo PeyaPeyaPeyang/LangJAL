@@ -12,7 +12,7 @@ public class InstructionEvaluatorDNeg extends AbstractSingleInstructionEvaluator
 {
     public InstructionEvaluatorDNeg()
     {
-        super(EOpcodes.DREM);
+        super(EOpcodes.DNEG);
     }
 
     @Override

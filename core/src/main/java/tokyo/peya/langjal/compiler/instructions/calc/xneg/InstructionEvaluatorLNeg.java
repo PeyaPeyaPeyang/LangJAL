@@ -12,7 +12,7 @@ public class InstructionEvaluatorLNeg extends AbstractSingleInstructionEvaluator
 {
     public InstructionEvaluatorLNeg()
     {
-        super(EOpcodes.LREM);
+        super(EOpcodes.LNEG);
     }
 
     @Override

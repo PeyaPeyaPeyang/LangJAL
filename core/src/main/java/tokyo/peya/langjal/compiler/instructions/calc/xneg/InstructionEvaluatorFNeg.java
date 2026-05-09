@@ -12,7 +12,7 @@ public class InstructionEvaluatorFNeg extends AbstractSingleInstructionEvaluator
 {
     public InstructionEvaluatorFNeg()
     {
-        super(EOpcodes.FREM);
+        super(EOpcodes.FNEG);
     }
 
     @Override
