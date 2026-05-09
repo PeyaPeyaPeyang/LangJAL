@@ -1,6 +1,8 @@
 package tokyo.peya.langjal.compiler.instructions.utils;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.tree.LabelNode;
 import org.opentest4j.AssertionFailedError;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.LocalStackElement;
@@ -15,11 +17,15 @@ import tokyo.peya.langjal.analyser.stack.TopElement;
 import tokyo.peya.langjal.analyser.stack.UninitializedElement;
 import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.compiler.member.LabelInfo;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class StackMachine implements Cloneable
 {
@@ -103,6 +109,14 @@ public class StackMachine implements Cloneable
         return cloned;
     }
 
+    public void applyTo(LocalVariablesHolder locals) {
+        for (Map.Entry<Integer, StackValue> entry : this.locals.entrySet()) {
+            int index = entry.getKey();
+            StackValue value = entry.getValue();
+            locals.register(index, value.desc(), "local_" + index);
+        }
+    }
+
     private static class Emulator {
         private final List<StackValue> stack;
         private final Map<Integer, StackValue> locals;
@@ -139,41 +153,82 @@ public class StackMachine implements Cloneable
             }
         }
 
-        private void push(StackElement element) {
-            switch (element) {
-                case ObjectElement obj -> this.stack.add(new ObjectStackValue(obj.content()));
-                case StackElementCapsule capsule -> {
-                    StackValue value = this.shelter.get(capsule);
-                    if (value == null)
-                        throw new AssertionFailedError("No value in shelter for capsule: " + capsule + " at step " + this.currentStep);
-                    this.stack.add(value);
-                }
-                case PrimitiveElement prim -> {
-                    StackValue value = switch (prim.type()) {
-                        case INTEGER -> new IntegerStackValue();
-                        case FLOAT -> new FloatStackValue();
-                        case DOUBLE -> new DoubleStackValue();
-                        case LONG -> new LongStackValue();
-                        default -> throw new AssertionFailedError("Unknown primitive type: " + prim.type());
-                    };
-                    this.stack.add(value);
-                }
-                case LocalStackElement local -> {
-                    StackValue value = this.locals.get(local.index());
-                    if (value == null)
-                        throw new AssertionFailedError("No value in locals for index: " + local.index());
-                    this.stack.add(value);
-                }
-
-                case UninitializedElement ignored -> this.stack.add(new UninitializedStackValue());
-                case UninitializedThisElement ignored -> this.stack.add(new UninitializedThisStackValue());
-                case NullElement ignored -> this.stack.add(new NullStackValue());
-                case TopElement ignored -> this.stack.add(new TopStackValue());
+        private void push(StackElement element)
+        {
+            if (Objects.requireNonNull(element) instanceof LocalStackElement local)
+            {
+                this.locals.put(local.index(), convert(local.stackElement()));
+            }
+            else
+            {
+                this.stack.add(convert(element));
             }
         }
 
+        private @NotNull StackValue convert(@NotNull StackElement element)
+        {
+            return switch (element)
+            {
+                case ObjectElement obj ->
+                        new ObjectStackValue(obj.content());
+
+                case StackElementCapsule capsule -> {
+                    StackValue value = this.shelter.get(capsule);
+
+                    if (value == null)
+                        throw new AssertionFailedError(
+                                "No value in shelter for capsule: "
+                                        + capsule
+                                        + " at step "
+                                        + this.currentStep
+                        );
+
+                    yield value;
+                }
+
+                case PrimitiveElement prim ->
+                        switch (prim.type())
+                        {
+                            case INTEGER -> new IntegerStackValue();
+                            case FLOAT -> new FloatStackValue();
+                            case DOUBLE -> new DoubleStackValue();
+                            case LONG -> new LongStackValue();
+
+                            default ->
+                                    throw new AssertionFailedError(
+                                            "Unknown primitive type: " + prim.type()
+                                    );
+                        };
+
+                case UninitializedElement ignored ->
+                        new UninitializedStackValue();
+
+                case UninitializedThisElement ignored ->
+                        new UninitializedThisStackValue();
+
+                case NullElement ignored ->
+                        new NullStackValue();
+
+                case TopElement ignored ->
+                        new TopStackValue();
+
+                case LocalStackElement ignored ->
+                        throw new IllegalArgumentException(
+                                "LocalStackElement cannot be converted to StackValue directly"
+                        );
+            };
+        }
+
         private void pop(StackElement element) {
-            if (this.stack.isEmpty()) {
+            if (element instanceof LocalStackElement local) {
+                StackValue value = this.locals.get(local.index());
+                if (value == null) {
+
+                    throw new AssertionFailedError("No value in locals for index: " + local.index());
+                }
+                this.locals.remove(local.index());
+                return;
+            } else if (this.stack.isEmpty()) {
                 throw new AssertionFailedError("Stack underflow at step " + this.currentStep);
             }
 
@@ -329,6 +384,18 @@ public class StackMachine implements Cloneable
     public sealed interface StackValue
     {
         StackElementType type();
+
+        default TypeDescriptor desc() {
+            return switch (this.type()) {
+                case INTEGER -> TypeDescriptor.INTEGER;
+                case FLOAT -> TypeDescriptor.FLOAT;
+                case DOUBLE -> TypeDescriptor.DOUBLE;
+                case LONG -> TypeDescriptor.LONG;
+                case NULL -> TypeDescriptor.OBJECT;
+                case OBJECT -> ((ObjectStackValue) this).typeName();
+                default -> TypeDescriptor.VOID;
+            };
+        }
     }
 
     private record IntegerStackValue() implements StackValue

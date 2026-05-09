@@ -16,18 +16,15 @@ public class TestLCmp extends AbstractInstructionTestCase<JALParser.JvmInsLcmpCo
     }
 
     @Override
-    public String[] getValidInstructionSyntaxes()
+    public InstructionCase[] getValidInstructionSyntaxes()
     {
-        return new String[] {
-                "lcmp",
-        };
-    }
-
-    @Override
-    public StackMachine[] validSituations()
-    {
-        return new StackMachine[] {
-                create(longValue(), longValue()).expected(create(longValue()))
-        };
+        return set(
+                of(
+                        create(longValue(), longValue())
+                                .expected(create(longValue())),
+                        "lcmp",
+                        null
+                )
+        );
     }
 }

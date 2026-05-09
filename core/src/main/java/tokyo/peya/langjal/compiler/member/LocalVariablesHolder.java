@@ -453,6 +453,11 @@ public class LocalVariablesHolder
         return newLocal;
     }
 
+    public void register(int idx, @NotNull TypeDescriptor type, @Nullable String name)
+    {
+        this.register(idx, type, name, this.labelsHolder.getCurrentLabel(), this.labelsHolder.getGlobalEnd());
+    }
+
     private void warnLocalPerformance(@NotNull LocalVariableInfo localVar, @NotNull String callerInsn)
     {
         // xLOAD_<n> が定義されているので，代わりにそっちを使ったほうが効率が良い(e.g. iload_1)

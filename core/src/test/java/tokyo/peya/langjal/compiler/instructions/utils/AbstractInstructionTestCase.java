@@ -4,31 +4,42 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.JALLexer;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 import java.util.function.Function;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T extends AbstractInstructionEvaluator<P>>
 {
+    private static final TestFileEvaluatingReporter REPORTER;
     private static final ClassNode TEST_DUMMY_CLASS;
     private static final MethodNode TEST_DUMMY_METHOD;
 
     static {
+        REPORTER = new TestFileEvaluatingReporter();
         TEST_DUMMY_CLASS = new ClassNode();
         TEST_DUMMY_CLASS.visit(
                 EOpcodes.V1_8,
@@ -79,45 +90,103 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
         Assertions.assertEquals(this.expectedOpCodes.length, actualOpCodes.length, "Evaluator accepts unexpected number of opcodes");
     }
 
-    public abstract String[] getValidInstructionSyntaxes();
+    public abstract InstructionCase[] getValidInstructionSyntaxes();
 
     @ParameterizedTest
     @MethodSource("getValidInstructionSyntaxes")
-    public void testParseValidInstructions(String instruction)
+    public void testParseValidInstructions(InstructionCase instruction)
+    {
+        P insn = tryParseInstruction(instruction.syntax);
+        LabelsHolder labels = new LabelsHolder();
+        InstructionsHolder instructions = new InstructionsHolder(
+                TEST_DUMMY_CLASS,
+                TEST_DUMMY_METHOD,
+                labels
+        );
+
+        LocalVariablesHolder locals = new LocalVariablesHolder(REPORTER, labels);
+        instruction.situation.applyTo(locals);
+        EvaluatedInstruction compiled = compile(insn, instructions, labels, locals);
+
+        AbstractInsnNode insnNode = compiled.insn();
+        AbstractInsnNode expectedNode = instruction.expectedInstruction;
+        if (expectedNode != null)
+            this.assertInstructionEquals(expectedNode, insnNode);
+    }
+
+    @NotNull
+    private P tryParseInstruction(String syntax)
     {
         try
         {
-            parseInstruction(instruction, this.evaluator::map);
+            P parsed = parseInstruction(syntax, this.evaluator::map);
+            if (parsed == null)
+            {
+                fail(String.format("Valid instruction '%s' could not be parsed: map returned null", syntax));
+            }
+
+            return parsed;
         }
         catch (Exception e)
         {
-            Assertions.fail(String.format("Valid instruction '%s' threw an exception: %s", instruction, e.getMessage()));
+            fail(String.format("Valid instruction '%s' threw an exception: %s", syntax, e.getMessage()));
+            return null;  // Unreachable, but required for compilation.
         }
     }
 
-    public abstract StackMachine[] validSituations();
+    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+    {
+        assertEquals(expected.getOpcode(), actual.getOpcode(), "Opcodes do not match");
+        // ↑デフォの equals はザルなので，独自の比較ロジックを実装する必要がある。
+    }
 
-    @ParameterizedTest
-    @MethodSource("validSituations")
-    public void testFrameDifferenceEvaluations(StackMachine situation)
+    private EvaluatedInstruction compile(P instruction, InstructionsHolder instructions, LabelsHolder labels, LocalVariablesHolder locals)
+    {
+        return this.evaluator.evaluate(
+                REPORTER,
+                TEST_DUMMY_CLASS,
+                TEST_DUMMY_METHOD,
+                instructions,
+                labels,
+                locals,
+                    instruction
+        );
+    }
+
+    @ParameterizedTest(allowZeroInvocations = true)
+    @MethodSource("getValidInstructionSyntaxes")
+    public void testFrameDifferenceEvaluations(InstructionCase kase)
     {
         if (this instanceof AbstractInstructionTestCase.Same<P,T>) {
             return;  // Same タイプのテストケースは，フレームの操作が無いため。
         }
 
-        InstructionInfo info = new InstructionInfo(
-                this.evaluator,
+        P parsed = tryParseInstruction(kase.syntax);
+
+        LabelsHolder labels = new LabelsHolder();
+        InstructionsHolder instructions = new InstructionsHolder(
                 TEST_DUMMY_CLASS,
                 TEST_DUMMY_METHOD,
-                this.expectedOpCodes[0],
+                labels
+        );
+
+        LocalVariablesHolder locals = new LocalVariablesHolder(REPORTER, labels);
+        kase.situation.applyTo(locals);
+        EvaluatedInstruction compiled = this.compile(parsed, instructions, labels, locals);
+
+        InstructionInfo info = new InstructionInfo(
                 0,
+                compiled.insn(),
+                TEST_DUMMY_CLASS,
+                TEST_DUMMY_METHOD,
+                this.evaluator,
                 null,
-                1,
+                compiled.getInstructionSize(),
                 0
         );
 
         FrameDifferenceInfo difference = this.evaluator.getFrameDifferenceInfo(info);
-        situation.emulate(difference);
+        kase.situation.emulate(difference);
     }
 
     protected static <T extends ParserRuleContext> T parseInstruction(String instruction, Function<? super JALParser.InstructionContext, T> mapper)
@@ -142,10 +211,31 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
             super(evaluator, expectedOpCodes);
         }
 
-        @Override
-        public final StackMachine[] validSituations()
-        {
-            return new StackMachine[0];
+        protected static StackMachine same() {
+            return StackMachine.create().expected(StackMachine.create());
         }
+    }
+
+    protected static InstructionCase of(StackMachine situation, String syntax, AbstractInsnNode instruction)
+    {
+        return new InstructionCase(situation, syntax, instruction);
+    }
+
+    protected static InstructionCase of(StackMachine situation, String syntax, int instruction)
+    {
+        return new InstructionCase(situation, syntax, new InsnNode(instruction));
+    }
+
+    public static InstructionCase[] set(InstructionCase... cases)
+    {
+        return cases;
+    }
+
+    public record InstructionCase(
+            StackMachine situation,
+            String syntax,
+            AbstractInsnNode expectedInstruction
+    ) {
+
     }
 }

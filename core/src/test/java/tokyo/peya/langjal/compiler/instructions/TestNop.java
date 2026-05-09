@@ -12,10 +12,10 @@ public class TestNop extends AbstractInstructionTestCase.Same<JALParser.JvmInsNo
     }
 
     @Override
-    public String[] getValidInstructionSyntaxes()
+    public InstructionCase[] getValidInstructionSyntaxes()
     {
-        return new String[] {
-                "nop",
-        };
+        return set(
+                of(same(), "nop", null)
+        );
     }
 }
