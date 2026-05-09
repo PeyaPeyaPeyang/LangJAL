@@ -5,7 +5,6 @@ import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCas
 import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 

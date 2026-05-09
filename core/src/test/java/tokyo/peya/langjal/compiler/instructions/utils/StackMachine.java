@@ -83,51 +83,11 @@ public class StackMachine implements Cloneable
     public EmulateResult emulate(FrameDifferenceInfo frameDifferenceInfo) {
         Emulator emulator = new Emulator(this.initialStack, this.locals);
         EmulateResult result = emulator.emulate(frameDifferenceInfo);
-        if (this.expected != null) {
-            this.assertStacMachineResult(result, this.expected);
-        }
 
-        return result;
-    }
-
-    private void assertStacMachineResult(EmulateResult result, StackMachine expected) {
-        List<StackValue> expectedStack = expected.initialStack;
-        if (result.stack().size() != expectedStack.size()) {
-            throw new AssertionFailedError(
-                    "Expected stack size " + expectedStack.size() + " but got " + result.stack().size(),
-                    expectedStack,
-                    result.stack()
-            );
-        }
-
-        for (int i = 0; i < expectedStack.size(); i++) {
-            StackValue expectedValue = expectedStack.get(i);
-            StackValue actualValue = result.stack().get(i);
-            if (expectedValue.type() != actualValue.type()) {
-                throw new AssertionFailedError(
-                        "Stack value type mismatch at index " + i,
-                        expectedValue.type(),
-                        actualValue.type()
-                );
-            }
-        }
-
-        for (Map.Entry<Integer, StackValue> entry : expected.locals.entrySet()) {
-            int index = entry.getKey();
-            StackValue expectedValue = entry.getValue();
-            StackValue actualValue = result.locals().get(index);
-            if (actualValue == null) {
-                throw new AssertionFailedError(
-                        "Missing local variable at index " + index
-                );
-            }
-            if (expectedValue.type() != actualValue.type()) {
-                throw new AssertionFailedError(
-                        "Local variable type mismatch at index " + index,
-                        expectedValue.type(),
-                        actualValue.type()
-                );
-            }
+        if (this.expected == null) {
+            return result;
+        } else {
+            return result.expected(this.expected);
         }
     }
 
@@ -260,6 +220,58 @@ public class StackMachine implements Cloneable
             Map<StackElementCapsule, StackValue> shelter,
             Map<Integer, StackValue> locals
     ) {
+        public EmulateResult then(FrameDifferenceInfo frameDifferenceInfo) {
+            Emulator emulator = new Emulator(this.stack, this.locals);
+            return emulator.emulate(frameDifferenceInfo);
+        }
+
+        public EmulateResult expected(StackMachine expected) {
+            this.assertStacMachineResult(this, expected);
+            return this;
+        }
+
+
+        private void assertStacMachineResult(EmulateResult result, StackMachine expected) {
+            List<StackValue> expectedStack = expected.initialStack;
+            if (result.stack().size() != expectedStack.size()) {
+                throw new AssertionFailedError(
+                        "Expected stack size " + expectedStack.size() + " but got " + result.stack().size(),
+                        expectedStack,
+                        result.stack()
+                );
+            }
+
+            for (int i = 0; i < expectedStack.size(); i++) {
+                StackValue expectedValue = expectedStack.get(i);
+                StackValue actualValue = result.stack().get(i);
+                if (expectedValue.type() != actualValue.type()) {
+                    throw new AssertionFailedError(
+                            "Stack value type mismatch at index " + i,
+                            expectedValue.type(),
+                            actualValue.type()
+                    );
+                }
+            }
+
+            for (Map.Entry<Integer, StackValue> entry : expected.locals.entrySet()) {
+                int index = entry.getKey();
+                StackValue expectedValue = entry.getValue();
+                StackValue actualValue = result.locals().get(index);
+                if (actualValue == null) {
+                    throw new AssertionFailedError(
+                            "Missing local variable at index " + index
+                    );
+                }
+                if (expectedValue.type() != actualValue.type()) {
+                    throw new AssertionFailedError(
+                            "Local variable type mismatch at index " + index,
+                            expectedValue.type(),
+                            actualValue.type()
+                    );
+                }
+            }
+        }
+
     }
 
     public static class StackValues {
