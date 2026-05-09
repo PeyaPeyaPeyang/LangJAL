@@ -1,0 +1,212 @@
+package tokyo.peya.langjal.compiler.instructions;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.junit.jupiter.api.Nested;
+import tokyo.peya.langjal.compiler.JALParser;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorD2F;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorD2I;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorD2L;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorF2D;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorF2I;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorF2L;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2B;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2C;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2D;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2F;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2L;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2S;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorL2D;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorL2F;
+import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorL2I;
+import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
+import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
+
+public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSingleInstructionEvaluator<T>> extends AbstractInstructionTestCase<T, E>
+{
+    private final StackMachine.StackValue inputValue;
+    private final StackMachine.StackValue outputValue;
+    private final String syntax;
+    private final int opcode;
+
+    protected TestX2X(E evaluator, int... expectedOpCodes)
+    {
+        super(evaluator, expectedOpCodes);
+        this.inputValue = null;
+        this.outputValue = null;
+        this.syntax = null;
+        this.opcode = -1;
+    }
+
+    protected TestX2X(E evaluator, StackMachine.StackValue inputValue, StackMachine.StackValue outputValue, String syntax, int opcode)
+    {
+        super(evaluator, opcode);
+        this.inputValue = inputValue;
+        this.outputValue = outputValue;
+        this.syntax = syntax;
+        this.opcode = opcode;
+    }
+
+    protected AbstractInstructionTestCase.InstructionCase[] single(StackMachine.StackValue inputValue, StackMachine.StackValue outputValue, String syntax, int opcode)
+    {
+        return set(
+                of(
+                        StackMachine.create(inputValue).expected(StackMachine.create(outputValue)),
+                        syntax,
+                        opcode
+                )
+        );
+    }
+
+    @Override
+    public AbstractInstructionTestCase.InstructionCase[] getValidInstructionSyntaxes()
+    {
+        if (!(this.inputValue == null || this.outputValue == null || this.syntax == null || this.opcode == -1))
+        {
+            return single(this.inputValue, this.outputValue, this.syntax, this.opcode);
+        }
+
+        return set();
+    }
+
+    @Nested
+    static class TestD2F extends TestX2X<JALParser.JvmInsD2FContext, InstructionEvaluatorD2F>
+    {
+        TestD2F()
+        {
+            super(new InstructionEvaluatorD2F(), doubleValue(), floatValue(), "d2f", EOpcodes.D2F);
+        }
+    }
+
+    @Nested
+    static class TestD2I extends TestX2X<JALParser.JvmInsD2IContext, InstructionEvaluatorD2I>
+    {
+        TestD2I()
+        {
+            super(new InstructionEvaluatorD2I(), doubleValue(), integerValue(), "d2i", EOpcodes.D2I);
+        }
+    }
+
+    @Nested
+    static class TestD2L extends TestX2X<JALParser.JvmInsD2LContext, InstructionEvaluatorD2L>
+    {
+        TestD2L()
+        {
+            super(new InstructionEvaluatorD2L(), doubleValue(), longValue(), "d2l", EOpcodes.D2L);
+        }
+    }
+
+    @Nested
+    static class TestF2D extends TestX2X<JALParser.JvmInsF2DContext, InstructionEvaluatorF2D>
+    {
+        TestF2D()
+        {
+            super(new InstructionEvaluatorF2D(), floatValue(), doubleValue(), "f2d", EOpcodes.F2D);
+        }
+    }
+
+    @Nested
+    static class TestF2I extends TestX2X<JALParser.JvmInsF2IContext, InstructionEvaluatorF2I>
+    {
+        TestF2I()
+        {
+            super(new InstructionEvaluatorF2I(), floatValue(), integerValue(), "f2i", EOpcodes.F2I);
+        }
+    }
+
+    @Nested
+    static class TestF2L extends TestX2X<JALParser.JvmInsF2LContext, InstructionEvaluatorF2L>
+    {
+        TestF2L()
+        {
+            super(new InstructionEvaluatorF2L(), floatValue(), longValue(), "f2l", EOpcodes.F2L);
+        }
+    }
+
+    @Nested
+    static class TestI2B extends TestX2X<JALParser.JvmInsI2BContext, InstructionEvaluatorI2B>
+    {
+        TestI2B()
+        {
+            super(new InstructionEvaluatorI2B(), integerValue(), integerValue(), "i2b", EOpcodes.I2B);
+        }
+    }
+
+    @Nested
+    static class TestI2C extends TestX2X<JALParser.JvmInsI2CContext, InstructionEvaluatorI2C>
+    {
+        TestI2C()
+        {
+            super(new InstructionEvaluatorI2C(), integerValue(), integerValue(), "i2c", EOpcodes.I2C);
+        }
+    }
+
+    @Nested
+    static class TestI2D extends TestX2X<JALParser.JvmInsI2DContext, InstructionEvaluatorI2D>
+    {
+        TestI2D()
+        {
+            super(new InstructionEvaluatorI2D(), integerValue(), doubleValue(), "i2d", EOpcodes.I2D);
+        }
+    }
+
+    @Nested
+    static class TestI2F extends TestX2X<JALParser.JvmInsI2FContext, InstructionEvaluatorI2F>
+    {
+        TestI2F()
+        {
+            super(new InstructionEvaluatorI2F(), integerValue(), floatValue(), "i2f", EOpcodes.I2F);
+        }
+    }
+
+    @Nested
+    static class TestI2L extends TestX2X<JALParser.JvmInsI2LContext, InstructionEvaluatorI2L>
+    {
+        TestI2L()
+        {
+            super(new InstructionEvaluatorI2L(), integerValue(), longValue(), "i2l", EOpcodes.I2L);
+        }
+    }
+
+    @Nested
+    static class TestI2S extends TestX2X<JALParser.JvmInsI2SContext, InstructionEvaluatorI2S>
+    {
+        TestI2S()
+        {
+            super(new InstructionEvaluatorI2S(), integerValue(), integerValue(), "i2s", EOpcodes.I2S);
+        }
+    }
+
+    @Nested
+    static class TestL2D extends TestX2X<JALParser.JvmInsL2DContext, InstructionEvaluatorL2D>
+    {
+        TestL2D()
+        {
+            super(new InstructionEvaluatorL2D(), longValue(), doubleValue(), "l2d", EOpcodes.L2D);
+        }
+    }
+
+    @Nested
+    static class TestL2F extends TestX2X<JALParser.JvmInsL2FContext, InstructionEvaluatorL2F>
+    {
+        TestL2F()
+        {
+            super(new InstructionEvaluatorL2F(), longValue(), floatValue(), "l2f", EOpcodes.L2F);
+        }
+    }
+
+    @Nested
+    static class TestL2I extends TestX2X<JALParser.JvmInsL2IContext, InstructionEvaluatorL2I>
+    {
+        TestL2I()
+        {
+            super(new InstructionEvaluatorL2I(), longValue(), integerValue(), "l2i", EOpcodes.L2I);
+        }
+    }
+}
+
