@@ -22,6 +22,7 @@ import tokyo.peya.langjal.compiler.member.LabelsHolder;
 import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,12 @@ public class StackMachine implements Cloneable
             StackValue value = entry.getValue();
             locals.register(index, value.desc(), "local_" + index);
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[stack={" + this.initialStack + "}, locals=" + this.locals + "]";
     }
 
     private static class Emulator {
