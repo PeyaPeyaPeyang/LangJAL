@@ -45,6 +45,7 @@ KWD_METHOD_TYPE: 'MethodType|';
 KWD_METHOD_HANDLE: 'MethodHandle|';
 KWD_METHOD_HANDLE_TAG_NEWINVOKE: 'newinvokespecial';
 
+// <editor-fold desc="Instruction mnemonics">
 INSN_AALOAD: 'aaload';
 INSN_AASTORE: 'aastore';
 INSN_ACONST_NULL: 'aconst_null';
@@ -249,6 +250,8 @@ INSN_SWAP: 'swap';
 INSN_TABLESWITCH: 'tableswitch';
 INSN_WIDE: 'wide';
 
+// </editor-fold>
+
 TYPE_DESC_BYTE    : 'B';
 TYPE_DESC_CHAR    : 'C';
 TYPE_DESC_DOUBLE  : 'D';
@@ -285,17 +288,17 @@ SPACE
 NUMBER
  : '-'?
    (
-      '0x' [0-9a-fA-F]+
+      '0x' [0-9a-fA-F]+  // 16 進数リテラル
       |
-      [0-9]+
+      [0-9]+  // 10 進数リテラル
       (
          '.' [0-9]+
       )?
       (
-         [eE] [+-]? [0-9]+
+         [eE] [+-]? [0-9]+  // 指数部 (例: 1.23e10, 3.14E-5)
       )?
    )
-   [fFdDlL]?
+   [fFdDlL]?  // 数字の後に接尾辞を付けて，型を指定できるようにする (例: 123L, 3.14f)
  ;
 
 BOOLEAN
@@ -307,10 +310,12 @@ ID
  : [a-zA-Z$_] [a-zA-Z0-9$_]*
  ;
 
+// ダブルクォートで囲まれた文字列リテラル
 STRING
  : '"' ( ~["\\] | '\\' . )* '"'
  ;
 
+// コメントは HIDDEN につっこんで，PSI に出てこないようにする
 LINE_COMMENT
  : '//' ~[\r\n]* -> channel(HIDDEN)
  ;
@@ -416,6 +421,9 @@ classPropInterfaces
 // FIELD
 // ====================================================================
 
+// public static final int MY_FIELD: I = 123;
+// public int myField: I;
+// など。
 fieldDefinition
  : accModField
    fieldName
@@ -484,6 +492,7 @@ arrayPrefix
      )
    ;
 
+// Parser ルールだと， II(I) を (<id>)<ID> としてパースされるため， Lexer ルールにする
 methodDescriptor: METHOD_DESCRIPTOR;
 
 // ====================================================================
@@ -696,7 +705,7 @@ jvmInsArgLookupSwitchCaseName
  ;
 
 
-// ------------------------------------------------------------  //
+// <editor-fold desc="INSTRUCTIONS">
 
 instruction: jvmInsAaload | jvmInsAastore  | jvmInsAconstNull | jvmInsAload | jvmInsAloadN  | jvmInsAnewArray
                 | jvmInsAreturn | jvmInsArraylength | jvmInsAstore | jvmInsAstoreN | jvmInsAthrow | jvmInsBaload
@@ -883,5 +892,6 @@ jvmInsSipush: INSN_SIPUSH NUMBER;
 jvmInsSwap: INSN_SWAP;
 jvmInsTableswitch: INSN_TABLESWITCH jvmInsArgTableSwitch;
 
+// </editor-fold>
 
 ERRCHAR: . -> channel(HIDDEN);
