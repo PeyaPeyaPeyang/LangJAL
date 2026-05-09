@@ -2,6 +2,7 @@ package tokyo.peya.langjal.compiler.instructions.calc;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.IincInsnNode;
+import tokyo.peya.langjal.analyser.stack.StackElementType;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
@@ -57,7 +58,11 @@ public class InstructionEvaluatorIInc extends AbstractInstructionEvaluator<JALPa
     @Override
     public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
     {
-        return FrameDifferenceInfo.same();
+        IincInsnNode insn = (IincInsnNode) instruction.insn();
+        return FrameDifferenceInfo.builder(instruction)
+                .consumeLocalPrimitive(insn.var, StackElementType.INTEGER)
+                .addLocalPrimitive(insn.var, StackElementType.INTEGER)
+                .build();
 
     }
 
