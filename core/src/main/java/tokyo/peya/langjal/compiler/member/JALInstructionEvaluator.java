@@ -384,7 +384,15 @@ public class JALInstructionEvaluator
     {
         for (AbstractInstructionEvaluator<?> evaluator : EVALUATORS)
             if (evaluator.isApplicable(instruction))
-                return evaluator.evaluate(methodEvaluator, instruction);
+                return evaluator.evaluate(
+                        methodEvaluator.getContext(),
+                        methodEvaluator.getClazz(),
+                        methodEvaluator.getMethod(),
+                        methodEvaluator.getInstructions(),
+                        methodEvaluator.getLabels(),
+                        methodEvaluator.getLocals(),
+                        instruction
+                );
 
         throw new InternalCompileErrorException("Unsupported instruction: " + instruction.getText(), instruction);
     }

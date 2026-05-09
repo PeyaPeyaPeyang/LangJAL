@@ -11,17 +11,18 @@ import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 public class InstructionEvaluateHelperXLoad
 {
     public static @NotNull EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
-                                                         @NotNull JALMethodCompiler compiler,
+                                                         @NotNull LocalVariablesHolder locals,
                                                          @NotNull JALParser.JvmInsArgLocalRefContext ref,
                                                          int opcode,
                                                          @NotNull String callerInsn,
                                                          @Nullable TerminalNode wide)
     {
-        LocalVariableInfo local = compiler.getLocals().resolve(ref, callerInsn);
+        LocalVariableInfo local = locals.resolve(ref, callerInsn);
 
         int idx = local.index();
         boolean isWide = wide != null;
@@ -40,9 +41,9 @@ public class InstructionEvaluateHelperXLoad
 
     public static @NotNull EvaluatedInstruction evaluateN(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                           @NotNull ParserRuleContext caller,
-                                                          @NotNull JALMethodCompiler compiler, int opcode, int idx)
+                                                          @NotNull LocalVariablesHolder locals, int opcode, int idx)
     {
-        LocalVariableInfo local = compiler.getLocals().resolveSafe(idx);
+        LocalVariableInfo local = locals.resolveSafe(idx);
         if (local == null)
             throw new IllegalInstructionException(
                     "Local variable with index " + idx + " is not defined in the current method context.",

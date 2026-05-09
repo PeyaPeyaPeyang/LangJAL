@@ -3,7 +3,10 @@ package tokyo.peya.langjal.compiler.instructions.invokex;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
@@ -11,7 +14,9 @@ import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 import java.util.List;
@@ -25,13 +30,17 @@ public class InstructionEvaluatorInvokeDynamic
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsInvokedynamicContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsInvokedynamicContext instruction)
     {
-        String methodName = ctxt.methodName().getText();
-        String methodDesc = ctxt.methodDescriptor().getText();
-        Handle bootstrapMethod = toHandle(ctxt.jvmInsArgInvokeDynamicMethodHandle());
-        List<JALParser.JvmInsArgInvokeDynamicRefContext> args = ctxt.jvmInsArgInvokeDynamicRef();
+        String methodName = instruction.methodName().getText();
+        String methodDesc = instruction.methodDescriptor().getText();
+        Handle bootstrapMethod = toHandle(instruction.jvmInsArgInvokeDynamicMethodHandle());
+        List<JALParser.JvmInsArgInvokeDynamicRefContext> args = instruction.jvmInsArgInvokeDynamicRef();
         List<Object> bootstrapArgs = args.stream()
                                          .map(InstructionEvaluatorInvokeDynamic::evaluateBootstrapArg)
                                          .toList();
@@ -42,7 +51,7 @@ public class InstructionEvaluatorInvokeDynamic
                 bootstrapMethod,
                 bootstrapArgs.toArray(new Object[0])
         );
-        return EvaluatedInstruction.of(this, insn, calcSize(ctxt));
+        return EvaluatedInstruction.of(this, insn, calcSize(instruction));
     }
 
     @Override

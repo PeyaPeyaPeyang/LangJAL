@@ -1,7 +1,10 @@
 package tokyo.peya.langjal.compiler.instructions;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
@@ -12,7 +15,9 @@ import tokyo.peya.langjal.compiler.jvm.Type;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<JALParser.JvmInsNewarrayContext>
 {
@@ -22,27 +27,31 @@ public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<J
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsNewarrayContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsNewarrayContext instruction)
     {
-        JALParser.TypeDescriptorContext typeDescriptor = ctxt.typeDescriptor();
+        JALParser.TypeDescriptorContext typeDescriptor = instruction.typeDescriptor();
         TypeDescriptor desc = TypeDescriptor.parse(typeDescriptor.getText());
         Type descType = desc.getBaseType();
         if (!(descType instanceof PrimitiveTypes primitive))
             throw new IllegalInstructionException(
                     "newarray instruction requires a primitive type: " + descType.getDescriptor(),
-                    ctxt
+                    instruction
             );
         else if (desc.isArray())
             throw new IllegalInstructionException(
                     "newarray instruction cannot create an array of arrays: " + desc,
-                    ctxt
+                    instruction
             );
 
         if (primitive == PrimitiveTypes.VOID)
             throw new IllegalInstructionException(
                     "newarray instruction cannot create an array of void type: " + desc,
-                    ctxt
+                    instruction
             );
 
         IntInsnNode type = new IntInsnNode(EOpcodes.NEWARRAY, primitive.getAsmType());

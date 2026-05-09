@@ -1,16 +1,21 @@
 package tokyo.peya.langjal.compiler.instructions;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 import java.util.List;
@@ -23,10 +28,14 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsTableswitchContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsTableswitchContext instruction)
     {
-        JALParser.JvmInsArgTableSwitchContext args = ctxt.jvmInsArgTableSwitch();
+        JALParser.JvmInsArgTableSwitchContext args = instruction.jvmInsArgTableSwitch();
 
         int low = EvaluatorCommons.asInteger(args.NUMBER());
         JALParser.JvmInsArgTableSwitchCaseListContext caseList = args.jvmInsArgTableSwitchCaseList();
@@ -34,21 +43,21 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
         JALParser.LabelNameContext defaultBranch = args.labelName();
         int high = low + branches.size() - 1;
 
-        LabelNode defaultLabel = toLabel(compiler, defaultBranch);
-        LabelNode[] labels = branches.stream()
-                                     .map(labelName -> toLabel(compiler, labelName))
-                                     .toArray(LabelNode[]::new);
+        LabelNode defaultLabel = toLabel(labels, defaultBranch);
+        LabelNode[] branchLabels = branches.stream()
+                                           .map(labelName -> toLabel(labels, labelName))
+                                           .toArray(LabelNode[]::new);
 
         TableSwitchInsnNode tableSwitchInsn = new TableSwitchInsnNode(
                 low,
                 high,
                 defaultLabel,
-                labels
+                branchLabels
         );
         return EvaluatedInstruction.of(
                 this,
                 tableSwitchInsn,
-                calcSize(ctxt, compiler.getInstructions().getBytecodeOffset())
+                calcSize(instruction, instructions.getBytecodeOffset())
         );
     }
 
@@ -60,9 +69,9 @@ public class InstructionEvaluatorTableSwitch extends AbstractInstructionEvaluato
                                   .build();
     }
 
-    private LabelNode toLabel(@NotNull JALMethodCompiler evaluator, @NotNull JALParser.LabelNameContext labelName)
+    private LabelNode toLabel(@NotNull LabelsHolder labels, @NotNull JALParser.LabelNameContext labelName)
     {
-        LabelInfo labelInfo = evaluator.getLabels().resolve(labelName);
+        LabelInfo labelInfo = labels.resolve(labelName);
         return labelInfo.node();
     }
 

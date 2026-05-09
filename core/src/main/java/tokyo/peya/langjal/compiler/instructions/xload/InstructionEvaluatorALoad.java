@@ -2,14 +2,19 @@ package tokyo.peya.langjal.compiler.instructions.xload;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 public class InstructionEvaluatorALoad extends AbstractInstructionEvaluator<JALParser.JvmInsAloadContext>
 {
@@ -19,16 +24,20 @@ public class InstructionEvaluatorALoad extends AbstractInstructionEvaluator<JALP
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsAloadContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsAloadContext instruction)
     {
         return InstructionEvaluateHelperXLoad.evaluate(
                 this,
-                compiler,
-                ctxt.jvmInsArgLocalRef(),
+                locals,
+                instruction.jvmInsArgLocalRef(),
                 Opcodes.ALOAD,
                 "aload",
-                ctxt.INSN_WIDE()
+                instruction.INSN_WIDE()
         );
     }
 

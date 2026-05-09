@@ -3,13 +3,18 @@ package tokyo.peya.langjal.compiler.instructions;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.InternalCompileErrorException;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 /**
  * Abstract base class for instruction evaluators.
@@ -44,12 +49,22 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
     /**
      * Evaluates the instruction using the given compiler and context.
      *
-     * @param compiler The method compiler.
-     * @param ctxt     The parser rule context.
+     * @param context      The file evaluating reporter for error reporting and context.
+     * @param clazz        The class node being compiled.
+     * @param method       The method node being compiled.
+     * @param instructions The instructions' holder.
+     * @param labels       The labels' holder.
+     * @param locals       The local variables' holder.
+     * @param instruction  The parser rule context.
      * @return The evaluated instruction.
      */
     @NotNull
-    protected abstract EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler, @NotNull T ctxt);
+    public abstract EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                                  @NotNull ClassNode clazz,
+                                                  @NotNull MethodNode method,
+                                                  @NotNull InstructionsHolder instructions,
+                                                  @NotNull LabelsHolder labels,
+                                                  @NotNull LocalVariablesHolder locals, @NotNull T instruction);
 
     /**
      * Returns the frame difference info for the given instruction.
@@ -73,11 +88,13 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
      * Evaluates the instruction using the given compiler and instruction context.
      * Throws an exception if the instruction is not applicable or mapping fails.
      *
-     * @param compiler    The method compiler.
      * @param instruction The instruction context.
      * @return The evaluated instruction.
      */
-    public EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions,
+                                         @NotNull LabelsHolder labels, @NotNull LocalVariablesHolder locals,
                                          @NotNull JALParser.InstructionContext instruction)
     {
         if (!isApplicable(instruction))
@@ -93,7 +110,7 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
                     instruction
             );
 
-        return evaluate(compiler, mappedContext);
+        return evaluate(context, clazz, method, instructions, labels, locals, mappedContext);
     }
 
     /**

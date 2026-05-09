@@ -1,7 +1,10 @@
 package tokyo.peya.langjal.compiler.instructions.xload;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
@@ -10,7 +13,9 @@ import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 public class InstructionEvaluatorALoadN extends AbstractInstructionEvaluator<JALParser.JvmInsAloadNContext>
 {
@@ -20,19 +25,23 @@ public class InstructionEvaluatorALoadN extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsAloadNContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsAloadNContext instruction)
     {
-        if (has(ctxt.INSN_ALOAD_0()))
-            return InstructionEvaluateHelperXLoad.evaluateN(this, ctxt, compiler, EOpcodes.ALOAD, 0);
-        else if (has(ctxt.INSN_ALOAD_1()))
-            return InstructionEvaluateHelperXLoad.evaluateN(this, ctxt, compiler, EOpcodes.ALOAD, 1);
-        else if (has(ctxt.INSN_ALOAD_2()))
-            return InstructionEvaluateHelperXLoad.evaluateN(this, ctxt, compiler, EOpcodes.ALOAD, 2);
-        else if (has(ctxt.INSN_ALOAD_3()))
-            return InstructionEvaluateHelperXLoad.evaluateN(this, ctxt, compiler, EOpcodes.ALOAD, 3);
+        if (has(instruction.INSN_ALOAD_0()))
+            return InstructionEvaluateHelperXLoad.evaluateN(this, instruction, locals, EOpcodes.ALOAD, 0);
+        else if (has(instruction.INSN_ALOAD_1()))
+            return InstructionEvaluateHelperXLoad.evaluateN(this, instruction, locals, EOpcodes.ALOAD, 1);
+        else if (has(instruction.INSN_ALOAD_2()))
+            return InstructionEvaluateHelperXLoad.evaluateN(this, instruction, locals, EOpcodes.ALOAD, 2);
+        else if (has(instruction.INSN_ALOAD_3()))
+            return InstructionEvaluateHelperXLoad.evaluateN(this, instruction, locals, EOpcodes.ALOAD, 3);
 
-        throw new IllegalInstructionException("Unexpected instruction: " + ctxt.getText(), ctxt);
+        throw new IllegalInstructionException("Unexpected instruction: " + instruction.getText(), instruction);
     }
 
     @Override

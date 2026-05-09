@@ -2,10 +2,13 @@ package tokyo.peya.langjal.compiler.instructions;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.tree.InsnNode;
-import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 /**
  * Abstract evaluator for single instructions with a fixed opcode.
@@ -31,13 +34,22 @@ public abstract class AbstractSingleInstructionEvaluator<T extends ParserRuleCon
     /**
      * Evaluates the instruction using the fixed opcode.
      *
-     * @param compiler The method compiler.
-     * @param ctxt     The parser rule context.
+     * @param context      The file evaluating reporter for error reporting and context.
+     * @param clazz        The class node being compiled.
+     * @param method       The method node being compiled.
+     * @param instructions The instructions' holder.
+     * @param labels       The labels' holder.
+     * @param locals       The local variables' holder.
+     * @param instruction  The parser rule context.
      * @return The evaluated instruction.
      */
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler, @NotNull T ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals, @NotNull T instruction)
     {
-        return this.visitSingle(ctxt, this.opcode);
+        return this.visitSingle(instruction, this.opcode);
     }
 }

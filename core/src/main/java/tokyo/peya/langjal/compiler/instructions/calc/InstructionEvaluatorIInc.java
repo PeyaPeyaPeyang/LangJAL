@@ -1,8 +1,11 @@
 package tokyo.peya.langjal.compiler.instructions.calc;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
@@ -10,8 +13,10 @@ import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
 import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 public class InstructionEvaluatorIInc extends AbstractInstructionEvaluator<JALParser.JvmInsIincContext>
@@ -22,15 +27,19 @@ public class InstructionEvaluatorIInc extends AbstractInstructionEvaluator<JALPa
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsIincContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsIincContext instruction)
     {
-        JALParser.JvmInsArgLocalRefContext ref = ctxt.jvmInsArgLocalRef();
-        LocalVariableInfo local = compiler.getLocals().resolve(ref, "iinc");
+        JALParser.JvmInsArgLocalRefContext ref = instruction.jvmInsArgLocalRef();
+        LocalVariableInfo local = locals.resolve(ref, "iinc");
 
         int idx = local.index();
-        boolean isWide = ctxt.INSN_WIDE() != null;
-        int increment = EvaluatorCommons.asInteger(ctxt.NUMBER());
+        boolean isWide = instruction.INSN_WIDE() != null;
+        int increment = EvaluatorCommons.asInteger(instruction.NUMBER());
 
         if (!isWide)
         {

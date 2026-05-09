@@ -5,33 +5,36 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.VarInsnNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
-import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
 import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
 import java.util.Objects;
 
 @UtilityClass
 public class InstructionEvaluateHelperXStore
 {
-    public static @NotNull EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
+    public static @NotNull EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                                         @NotNull LabelsHolder labels,
+                                                         @NotNull LocalVariablesHolder locals,
+                                                         @NotNull AbstractInstructionEvaluator<?> evaluator,
                                                          int opcode,
-                                                         @NotNull JALMethodCompiler compiler,
                                                          @NotNull JALParser.JvmInsArgLocalRefContext localRef,
                                                          @NotNull JALParser.LocalDeclarationContext instigation,
                                                          @NotNull String type,
                                                          @NotNull String callerInsn,
                                                          @Nullable TerminalNode wide)
     {
-        LocalVariableInfo registeredLocal = compiler.getLocals().resolveSafe(localRef);
+        LocalVariableInfo registeredLocal = locals.resolveSafe(localRef);
         if (registeredLocal == null)
-            registeredLocal = registerNewLocal(compiler, localRef, type, instigation);
+            registeredLocal = registerNewLocal(context, labels, locals, localRef, type, instigation);
 
         int idx = registeredLocal.index();
         boolean isWide = wide != null;
@@ -48,31 +51,50 @@ public class InstructionEvaluateHelperXStore
         return EvaluatedInstruction.of(evaluator, insn, size);
     }
 
-    public static @NotNull EvaluatedInstruction evaluateN(@NotNull AbstractInstructionEvaluator<?> evaluator,
+    public static @NotNull EvaluatedInstruction evaluateN(@NotNull FileEvaluatingReporter context,
+                                                          @NotNull LabelsHolder labels,
+                                                          @NotNull LocalVariablesHolder locals,
+                                                          @NotNull AbstractInstructionEvaluator<?> evaluator,
                                                           int opcode, int idx,
-                                                          @NotNull JALMethodCompiler compiler,
                                                           @NotNull String defaultType,
                                                           @Nullable JALParser.LocalDeclarationContext instigation)
     {
-        LocalVariableInfo registeredLocal = compiler.getLocals().resolveSafe(idx);
+        LocalVariableInfo registeredLocal = locals.resolveSafe(idx);
         if (registeredLocal == null)
-            registeredLocal = registerNewLocal(compiler, idx, defaultType, instigation);
+            registeredLocal = registerNewLocal(context, labels, locals, idx, defaultType, instigation);
 
         // 0~3 が確定だから， wide は不要
         VarInsnNode insn = new VarInsnNode(opcode, registeredLocal.index());
         return EvaluatedInstruction.of(evaluator, insn, 1);  // 大体で astore だが，本来は astore_X などカテ１
     }
 
-    private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler compiler,
+    private static LocalVariableInfo registerNewLocal(@NotNull FileEvaluatingReporter context,
+                                                      @NotNull LabelsHolder labels,
+                                                      @NotNull LocalVariablesHolder locals,
                                                       int idx,
                                                       @NotNull String defaultType,
                                                       @Nullable JALParser.LocalDeclarationContext instigation)
     {
-        String localName = pickLocalName(compiler, null, idx, instigation);
-        LabelInfo endLabel = resolveEndLabel(compiler, instigation);
+        String localName = pickLocalName(context, null, idx, instigation);
+        LabelInfo endLabel = resolveEndLabel(labels,  instigation);
         TypeDescriptor localType = getType(defaultType, instigation);
-        return compiler.getLocals().register(idx, localType, localName, endLabel);
+        return locals.register(idx, localType, localName, endLabel);
     }
+
+    private static LocalVariableInfo registerNewLocal(@NotNull FileEvaluatingReporter context,
+                                                      @NotNull LabelsHolder labels,
+                                                      @NotNull LocalVariablesHolder locals,
+                                                      @NotNull JALParser.JvmInsArgLocalRefContext localRef,
+                                                      @NotNull String defaultType,
+                                                      @Nullable JALParser.LocalDeclarationContext instigation)
+    {
+        String localName = pickLocalName(context, localRef, 0, instigation);
+        LabelInfo endLabel = resolveEndLabel(labels, instigation);
+        TypeDescriptor localType = getType(defaultType, instigation);
+
+        return locals.register(localRef, localType, localName, endLabel);
+    }
+
 
     private static TypeDescriptor getType(@NotNull String defaultType, @Nullable JALParser.LocalDeclarationContext inst)
     {
@@ -90,19 +112,7 @@ public class InstructionEvaluateHelperXStore
         return TypeDescriptor.parse(defaultType);
     }
 
-    private static LocalVariableInfo registerNewLocal(@NotNull JALMethodCompiler evaluator,
-                                                      @NotNull JALParser.JvmInsArgLocalRefContext localRef,
-                                                      @NotNull String defaultType,
-                                                      @Nullable JALParser.LocalDeclarationContext instigation)
-    {
-        String localName = pickLocalName(evaluator, localRef, 0, instigation);
-        LabelInfo endLabel = resolveEndLabel(evaluator, instigation);
-        TypeDescriptor localType = getType(defaultType, instigation);
-
-        return evaluator.getLocals().register(localRef, localType, localName, endLabel);
-    }
-
-    private static LabelInfo resolveEndLabel(@NotNull JALMethodCompiler evaluator,
+    private static LabelInfo resolveEndLabel(@NotNull LabelsHolder labels,
                                              @Nullable JALParser.LocalDeclarationContext instigation)
     {
         if (instigation == null)
@@ -112,11 +122,11 @@ public class InstructionEvaluateHelperXStore
         if (labelNameContext == null || labelNameContext.ID() == null)
             return null;
 
-        return evaluator.getLabels().resolve(labelNameContext);
+        return labels.resolve(labelNameContext);
     }
 
     private static String pickLocalName(
-            @NotNull JALMethodCompiler evaluator,
+            @NotNull FileEvaluatingReporter context,
             @Nullable JALParser.JvmInsArgLocalRefContext localRef,
             int idx,
             @Nullable JALParser.LocalDeclarationContext instigation
@@ -137,7 +147,7 @@ public class InstructionEvaluateHelperXStore
             if (localName.equals(preferredName))
                 return localName;
             else
-                evaluator.getContext().postWarning(String.format(
+                context.postWarning(String.format(
                         "Local variable name '%s' does not match the expected name '%s'.",
                         localName, preferredName
                 ));

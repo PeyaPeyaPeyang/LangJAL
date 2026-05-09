@@ -1,8 +1,11 @@
 package tokyo.peya.langjal.compiler.instructions;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
@@ -10,8 +13,10 @@ import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 import java.util.LinkedList;
@@ -25,15 +30,19 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
     }
 
     @Override
-    protected @NotNull EvaluatedInstruction evaluate(@NotNull JALMethodCompiler compiler,
-                                                     JALParser.@NotNull JvmInsLookupswitchContext ctxt)
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsLookupswitchContext instruction)
     {
-        JALParser.JvmInsArgLookupSwitchContext args = ctxt.jvmInsArgLookupSwitch();
+        JALParser.JvmInsArgLookupSwitchContext args = instruction.jvmInsArgLookupSwitch();
         JALParser.JvmInsArgLookupSwitchCaseListContext caseList = args.jvmInsArgLookupSwitchCaseList();
         List<JALParser.JvmInsArgLookupSwitchCaseContext> cases = caseList.jvmInsArgLookupSwitchCase();
 
         List<Integer> keys = new LinkedList<>();
-        List<LabelNode> labels = new LinkedList<>();
+        List<LabelNode> branches = new LinkedList<>();
         LabelNode defaultLabel = null;
 
         for (JALParser.JvmInsArgLookupSwitchCaseContext c : cases)
@@ -41,12 +50,12 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
             JALParser.JvmInsArgLookupSwitchCaseNameContext caseName = c.jvmInsArgLookupSwitchCaseName();
             JALParser.LabelNameContext labelName = c.labelName();
             if (caseName.KWD_SWITCH_DEFAULT() != null)
-                defaultLabel = toLabel(compiler, labelName);
+                defaultLabel = toLabel(labels, labelName);
             else if (caseName.NUMBER() != null)
             {
                 int key = EvaluatorCommons.asInteger(caseName.NUMBER());
                 keys.add(key);
-                labels.add(toLabel(compiler, labelName));
+                branches.add(toLabel(labels, labelName));
             }
         }
 
@@ -56,12 +65,12 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
         LookupSwitchInsnNode lookupSwitchInsnNode = new LookupSwitchInsnNode(
                 defaultLabel,
                 keys.stream().mapToInt(Integer::intValue).toArray(),
-                labels.toArray(new LabelNode[0])
+                branches.toArray(new LabelNode[0])
         );
         return EvaluatedInstruction.of(
                 this,
                 lookupSwitchInsnNode,
-                calcSize(ctxt, compiler.getInstructions().getBytecodeOffset())
+                calcSize(instruction, instructions.getBytecodeOffset())
         );
     }
 
@@ -73,9 +82,9 @@ public class InstructionEvaluatorLookupSwitch extends AbstractInstructionEvaluat
                                   .build();
     }
 
-    private LabelNode toLabel(@NotNull JALMethodCompiler evaluator, @NotNull JALParser.LabelNameContext labelName)
+    private LabelNode toLabel(@NotNull LabelsHolder labels, @NotNull JALParser.LabelNameContext labelName)
     {
-        LabelInfo labelInfo = evaluator.getLabels().resolve(labelName);
+        LabelInfo labelInfo = labels.resolve(labelName);
         return labelInfo.node();
     }
 
