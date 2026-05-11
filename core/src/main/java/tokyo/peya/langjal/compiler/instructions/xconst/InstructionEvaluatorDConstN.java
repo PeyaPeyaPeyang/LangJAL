@@ -34,7 +34,7 @@ public class InstructionEvaluatorDConstN extends AbstractInstructionEvaluator<JA
         if (has(instruction.INSN_DCONST_0()))
             return this.visitSingle(instruction, EOpcodes.DCONST_0);
         if (has(instruction.INSN_DCONST_1()))
-            return this.visitSingle(instruction, EOpcodes.DCONST_0);
+            return this.visitSingle(instruction, EOpcodes.DCONST_1);
 
         throw new IllegalInstructionException("Unknown instruction: " + instruction.getText(), instruction);
     }
