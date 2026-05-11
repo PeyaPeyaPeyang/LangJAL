@@ -139,6 +139,9 @@ public class EvaluatorCommons
      */
     public static boolean isNumber(@Nullable String number)
     {
+        if (number == null || number.isEmpty())
+            return false;
+
         try
         {
             toNumber(number);

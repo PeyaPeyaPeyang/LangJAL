@@ -453,9 +453,9 @@ public class LocalVariablesHolder
         return newLocal;
     }
 
-    public void register(int idx, @NotNull TypeDescriptor type, @Nullable String name)
+    public LocalVariableInfo register(int idx, @NotNull TypeDescriptor type, @Nullable String name)
     {
-        this.register(idx, type, name, this.labelsHolder.getCurrentLabel(), this.labelsHolder.getGlobalEnd());
+        return this.register(idx, type, name, this.labelsHolder.getCurrentLabel(), this.labelsHolder.getGlobalEnd());
     }
 
     private void warnLocalPerformance(@NotNull LocalVariableInfo localVar, @NotNull String callerInsn)
