@@ -117,7 +117,9 @@ public class EvaluatorCommons
             numberString = numberString.replaceAll("[fFdDlL]$", "");
         }
         if (type.endsWith("-hex"))
-            numberString = numberString.substring(2);
+            numberString = numberString.startsWith("-0x")
+                    ? "-" + numberString.substring(3)
+                    : numberString.substring(2);
 
         try
         {
@@ -183,7 +185,7 @@ public class EvaluatorCommons
         if (number.startsWith("0x") || number.startsWith("-0x"))
         {
             if (number.endsWith("l") || number.endsWith("L"))
-                return "hex-long";
+                return "long-hex";
             else
                 return "may-int-hex";
         }
