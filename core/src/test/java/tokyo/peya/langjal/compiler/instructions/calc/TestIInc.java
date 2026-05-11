@@ -35,6 +35,12 @@ public class TestIInc extends AbstractInstructionTestCase<JALParser.JvmInsIincCo
                         new IincInsnNode(2, 10)
                 ),
                 of(
+                        create(integerValue()).set(2, integerValue()).set(10, integerValue())
+                                .expected(create(integerValue()).set(2, integerValue()).set(10, integerValue())),
+                        "iinc 2 -5",
+                        new IincInsnNode(2, -5)
+                ),
+                of(
                         create().set(300, integerValue())
                                 .expected(create().set(300, integerValue())),
                         "wide iinc 300 300",

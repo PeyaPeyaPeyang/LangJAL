@@ -54,6 +54,10 @@ public class TestFieldInstructions
             return set(
                     of(create(object(TypeDescriptor.className("my/Owner"))).expected(create(integerValue())),
                             "getfield my/Owner->value:I",
+                            new FieldInsnNode(EOpcodes.GETFIELD, "my/Owner", "value", "I")),
+                    of(create(object(TypeDescriptor.className("java/lang/String")), object(TypeDescriptor.className("my/Owner")))
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue())),
+                            "getfield my/Owner->value:I",
                             new FieldInsnNode(EOpcodes.GETFIELD, "my/Owner", "value", "I"))
             );
         }
@@ -72,6 +76,10 @@ public class TestFieldInstructions
         {
             return set(
                     of(create(object(TypeDescriptor.className("my/Owner")), integerValue()).expected(create()),
+                            "putfield my/Owner->value:I",
+                            new FieldInsnNode(EOpcodes.PUTFIELD, "my/Owner", "value", "I")),
+                    of(create(object(TypeDescriptor.className("java/lang/String")), object(TypeDescriptor.className("my/Owner")), integerValue())
+                               .expected(create(object(TypeDescriptor.className("java/lang/String")))),
                             "putfield my/Owner->value:I",
                             new FieldInsnNode(EOpcodes.PUTFIELD, "my/Owner", "value", "I"))
             );
@@ -92,6 +100,10 @@ public class TestFieldInstructions
             return set(
                     of(create().expected(create(integerValue())),
                             "getstatic my/Owner->value:I",
+                            new FieldInsnNode(EOpcodes.GETSTATIC, "my/Owner", "value", "I")),
+                    of(create(object(TypeDescriptor.className("java/lang/String")))
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue())),
+                            "getstatic my/Owner->value:I",
                             new FieldInsnNode(EOpcodes.GETSTATIC, "my/Owner", "value", "I"))
             );
         }
@@ -110,6 +122,10 @@ public class TestFieldInstructions
         {
             return set(
                     of(create(integerValue()).expected(create()),
+                            "putstatic my/Owner->value:I",
+                            new FieldInsnNode(EOpcodes.PUTSTATIC, "my/Owner", "value", "I")),
+                    of(create(object(TypeDescriptor.className("java/lang/String")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")))),
                             "putstatic my/Owner->value:I",
                             new FieldInsnNode(EOpcodes.PUTSTATIC, "my/Owner", "value", "I"))
             );

@@ -48,6 +48,16 @@ public class TestXStore
             );
         }
 
+        protected InstructionCase localStoreWithState(int index, StackMachine.StackValue value, String syntax, int opcode)
+        {
+            return of(
+                    create(object(TypeDescriptor.className("java/lang/String")), value).set(10, integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String"))).set(index, value).set(10, integerValue())),
+                    syntax,
+                    new VarInsnNode(opcode, index)
+            );
+        }
+
         @Override
         protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
         {
@@ -74,6 +84,7 @@ public class TestXStore
         {
             return set(
                     localStore(1, OBJECT_VALUE, "astore 1", Opcodes.ASTORE),
+                    localStoreWithState(1, OBJECT_VALUE, "astore 1", Opcodes.ASTORE),
                     localStore(300, OBJECT_VALUE, "wide astore 300", Opcodes.ASTORE)
             );
         }
@@ -94,6 +105,7 @@ public class TestXStore
         {
             return set(
                     localStore(0, OBJECT_VALUE, "astore_0", Opcodes.ASTORE),
+                    localStoreWithState(0, OBJECT_VALUE, "astore_0", Opcodes.ASTORE),
                     localStore(1, OBJECT_VALUE, "astore_1", Opcodes.ASTORE),
                     localStore(2, OBJECT_VALUE, "astore_2", Opcodes.ASTORE),
                     localStore(3, OBJECT_VALUE, "astore_3", Opcodes.ASTORE)
@@ -114,6 +126,7 @@ public class TestXStore
         {
             return set(
                     localStore(1, doubleValue(), "dstore 1", Opcodes.DSTORE),
+                    localStoreWithState(1, doubleValue(), "dstore 1", Opcodes.DSTORE),
                     localStore(300, doubleValue(), "wide dstore 300", Opcodes.DSTORE)
             );
         }
@@ -132,6 +145,7 @@ public class TestXStore
         {
             return set(
                     localStore(0, doubleValue(), "dstore_0", Opcodes.DSTORE),
+                    localStoreWithState(0, doubleValue(), "dstore_0", Opcodes.DSTORE),
                     localStore(1, doubleValue(), "dstore_1", Opcodes.DSTORE),
                     localStore(2, doubleValue(), "dstore_2", Opcodes.DSTORE),
                     localStore(3, doubleValue(), "dstore_3", Opcodes.DSTORE)
@@ -152,6 +166,7 @@ public class TestXStore
         {
             return set(
                     localStore(1, floatValue(), "fstore 1", Opcodes.FSTORE),
+                    localStoreWithState(1, floatValue(), "fstore 1", Opcodes.FSTORE),
                     localStore(300, floatValue(), "wide fstore 300", Opcodes.FSTORE)
             );
         }
@@ -170,6 +185,7 @@ public class TestXStore
         {
             return set(
                     localStore(0, floatValue(), "fstore_0", Opcodes.FSTORE),
+                    localStoreWithState(0, floatValue(), "fstore_0", Opcodes.FSTORE),
                     localStore(1, floatValue(), "fstore_1", Opcodes.FSTORE),
                     localStore(2, floatValue(), "fstore_2", Opcodes.FSTORE),
                     localStore(3, floatValue(), "fstore_3", Opcodes.FSTORE)
@@ -190,6 +206,7 @@ public class TestXStore
         {
             return set(
                     localStore(1, integerValue(), "istore 1", Opcodes.ISTORE),
+                    localStoreWithState(1, integerValue(), "istore 1", Opcodes.ISTORE),
                     localStore(300, integerValue(), "wide istore 300", Opcodes.ISTORE)
             );
         }
@@ -208,6 +225,7 @@ public class TestXStore
         {
             return set(
                     localStore(0, integerValue(), "istore_0", Opcodes.ISTORE),
+                    localStoreWithState(0, integerValue(), "istore_0", Opcodes.ISTORE),
                     localStore(1, integerValue(), "istore_1", Opcodes.ISTORE),
                     localStore(2, integerValue(), "istore_2", Opcodes.ISTORE),
                     localStore(3, integerValue(), "istore_3", Opcodes.ISTORE)
@@ -228,6 +246,7 @@ public class TestXStore
         {
             return set(
                     localStore(1, longValue(), "lstore 1", Opcodes.LSTORE),
+                    localStoreWithState(1, longValue(), "lstore 1", Opcodes.LSTORE),
                     localStore(300, longValue(), "wide lstore 300", Opcodes.LSTORE)
             );
         }
@@ -246,6 +265,7 @@ public class TestXStore
         {
             return set(
                     localStore(0, longValue(), "lstore_0", Opcodes.LSTORE),
+                    localStoreWithState(0, longValue(), "lstore_0", Opcodes.LSTORE),
                     localStore(1, longValue(), "lstore_1", Opcodes.LSTORE),
                     localStore(2, longValue(), "lstore_2", Opcodes.LSTORE),
                     localStore(3, longValue(), "lstore_3", Opcodes.LSTORE)

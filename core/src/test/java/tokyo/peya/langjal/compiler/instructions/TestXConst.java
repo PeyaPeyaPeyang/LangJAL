@@ -21,7 +21,7 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create
 
 public class TestXConst
 {
-    private abstract class XConstTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+    private abstract static class XConstTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
             extends AbstractInstructionTestCase<T, E>
     {
         private final StackMachine.StackValue outputValue;
@@ -49,6 +49,11 @@ public class TestXConst
             return set(
                     of(
                             create().expected(create(outputValue)),
+                            syntax,
+                            opcode
+                    ),
+                    of(
+                            create(integerValue()).expected(create(integerValue(), outputValue)),
                             syntax,
                             opcode
                     )

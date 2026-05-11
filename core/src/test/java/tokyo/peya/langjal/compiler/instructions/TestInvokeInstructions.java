@@ -57,7 +57,12 @@ public class TestInvokeInstructions
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    of(create(object(TypeDescriptor.className("my/Owner")), integerValue()).expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                    of(create(object(TypeDescriptor.className("my/Owner")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                            "invokevirtual my/Owner->call(I)Ljava/lang/String;",
+                            new MethodInsnNode(EOpcodes.INVOKEVIRTUAL, "my/Owner", "call", "(I)Ljava/lang/String;")),
+                    of(create(integerValue(), object(TypeDescriptor.className("my/Owner")), integerValue())
+                            .expected(create(integerValue(), object(TypeDescriptor.className("java/lang/String")))),
                             "invokevirtual my/Owner->call(I)Ljava/lang/String;",
                             new MethodInsnNode(EOpcodes.INVOKEVIRTUAL, "my/Owner", "call", "(I)Ljava/lang/String;"))
             );
@@ -78,6 +83,10 @@ public class TestInvokeInstructions
             return set(
                     of(create(integerValue()).expected(create(object(TypeDescriptor.className("java/lang/String")))),
                             "invokestatic my/Owner->call(I)Ljava/lang/String;",
+                            new MethodInsnNode(EOpcodes.INVOKESTATIC, "my/Owner", "call", "(I)Ljava/lang/String;")),
+                    of(create(object(TypeDescriptor.className("java/lang/Object")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")))),
+                            "invokestatic my/Owner->call(I)Ljava/lang/String;",
                             new MethodInsnNode(EOpcodes.INVOKESTATIC, "my/Owner", "call", "(I)Ljava/lang/String;"))
             );
         }
@@ -97,6 +106,10 @@ public class TestInvokeInstructions
             return set(
                     of(create(object(TypeDescriptor.className("my/Owner")), integerValue()).expected(create()),
                             "invokespecial my/Owner->call(I)V",
+                            new MethodInsnNode(EOpcodes.INVOKESPECIAL, "my/Owner", "call", "(I)V")),
+                    of(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("my/Owner")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/Object")))),
+                            "invokespecial my/Owner->call(I)V",
                             new MethodInsnNode(EOpcodes.INVOKESPECIAL, "my/Owner", "call", "(I)V"))
             );
         }
@@ -114,7 +127,12 @@ public class TestInvokeInstructions
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    of(create(object(TypeDescriptor.className("my/Service")), integerValue()).expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                    of(create(object(TypeDescriptor.className("my/Service")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                            "invokeinterface my/Service->call(I)Ljava/lang/String;",
+                            new MethodInsnNode(EOpcodes.INVOKEINTERFACE, "my/Service", "call", "(I)Ljava/lang/String;")),
+                    of(create(integerValue(), object(TypeDescriptor.className("my/Service")), integerValue())
+                            .expected(create(integerValue(), object(TypeDescriptor.className("java/lang/String")))),
                             "invokeinterface my/Service->call(I)Ljava/lang/String;",
                             new MethodInsnNode(EOpcodes.INVOKEINTERFACE, "my/Service", "call", "(I)Ljava/lang/String;"))
             );
@@ -154,6 +172,16 @@ public class TestInvokeInstructions
 
             return set(
                     of(create(integerValue()).expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                            "invokedynamic dyn(I)Ljava/lang/String; MethodHandle|invokestatic|my/Bootstrap->bootstrap()Ljava/lang/invoke/CallSite; MethodType|(I)Ljava/lang/String; 7",
+                            new InvokeDynamicInsnNode(
+                                    "dyn",
+                                    "(I)Ljava/lang/String;",
+                                    handle,
+                                    Type.getMethodType("(I)Ljava/lang/String;"),
+                                    7
+                            )),
+                    of(create(object(TypeDescriptor.className("java/lang/Object")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")))),
                             "invokedynamic dyn(I)Ljava/lang/String; MethodHandle|invokestatic|my/Bootstrap->bootstrap()Ljava/lang/invoke/CallSite; MethodType|(I)Ljava/lang/String; 7",
                             new InvokeDynamicInsnNode(
                                     "dyn",

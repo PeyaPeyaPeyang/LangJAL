@@ -48,6 +48,9 @@ public class TestSwitchInstructions
             return set(
                     of(create(integerValue()).expected(create()),
                             "lookupswitch { 1:L1, 5:L2, default:L3 }",
+                            new LookupSwitchInsnNode(null, new int[]{1, 5}, new org.objectweb.asm.tree.LabelNode[]{null, null})),
+                    of(create(integerValue(), integerValue()).expected(create(integerValue())),
+                            "lookupswitch { 1:L1, 5:L2, default:L3 }",
                             new LookupSwitchInsnNode(null, new int[]{1, 5}, new org.objectweb.asm.tree.LabelNode[]{null, null}))
             );
         }
@@ -85,6 +88,9 @@ public class TestSwitchInstructions
         {
             return set(
                     of(create(integerValue()).expected(create()),
+                            "tableswitch 3 {L1, L2, L3} default L4",
+                            new TableSwitchInsnNode(3, 5, null, new org.objectweb.asm.tree.LabelNode[]{null, null, null})),
+                    of(create(integerValue(), integerValue()).expected(create(integerValue())),
                             "tableswitch 3 {L1, L2, L3} default L4",
                             new TableSwitchInsnNode(3, 5, null, new org.objectweb.asm.tree.LabelNode[]{null, null, null}))
             );

@@ -73,7 +73,10 @@ public class TestJumpInstructions
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create().expected(create()), "goto L1", new JumpInsnNode(EOpcodes.GOTO, null)));
+            return set(
+                    of(create().expected(create()), "goto L1", new JumpInsnNode(EOpcodes.GOTO, null)),
+                    of(create(integerValue()).expected(create(integerValue())), "goto L1", new JumpInsnNode(EOpcodes.GOTO, null))
+            );
         }
     }
 
@@ -94,7 +97,11 @@ public class TestJumpInstructions
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create().expected(create()), "goto_w L1", new JumpInsnNode(EOpcodes.GOTO_W, null)));
+            return set(
+                    of(create().expected(create()), "goto_w L1", new JumpInsnNode(EOpcodes.GOTO_W, null)),
+                    of(create(integerValue())
+                            .expected(create(integerValue())), "goto_w L1", new JumpInsnNode(EOpcodes.GOTO_W, null))
+            );
         }
     }
 
@@ -159,8 +166,10 @@ public class TestJumpInstructions
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    of(create().set(1, integerValue()).expected(create().set(1, integerValue())), "ret 1", new VarInsnNode(EOpcodes.RET, 1)),
-                    of(create().set(300, integerValue()).expected(create().set(300, integerValue())), "wide ret 300", new VarInsnNode(EOpcodes.RET, 300))
+                    of(create().set(1, integerValue())
+                            .expected(create().set(1, integerValue())), "ret 1", new VarInsnNode(EOpcodes.RET, 1)),
+                    of(create().set(300, integerValue())
+                            .expected(create().set(300, integerValue())), "wide ret 300", new VarInsnNode(EOpcodes.RET, 300))
             );
         }
     }
@@ -184,6 +193,8 @@ public class TestJumpInstructions
         {
             return set(
                     of(create(integerValue()).expected(create()), "ifeq L1", new JumpInsnNode(EOpcodes.IFEQ, null)),
+                    of(create(integerValue(), integerValue())
+                            .expected(create(integerValue())), "ifeq L1", new JumpInsnNode(EOpcodes.IFEQ, null)),
                     of(create(integerValue()).expected(create()), "ifne L1", new JumpInsnNode(EOpcodes.IFNE, null)),
                     of(create(integerValue()).expected(create()), "iflt L1", new JumpInsnNode(EOpcodes.IFLT, null)),
                     of(create(integerValue()).expected(create()), "ifge L1", new JumpInsnNode(EOpcodes.IFGE, null)),
@@ -211,12 +222,20 @@ public class TestJumpInstructions
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    of(create(integerValue(), integerValue()).expected(create()), "if_icmpeq L1", new JumpInsnNode(EOpcodes.IF_ICMPEQ, null)),
-                    of(create(integerValue(), integerValue()).expected(create()), "if_icmpne L1", new JumpInsnNode(EOpcodes.IF_ICMPNE, null)),
-                    of(create(integerValue(), integerValue()).expected(create()), "if_icmplt L1", new JumpInsnNode(EOpcodes.IF_ICMPLT, null)),
-                    of(create(integerValue(), integerValue()).expected(create()), "if_icmpge L1", new JumpInsnNode(EOpcodes.IF_ICMPGE, null)),
-                    of(create(integerValue(), integerValue()).expected(create()), "if_icmpgt L1", new JumpInsnNode(EOpcodes.IF_ICMPGT, null)),
-                    of(create(integerValue(), integerValue()).expected(create()), "if_icmple L1", new JumpInsnNode(EOpcodes.IF_ICMPLE, null))
+                    of(create(integerValue(), integerValue())
+                            .expected(create()), "if_icmpeq L1", new JumpInsnNode(EOpcodes.IF_ICMPEQ, null)),
+                    of(create(integerValue(), integerValue(), integerValue())
+                            .expected(create(integerValue())), "if_icmpeq L1", new JumpInsnNode(EOpcodes.IF_ICMPEQ, null)),
+                    of(create(integerValue(), integerValue())
+                            .expected(create()), "if_icmpne L1", new JumpInsnNode(EOpcodes.IF_ICMPNE, null)),
+                    of(create(integerValue(), integerValue())
+                            .expected(create()), "if_icmplt L1", new JumpInsnNode(EOpcodes.IF_ICMPLT, null)),
+                    of(create(integerValue(), integerValue())
+                            .expected(create()), "if_icmpge L1", new JumpInsnNode(EOpcodes.IF_ICMPGE, null)),
+                    of(create(integerValue(), integerValue())
+                            .expected(create()), "if_icmpgt L1", new JumpInsnNode(EOpcodes.IF_ICMPGT, null)),
+                    of(create(integerValue(), integerValue())
+                            .expected(create()), "if_icmple L1", new JumpInsnNode(EOpcodes.IF_ICMPLE, null))
             );
         }
     }
@@ -239,8 +258,12 @@ public class TestJumpInstructions
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    of(create(anyObject(), anyObject()).expected(create()), "if_acmpeq L1", new JumpInsnNode(EOpcodes.IF_ACMPEQ, null)),
-                    of(create(anyObject(), anyObject()).expected(create()), "if_acmpne L1", new JumpInsnNode(EOpcodes.IF_ACMPNE, null))
+                    of(create(anyObject(), anyObject())
+                            .expected(create()), "if_acmpeq L1", new JumpInsnNode(EOpcodes.IF_ACMPEQ, null)),
+                    of(create(integerValue(), anyObject(), anyObject())
+                            .expected(create(integerValue())), "if_acmpeq L1", new JumpInsnNode(EOpcodes.IF_ACMPEQ, null)),
+                    of(create(anyObject(), anyObject())
+                            .expected(create()), "if_acmpne L1", new JumpInsnNode(EOpcodes.IF_ACMPNE, null))
             );
         }
     }
@@ -262,7 +285,11 @@ public class TestJumpInstructions
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(anyObject()).expected(create()), "ifnull L1", new JumpInsnNode(EOpcodes.IFNULL, null)));
+            return set(
+                    of(create(anyObject()).expected(create()), "ifnull L1", new JumpInsnNode(EOpcodes.IFNULL, null)),
+                    of(create(integerValue(), anyObject())
+                            .expected(create(integerValue())), "ifnull L1", new JumpInsnNode(EOpcodes.IFNULL, null))
+            );
         }
     }
 
@@ -283,7 +310,11 @@ public class TestJumpInstructions
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(anyObject()).expected(create()), "ifnonnull L1", new JumpInsnNode(EOpcodes.IFNONNULL, null)));
+            return set(
+                    of(create(anyObject()).expected(create()), "ifnonnull L1", new JumpInsnNode(EOpcodes.IFNONNULL, null)),
+                    of(create(integerValue(), anyObject())
+                            .expected(create(integerValue())), "ifnonnull L1", new JumpInsnNode(EOpcodes.IFNONNULL, null))
+            );
         }
     }
 }

@@ -5,6 +5,8 @@ import tokyo.peya.langjal.compiler.instructions.AbstractSingleInstructionEvaluat
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
+
 /**
  * Helper base class for simple binary numeric instruction tests where two values
  * of the same stack type produce one value of the same type (e.g. iadd, dmul).
@@ -50,6 +52,11 @@ public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContex
                         StackMachine.create(value, value).expected(StackMachine.create(value)),
                         syntax,
                         opcode
+                ),
+                of(
+                        StackMachine.create(integerValue(), value, value).expected(StackMachine.create(integerValue(), value)),
+                        syntax,
+                        opcode
                 )
         );
     }
@@ -66,4 +73,3 @@ public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContex
         return set();
     }
 }
-

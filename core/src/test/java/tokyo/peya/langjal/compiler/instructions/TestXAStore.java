@@ -44,6 +44,19 @@ public class TestXAStore
                     opcode
             );
         }
+
+        protected InstructionCase storeWithBase(StackMachine.StackValue arrayType,
+                                                StackMachine.StackValue storedType,
+                                                String syntax,
+                                                int opcode)
+        {
+            return of(
+                    create(object(TypeDescriptor.className("java/lang/String")), arrayType, integerValue(), storedType)
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                    syntax,
+                    opcode
+            );
+        }
     }
 
     @Nested
@@ -58,7 +71,8 @@ public class TestXAStore
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    store(object(TypeDescriptor.parse("[Ljava/lang/String;")), object(TypeDescriptor.className("java/lang/String")), "aastore", EOpcodes.AASTORE)
+                    store(object(TypeDescriptor.parse("[Ljava/lang/String;")), object(TypeDescriptor.className("java/lang/String")), "aastore", EOpcodes.AASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[Ljava/lang/String;")), object(TypeDescriptor.className("java/lang/String")), "aastore", EOpcodes.AASTORE)
             );
         }
     }
@@ -74,7 +88,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[B")), integerValue(), "bastore", EOpcodes.BASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[B")), integerValue(), "bastore", EOpcodes.BASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[B")), integerValue(), "bastore", EOpcodes.BASTORE)
+            );
         }
     }
 
@@ -89,7 +106,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[C")), integerValue(), "castore", EOpcodes.CASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[C")), integerValue(), "castore", EOpcodes.CASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[C")), integerValue(), "castore", EOpcodes.CASTORE)
+            );
         }
     }
 
@@ -104,7 +124,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[D")), doubleValue(), "dastore", EOpcodes.DASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[D")), doubleValue(), "dastore", EOpcodes.DASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[D")), doubleValue(), "dastore", EOpcodes.DASTORE)
+            );
         }
     }
 
@@ -119,7 +142,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[F")), floatValue(), "fastore", EOpcodes.FASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[F")), floatValue(), "fastore", EOpcodes.FASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[F")), floatValue(), "fastore", EOpcodes.FASTORE)
+            );
         }
     }
 
@@ -134,7 +160,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[I")), integerValue(), "iastore", EOpcodes.IASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[I")), integerValue(), "iastore", EOpcodes.IASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[I")), integerValue(), "iastore", EOpcodes.IASTORE)
+            );
         }
     }
 
@@ -149,7 +178,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[J")), longValue(), "lastore", EOpcodes.LASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[J")), longValue(), "lastore", EOpcodes.LASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[J")), longValue(), "lastore", EOpcodes.LASTORE)
+            );
         }
     }
 
@@ -164,7 +196,10 @@ public class TestXAStore
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(store(object(TypeDescriptor.parse("[S")), integerValue(), "sastore", EOpcodes.SASTORE));
+            return set(
+                    store(object(TypeDescriptor.parse("[S")), integerValue(), "sastore", EOpcodes.SASTORE),
+                    storeWithBase(object(TypeDescriptor.parse("[S")), integerValue(), "sastore", EOpcodes.SASTORE)
+            );
         }
     }
 }

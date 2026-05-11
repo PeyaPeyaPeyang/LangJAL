@@ -40,6 +40,16 @@ public class TestLDC
             );
         }
 
+        protected InstructionCase constantLoadWithBase(Object value, StackMachine.StackValue stackValue, String syntax)
+        {
+            return of(
+                    create(object(TypeDescriptor.className("java/lang/String")))
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), stackValue)),
+                    syntax,
+                    new LdcInsnNode(value)
+            );
+        }
+
         @Override
         protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
         {
@@ -64,7 +74,9 @@ public class TestLDC
         {
             return set(
                     constantLoad(123, integerValue(), "ldc 123"),
+                    constantLoadWithBase(123, integerValue(), "ldc 123"),
                     constantLoad(1.5f, floatValue(), "ldc 1.5f"),
+                    constantLoadWithBase(1.5f, floatValue(), "ldc 1.5f"),
                     constantLoad("hello", object(TypeDescriptor.className("java/lang/String")), "ldc \"hello\"")
             );
         }
@@ -83,6 +95,7 @@ public class TestLDC
         {
             return set(
                     constantLoad(456, integerValue(), "ldc_w 456"),
+                    constantLoadWithBase(456, integerValue(), "ldc_w 456"),
                     constantLoad(2.5f, floatValue(), "ldc_w 2.5f")
             );
         }
@@ -101,6 +114,7 @@ public class TestLDC
         {
             return set(
                     constantLoad(123L, longValue(), "ldc2_w 123L"),
+                    constantLoadWithBase(123L, longValue(), "ldc2_w 123L"),
                     constantLoad(3.5d, doubleValue(), "ldc2_w 3.5d")
             );
         }

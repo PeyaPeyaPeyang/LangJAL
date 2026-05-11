@@ -30,7 +30,11 @@ public class TestDup
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(integerValue()).expected(create(integerValue(), integerValue())), "dup", EOpcodes.DUP));
+            return set(
+                    of(create(integerValue()).expected(create(integerValue(), integerValue())), "dup", EOpcodes.DUP),
+                    of(create(object(TypeDescriptor.className("java/lang/String")), integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), integerValue())), "dup", EOpcodes.DUP)
+            );
         }
     }
 
@@ -45,7 +49,12 @@ public class TestDup
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(integerValue(), floatValue()).expected(create(floatValue(), integerValue(), floatValue())), "dup_x1", EOpcodes.DUP_X1));
+            return set(
+                    of(create(integerValue(), floatValue())
+                            .expected(create(floatValue(), integerValue(), floatValue())), "dup_x1", EOpcodes.DUP_X1),
+                    of(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), floatValue(), integerValue(), floatValue())), "dup_x1", EOpcodes.DUP_X1)
+            );
         }
     }
 
@@ -60,7 +69,12 @@ public class TestDup
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue()).expected(create(floatValue(), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup_x2", EOpcodes.DUP_X2));
+            return set(
+                    of(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(floatValue(), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup_x2", EOpcodes.DUP_X2),
+                    of(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/Object")), floatValue(), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup_x2", EOpcodes.DUP_X2)
+            );
         }
     }
 
@@ -75,7 +89,12 @@ public class TestDup
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(integerValue(), floatValue()).expected(create(integerValue(), floatValue(), integerValue(), floatValue())), "dup2", EOpcodes.DUP2));
+            return set(
+                    of(create(integerValue(), floatValue())
+                            .expected(create(integerValue(), floatValue(), integerValue(), floatValue())), "dup2", EOpcodes.DUP2),
+                    of(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue(), integerValue(), floatValue())), "dup2", EOpcodes.DUP2)
+            );
         }
     }
 
@@ -90,7 +109,12 @@ public class TestDup
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue()).expected(create(integerValue(), floatValue(), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup2_x1", EOpcodes.DUP2_X1));
+            return set(
+                    of(create(object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(integerValue(), floatValue(), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup2_x1", EOpcodes.DUP2_X1),
+                    of(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/Object")), integerValue(), floatValue(), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup2_x1", EOpcodes.DUP2_X1)
+            );
         }
     }
 
@@ -105,7 +129,12 @@ public class TestDup
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(of(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue()).expected(create(integerValue(), floatValue(), object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup2_x2", EOpcodes.DUP2_X2));
+            return set(
+                    of(create(object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(integerValue(), floatValue(), object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup2_x2", EOpcodes.DUP2_X2),
+                    of(create(object(TypeDescriptor.className("java/lang/Throwable")), object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/Throwable")), integerValue(), floatValue(), object(TypeDescriptor.className("java/lang/Object")), object(TypeDescriptor.className("java/lang/String")), integerValue(), floatValue())), "dup2_x2", EOpcodes.DUP2_X2)
+            );
         }
     }
 }

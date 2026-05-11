@@ -29,7 +29,7 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 
 public class TestX2X
 {
-    private abstract class X2XTestCase<T extends ParserRuleContext, E extends AbstractSingleInstructionEvaluator<T>>
+    private abstract static class X2XTestCase<T extends ParserRuleContext, E extends AbstractSingleInstructionEvaluator<T>>
             extends AbstractInstructionTestCase<T, E>
     {
         private final StackMachine.StackValue inputValue;
@@ -60,6 +60,12 @@ public class TestX2X
             return set(
                     of(
                             StackMachine.create(inputValue).expected(StackMachine.create(outputValue)),
+                            syntax,
+                            opcode
+                    ),
+                    of(
+                            StackMachine.create(integerValue(), inputValue)
+                                    .expected(StackMachine.create(integerValue(), outputValue)),
                             syntax,
                             opcode
                     )

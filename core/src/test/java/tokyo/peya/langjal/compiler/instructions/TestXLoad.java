@@ -48,6 +48,16 @@ public class TestXLoad
             );
         }
 
+        protected InstructionCase localLoadWithState(int index, StackMachine.StackValue value, String syntax, int opcode)
+        {
+            return of(
+                    create(integerValue()).set(index, value).set(10, object(TypeDescriptor.className("java/lang/String")))
+                            .expected(create(integerValue(), value).set(index, value).set(10, object(TypeDescriptor.className("java/lang/String")))),
+                    syntax,
+                    new VarInsnNode(opcode, index)
+            );
+        }
+
         @Override
         protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
         {
@@ -74,6 +84,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(1, OBJECT_VALUE, "aload 1", Opcodes.ALOAD),
+                    localLoadWithState(1, OBJECT_VALUE, "aload 1", Opcodes.ALOAD),
                     localLoad(300, OBJECT_VALUE, "wide aload 300", Opcodes.ALOAD)
             );
         }
@@ -94,6 +105,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(0, OBJECT_VALUE, "aload_0", Opcodes.ALOAD),
+                    localLoadWithState(0, OBJECT_VALUE, "aload_0", Opcodes.ALOAD),
                     localLoad(1, OBJECT_VALUE, "aload_1", Opcodes.ALOAD),
                     localLoad(2, OBJECT_VALUE, "aload_2", Opcodes.ALOAD),
                     localLoad(3, OBJECT_VALUE, "aload_3", Opcodes.ALOAD)
@@ -114,6 +126,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(1, doubleValue(), "dload 1", Opcodes.DLOAD),
+                    localLoadWithState(1, doubleValue(), "dload 1", Opcodes.DLOAD),
                     localLoad(300, doubleValue(), "wide dload 300", Opcodes.DLOAD)
             );
         }
@@ -132,6 +145,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(0, doubleValue(), "dload_0", Opcodes.DLOAD),
+                    localLoadWithState(0, doubleValue(), "dload_0", Opcodes.DLOAD),
                     localLoad(1, doubleValue(), "dload_1", Opcodes.DLOAD),
                     localLoad(2, doubleValue(), "dload_2", Opcodes.DLOAD),
                     localLoad(3, doubleValue(), "dload_3", Opcodes.DLOAD)
@@ -152,6 +166,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(1, floatValue(), "fload 1", Opcodes.FLOAD),
+                    localLoadWithState(1, floatValue(), "fload 1", Opcodes.FLOAD),
                     localLoad(300, floatValue(), "wide fload 300", Opcodes.FLOAD)
             );
         }
@@ -170,6 +185,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(0, floatValue(), "fload_0", Opcodes.FLOAD),
+                    localLoadWithState(0, floatValue(), "fload_0", Opcodes.FLOAD),
                     localLoad(1, floatValue(), "fload_1", Opcodes.FLOAD),
                     localLoad(2, floatValue(), "fload_2", Opcodes.FLOAD),
                     localLoad(3, floatValue(), "fload_3", Opcodes.FLOAD)
@@ -190,6 +206,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(1, integerValue(), "iload 1", Opcodes.ILOAD),
+                    localLoadWithState(1, integerValue(), "iload 1", Opcodes.ILOAD),
                     localLoad(300, integerValue(), "wide iload 300", Opcodes.ILOAD)
             );
         }
@@ -208,6 +225,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(0, integerValue(), "iload_0", Opcodes.ILOAD),
+                    localLoadWithState(0, integerValue(), "iload_0", Opcodes.ILOAD),
                     localLoad(1, integerValue(), "iload_1", Opcodes.ILOAD),
                     localLoad(2, integerValue(), "iload_2", Opcodes.ILOAD),
                     localLoad(3, integerValue(), "iload_3", Opcodes.ILOAD)
@@ -228,6 +246,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(1, longValue(), "lload 1", Opcodes.LLOAD),
+                    localLoadWithState(1, longValue(), "lload 1", Opcodes.LLOAD),
                     localLoad(300, longValue(), "wide lload 300", Opcodes.LLOAD)
             );
         }
@@ -246,6 +265,7 @@ public class TestXLoad
         {
             return set(
                     localLoad(0, longValue(), "lload_0", Opcodes.LLOAD),
+                    localLoadWithState(0, longValue(), "lload_0", Opcodes.LLOAD),
                     localLoad(1, longValue(), "lload_1", Opcodes.LLOAD),
                     localLoad(2, longValue(), "lload_2", Opcodes.LLOAD),
                     localLoad(3, longValue(), "lload_3", Opcodes.LLOAD)

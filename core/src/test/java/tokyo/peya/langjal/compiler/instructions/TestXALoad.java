@@ -44,6 +44,19 @@ public class TestXALoad
                     opcode
             );
         }
+
+        protected InstructionCase loadWithBase(StackMachine.StackValue arrayType,
+                                               StackMachine.StackValue resultType,
+                                               String syntax,
+                                               int opcode)
+        {
+            return of(
+                    create(object(TypeDescriptor.className("java/lang/String")), arrayType, integerValue())
+                            .expected(create(object(TypeDescriptor.className("java/lang/String")), resultType)),
+                    syntax,
+                    opcode
+            );
+        }
     }
 
     @Nested
@@ -58,7 +71,8 @@ public class TestXALoad
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    load(object(TypeDescriptor.parse("[Ljava/lang/String;")), object(TypeDescriptor.className("java/lang/String")), "aaload", EOpcodes.AALOAD)
+                    load(object(TypeDescriptor.parse("[Ljava/lang/String;")), object(TypeDescriptor.className("java/lang/String")), "aaload", EOpcodes.AALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[Ljava/lang/String;")), object(TypeDescriptor.className("java/lang/String")), "aaload", EOpcodes.AALOAD)
             );
         }
     }
@@ -74,7 +88,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[B")), integerValue(), "baload", EOpcodes.BALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[B")), integerValue(), "baload", EOpcodes.BALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[B")), integerValue(), "baload", EOpcodes.BALOAD)
+            );
         }
     }
 
@@ -89,7 +106,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[C")), integerValue(), "caload", EOpcodes.CALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[C")), integerValue(), "caload", EOpcodes.CALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[C")), integerValue(), "caload", EOpcodes.CALOAD)
+            );
         }
     }
 
@@ -104,7 +124,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[D")), doubleValue(), "daload", EOpcodes.DALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[D")), doubleValue(), "daload", EOpcodes.DALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[D")), doubleValue(), "daload", EOpcodes.DALOAD)
+            );
         }
     }
 
@@ -119,7 +142,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[F")), floatValue(), "faload", EOpcodes.FALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[F")), floatValue(), "faload", EOpcodes.FALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[F")), floatValue(), "faload", EOpcodes.FALOAD)
+            );
         }
     }
 
@@ -134,7 +160,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[I")), integerValue(), "iaload", EOpcodes.IALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[I")), integerValue(), "iaload", EOpcodes.IALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[I")), integerValue(), "iaload", EOpcodes.IALOAD)
+            );
         }
     }
 
@@ -149,7 +178,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[J")), longValue(), "laload", EOpcodes.LALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[J")), longValue(), "laload", EOpcodes.LALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[J")), longValue(), "laload", EOpcodes.LALOAD)
+            );
         }
     }
 
@@ -164,7 +196,10 @@ public class TestXALoad
         @Override
         public InstructionCase[] getValidInstructionSyntaxes()
         {
-            return set(load(object(TypeDescriptor.parse("[S")), integerValue(), "saload", EOpcodes.SALOAD));
+            return set(
+                    load(object(TypeDescriptor.parse("[S")), integerValue(), "saload", EOpcodes.SALOAD),
+                    loadWithBase(object(TypeDescriptor.parse("[S")), integerValue(), "saload", EOpcodes.SALOAD)
+            );
         }
     }
 }
