@@ -230,10 +230,15 @@ public class StackMachine implements Cloneable
             if (element instanceof LocalStackElement local) {
                 StackValue value = this.locals.get(local.index());
                 if (value == null) {
-
                     throw new AssertionFailedError("No value in locals for index: " + local.index());
                 }
-                this.locals.remove(local.index());
+
+                StackElement localElement = local.stackElement();
+                if (localElement instanceof StackElementCapsule capsule) {
+                    this.shelter.put(capsule, value);
+                } else {
+                    this.assertStackElementEquals(localElement, value);
+                }
                 return;
             } else if (this.stack.isEmpty()) {
                 throw new AssertionFailedError("Stack underflow at step " + this.currentStep);
