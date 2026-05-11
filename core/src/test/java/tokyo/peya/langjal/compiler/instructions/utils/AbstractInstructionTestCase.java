@@ -37,29 +37,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T extends AbstractInstructionEvaluator<P>>
 {
     private static final TestFileEvaluatingReporter REPORTER;
-    private static final ClassNode TEST_DUMMY_CLASS;
-    private static final MethodNode TEST_DUMMY_METHOD;
 
     static {
         REPORTER = new TestFileEvaluatingReporter();
-        TEST_DUMMY_CLASS = new ClassNode();
-        TEST_DUMMY_CLASS.visit(
-                EOpcodes.V1_8,
-                EOpcodes.ACC_PUBLIC,
-                "TestDummyClass",
-                null,
-                "java/lang/Object",
-                null
-        );
-
-        TEST_DUMMY_METHOD = new MethodNode(
-                EOpcodes.ACC_PUBLIC,
-                "testDummyMethod",
-                "()V",
-                null,
-                null
-        );
-        TEST_DUMMY_CLASS.methods.add(TEST_DUMMY_METHOD);
     }
 
     private final int[] expectedOpCodes;
@@ -99,16 +79,16 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
     public void testParseValidInstructions(InstructionCase instruction)
     {
         P insn = tryParseInstruction(instruction.syntax);
-        LabelsHolder labels = new LabelsHolder();
-        InstructionsHolder instructions = new InstructionsHolder(
-                TEST_DUMMY_CLASS,
-                TEST_DUMMY_METHOD,
-                labels
-        );
+        ClassNode ownerClass = this.createDummyClass();
+        MethodNode ownerMethod = this.createDummyMethod();
+        ownerClass.methods.add(ownerMethod);
+        LabelsHolder labels = this.createLabelsHolder(insn);
+        InstructionsHolder instructions = new InstructionsHolder(ownerClass, ownerMethod, labels);
 
         LocalVariablesHolder locals = new LocalVariablesHolder(REPORTER, labels);
         instruction.situation.applyTo(locals);
-        EvaluatedInstruction compiled = compile(insn, instructions, labels, locals);
+        this.prepareContext(insn, ownerClass, ownerMethod, instructions, labels, locals);
+        EvaluatedInstruction compiled = compile(ownerClass, ownerMethod, insn, instructions, labels, locals);
 
         AbstractInsnNode insnNode = compiled.insn();
         AbstractInsnNode expectedNode = instruction.expectedInstruction;
@@ -142,12 +122,17 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
         assertEquals(expected.getClass(), actual.getClass(), "Instruction node types do not match");
     }
 
-    private EvaluatedInstruction compile(P instruction, InstructionsHolder instructions, LabelsHolder labels, LocalVariablesHolder locals)
+    protected EvaluatedInstruction compile(ClassNode ownerClass,
+                                           MethodNode ownerMethod,
+                                           P instruction,
+                                           InstructionsHolder instructions,
+                                           LabelsHolder labels,
+                                           LocalVariablesHolder locals)
     {
         return this.evaluator.evaluate(
                 REPORTER,
-                TEST_DUMMY_CLASS,
-                TEST_DUMMY_METHOD,
+                ownerClass,
+                ownerMethod,
                 instructions,
                 labels,
                 locals,
@@ -165,22 +150,22 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
 
         P parsed = tryParseInstruction(kase.syntax);
 
-        LabelsHolder labels = new LabelsHolder();
-        InstructionsHolder instructions = new InstructionsHolder(
-                TEST_DUMMY_CLASS,
-                TEST_DUMMY_METHOD,
-                labels
-        );
+        ClassNode ownerClass = this.createDummyClass();
+        MethodNode ownerMethod = this.createDummyMethod();
+        ownerClass.methods.add(ownerMethod);
+        LabelsHolder labels = this.createLabelsHolder(parsed);
+        InstructionsHolder instructions = new InstructionsHolder(ownerClass, ownerMethod, labels);
 
         LocalVariablesHolder locals = new LocalVariablesHolder(REPORTER, labels);
         kase.situation.applyTo(locals);
-        EvaluatedInstruction compiled = this.compile(parsed, instructions, labels, locals);
+        this.prepareContext(parsed, ownerClass, ownerMethod, instructions, labels, locals);
+        EvaluatedInstruction compiled = this.compile(ownerClass, ownerMethod, parsed, instructions, labels, locals);
 
         InstructionInfo info = new InstructionInfo(
                 0,
                 compiled.insn(),
-                TEST_DUMMY_CLASS,
-                TEST_DUMMY_METHOD,
+                ownerClass,
+                ownerMethod,
                 this.evaluator,
                 null,
                 compiled.getInstructionSize(),
@@ -231,6 +216,45 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
     public static InstructionCase[] set(InstructionCase... cases)
     {
         return cases;
+    }
+
+    protected ClassNode createDummyClass()
+    {
+        ClassNode ownerClass = new ClassNode();
+        ownerClass.visit(
+                EOpcodes.V1_8,
+                EOpcodes.ACC_PUBLIC,
+                "TestDummyClass",
+                null,
+                "java/lang/Object",
+                null
+        );
+        return ownerClass;
+    }
+
+    protected MethodNode createDummyMethod()
+    {
+        return new MethodNode(
+                EOpcodes.ACC_PUBLIC,
+                "testDummyMethod",
+                "()V",
+                null,
+                null
+        );
+    }
+
+    protected LabelsHolder createLabelsHolder(P instruction)
+    {
+        return new LabelsHolder();
+    }
+
+    protected void prepareContext(P instruction,
+                                  ClassNode ownerClass,
+                                  MethodNode ownerMethod,
+                                  InstructionsHolder instructions,
+                                  LabelsHolder labels,
+                                  LocalVariablesHolder locals)
+    {
     }
 
     public record InstructionCase(
