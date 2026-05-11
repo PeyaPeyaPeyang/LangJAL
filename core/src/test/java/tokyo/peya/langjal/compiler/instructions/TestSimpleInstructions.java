@@ -2,6 +2,7 @@ package tokyo.peya.langjal.compiler.instructions;
 
 import org.junit.jupiter.api.Nested;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
@@ -244,9 +245,9 @@ public abstract class TestSimpleInstructions
         public InstructionCase[] getValidInstructionSyntaxes()
         {
             return set(
-                    of(create(integerValue(), integerValue()).expected(create(object(TypeDescriptor.className("[[Ljava/lang/String;")))),
+                    of(create(integerValue(), integerValue()).expected(create(object(TypeDescriptor.parse("[[Ljava/lang/String;")))),
                             "multianewarray [[Ljava/lang/String; 2",
-                            new org.objectweb.asm.tree.MultiANewArrayInsnNode("[[Ljava/lang/String;", 2))
+                            new MultiANewArrayInsnNode("[[Ljava/lang/String;", 2))
             );
         }
     }

@@ -16,6 +16,7 @@ import tokyo.peya.langjal.analyser.stack.StackOperation;
 import tokyo.peya.langjal.analyser.stack.TopElement;
 import tokyo.peya.langjal.analyser.stack.UninitializedElement;
 import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
+import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
 import tokyo.peya.langjal.compiler.member.LabelsHolder;
@@ -271,7 +272,7 @@ public class StackMachine implements Cloneable
             if (expectedType == StackElementType.OBJECT) {
                 ObjectStackValue objValue = (ObjectStackValue) poppedValue;
                 ObjectElement objElement = (ObjectElement) element;
-                if (!objValue.typeName().equals(objElement.content())) {
+                if (!this.checkObjectEquality(objValue, objElement)) {
                     throw new AssertionFailedError(
                             "Object type mismatch at step " + this.currentStep,
                             objElement.content(),
@@ -279,6 +280,11 @@ public class StackMachine implements Cloneable
                     );
                 }
             }
+        }
+
+        private boolean checkObjectEquality(ObjectStackValue value, ObjectElement element) {
+            // java.lang.Object の場合はどんなオブジェクトも許容する
+            return element.content().getBaseType().equals(ClassReferenceType.OBJECT) || value.typeName().equals(element.content());
         }
     }
 

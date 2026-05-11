@@ -23,7 +23,7 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public class TestInvokeInstructions
+public abstract class TestInvokeInstructions
 {
     private abstract static class MethodInvokeTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
             extends AbstractInstructionTestCase<T, E>
