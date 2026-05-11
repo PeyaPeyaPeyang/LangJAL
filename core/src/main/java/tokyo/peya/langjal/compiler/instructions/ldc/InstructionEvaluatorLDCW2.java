@@ -7,6 +7,7 @@ import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 import tokyo.peya.langjal.compiler.member.InstructionsHolder;
@@ -17,7 +18,7 @@ public class InstructionEvaluatorLDCW2 extends AbstractInstructionEvaluator<JALP
 {
     public InstructionEvaluatorLDCW2()
     {
-        super(InstructionEvaluationHelperLDC.LDC_W);
+        super(EOpcodes.LDC2_W);
     }
 
     @Override

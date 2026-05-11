@@ -58,9 +58,9 @@ public class InstructionEvaluatorIfACmpOP extends AbstractInstructionEvaluator<J
     private static int getOpcode(JALParser.JvmInsIfAcmpOPContext ctxt)
     {
         if (ctxt.INSN_IF_ACMPEQ() != null)
-            return EOpcodes.IF_ICMPEQ;
+            return EOpcodes.IF_ACMPEQ;
         if (ctxt.INSN_IF_ACMPNE() != null)
-            return EOpcodes.IF_ICMPNE;
+            return EOpcodes.IF_ACMPNE;
 
         throw new IllegalInstructionException("Unknown IF_ICMP opcode", ctxt);
     }

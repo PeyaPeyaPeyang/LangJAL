@@ -22,7 +22,14 @@ public class InstructionEvaluatorIfICmpOP extends AbstractInstructionEvaluator<J
 {
     public InstructionEvaluatorIfICmpOP()
     {
-        super(EOpcodes.IF_ICMPEQ, EOpcodes.IF_ICMPNE);
+        super(
+                EOpcodes.IF_ICMPEQ,
+                EOpcodes.IF_ICMPNE,
+                EOpcodes.IF_ICMPLT,
+                EOpcodes.IF_ICMPGE,
+                EOpcodes.IF_ICMPGT,
+                EOpcodes.IF_ICMPLE
+        );
     }
 
     @Override

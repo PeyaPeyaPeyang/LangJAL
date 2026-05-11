@@ -33,7 +33,7 @@ public class InstructionEvaluatorJsrW extends AbstractInstructionEvaluator<JALPa
         JALParser.LabelNameContext labelNameContext = instruction.labelName();
         LabelInfo label = labels.resolve(labelNameContext);
 
-        JumpInsnNode insn = new JumpInsnNode(EOpcodes.JSR, label.node());
+        JumpInsnNode insn = new JumpInsnNode(EOpcodes.JSR_W, label.node());
         return EvaluatedInstruction.of(this, insn);
     }
 

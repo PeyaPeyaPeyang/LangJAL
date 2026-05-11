@@ -39,8 +39,8 @@ public class InstructionEvaluatorPutField extends AbstractInstructionEvaluator<J
     {
         FieldInsnNode fieldInsnNode = (FieldInsnNode) instruction.insn();
         return FrameDifferenceInfo.builder(instruction)
-                                  .popObjectRef(TypeDescriptor.className(fieldInsnNode.owner))
                                   .popUnknownType(TypeDescriptor.parse(fieldInsnNode.desc))
+                                  .popObjectRef(TypeDescriptor.className(fieldInsnNode.owner))
                                   .build();
     }
 

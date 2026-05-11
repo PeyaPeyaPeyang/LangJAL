@@ -210,10 +210,12 @@ public class EvaluatorCommons
     public static String unwrapClassTypeDescriptor(@NotNull JALParser.TypeDescriptorContext typeDescriptor)
     {
         String typeName = typeDescriptor.getText();
+        while (typeName.startsWith("[")) {
+            typeName = typeName.substring(1);
+        }
+
         if (typeName.startsWith("L") && typeName.endsWith(";"))
             return typeName.substring(1, typeName.length() - 1);
-        else if (typeName.startsWith("[L") && typeName.endsWith(";"))
-            return typeName.substring(2, typeName.length() - 1);
         else
             throw new IllegalValueException("Invalid class type descriptor: " + typeName, typeDescriptor);
     }

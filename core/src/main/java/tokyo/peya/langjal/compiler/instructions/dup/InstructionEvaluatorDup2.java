@@ -25,10 +25,10 @@ public class InstructionEvaluatorDup2 extends AbstractSingleInstructionEvaluator
         return FrameDifferenceInfo.builder(instruction)
                                   .popToCapsule(topElement1)
                                   .popToCapsule(topElement2)
-                                  .pushFromCapsule(topElement1)
                                   .pushFromCapsule(topElement2)
                                   .pushFromCapsule(topElement1)
                                   .pushFromCapsule(topElement2)
+                                  .pushFromCapsule(topElement1)
                                   .build();
     }
 

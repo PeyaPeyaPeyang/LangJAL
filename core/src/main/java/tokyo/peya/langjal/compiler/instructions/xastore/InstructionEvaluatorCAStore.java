@@ -13,7 +13,7 @@ public class InstructionEvaluatorCAStore extends AbstractSingleInstructionEvalua
 {
     public InstructionEvaluatorCAStore()
     {
-        super(EOpcodes.BALOAD);
+        super(EOpcodes.CASTORE);
     }
 
     @Override

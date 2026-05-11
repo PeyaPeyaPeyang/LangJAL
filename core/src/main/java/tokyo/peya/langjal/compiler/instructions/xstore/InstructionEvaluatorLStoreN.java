@@ -21,7 +21,7 @@ public class InstructionEvaluatorLStoreN extends AbstractInstructionEvaluator<JA
 {
     public InstructionEvaluatorLStoreN()
     {
-        super(EOpcodes.LSTORE);
+        super(EOpcodes.LSTORE_0, EOpcodes.LSTORE_1, EOpcodes.LSTORE_2, EOpcodes.LSTORE_3);
     }
 
     @Override
