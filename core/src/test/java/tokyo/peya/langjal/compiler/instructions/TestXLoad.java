@@ -29,35 +29,38 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestXLoad
 {
-    protected TestXLoad(E evaluator, int... expectedOpCodes)
+    private abstract class XLoadTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpCodes);
-    }
+        protected XLoadTestCase(E evaluator, int... expectedOpCodes)
+        {
+            super(evaluator, expectedOpCodes);
+        }
 
-    protected InstructionCase localLoad(int index, StackMachine.StackValue value, String syntax, int opcode)
-    {
-        return of(
-                create().set(index, value).expected(create(value).set(index, value)),
-                syntax,
-                new VarInsnNode(opcode, index)
-        );
-    }
+        protected InstructionCase localLoad(int index, StackMachine.StackValue value, String syntax, int opcode)
+        {
+            return of(
+                    create().set(index, value).expected(create(value).set(index, value)),
+                    syntax,
+                    new VarInsnNode(opcode, index)
+            );
+        }
 
-    @Override
-    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
-    {
-        super.assertInstructionEquals(expected, actual);
+        @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+        {
+            super.assertInstructionEquals(expected, actual);
 
-        VarInsnNode expectedVar = (VarInsnNode) expected;
-        VarInsnNode actualVar = (VarInsnNode) actual;
-        assertEquals(expectedVar.var, actualVar.var, "local variable index does not match");
+            VarInsnNode expectedVar = (VarInsnNode) expected;
+            VarInsnNode actualVar = (VarInsnNode) actual;
+            assertEquals(expectedVar.var, actualVar.var, "local variable index does not match");
+        }
     }
 
     @Nested
-    static class TestALoad extends TestXLoad<JALParser.JvmInsAloadContext, InstructionEvaluatorALoad>
+    class TestALoad extends XLoadTestCase<JALParser.JvmInsAloadContext, InstructionEvaluatorALoad>
     {
         private static final StackMachine.StackValue OBJECT_VALUE = object(TypeDescriptor.parse("LMyClass;"));
 
@@ -77,7 +80,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestALoadN extends TestXLoad<JALParser.JvmInsAloadNContext, InstructionEvaluatorALoadN>
+    class TestALoadN extends XLoadTestCase<JALParser.JvmInsAloadNContext, InstructionEvaluatorALoadN>
     {
         private static final StackMachine.StackValue OBJECT_VALUE = object(TypeDescriptor.parse("LMyClass;"));
 
@@ -99,7 +102,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestDLoad extends TestXLoad<JALParser.JvmInsDloadContext, InstructionEvaluatorDLoad>
+    class TestDLoad extends XLoadTestCase<JALParser.JvmInsDloadContext, InstructionEvaluatorDLoad>
     {
         TestDLoad()
         {
@@ -117,7 +120,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestDLoadN extends TestXLoad<JALParser.JvmInsDloadNContext, InstructionEvaluatorDLoadN>
+    class TestDLoadN extends XLoadTestCase<JALParser.JvmInsDloadNContext, InstructionEvaluatorDLoadN>
     {
         TestDLoadN()
         {
@@ -137,7 +140,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestFLoad extends TestXLoad<JALParser.JvmInsFloadContext, InstructionEvaluatorFLoad>
+    class TestFLoad extends XLoadTestCase<JALParser.JvmInsFloadContext, InstructionEvaluatorFLoad>
     {
         TestFLoad()
         {
@@ -155,7 +158,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestFLoadN extends TestXLoad<JALParser.JvmInsFloadNContext, InstructionEvaluatorFLoadN>
+    class TestFLoadN extends XLoadTestCase<JALParser.JvmInsFloadNContext, InstructionEvaluatorFLoadN>
     {
         TestFLoadN()
         {
@@ -175,7 +178,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestILoad extends TestXLoad<JALParser.JvmInsIloadContext, InstructionEvaluatorILoad>
+    class TestILoad extends XLoadTestCase<JALParser.JvmInsIloadContext, InstructionEvaluatorILoad>
     {
         TestILoad()
         {
@@ -193,7 +196,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestILoadN extends TestXLoad<JALParser.JvmInsIloadNContext, InstructionEvaluatorILoadN>
+    class TestILoadN extends XLoadTestCase<JALParser.JvmInsIloadNContext, InstructionEvaluatorILoadN>
     {
         TestILoadN()
         {
@@ -213,7 +216,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestLLoad extends TestXLoad<JALParser.JvmInsLloadContext, InstructionEvaluatorLLoad>
+    class TestLLoad extends XLoadTestCase<JALParser.JvmInsLloadContext, InstructionEvaluatorLLoad>
     {
         TestLLoad()
         {
@@ -231,7 +234,7 @@ public abstract class TestXLoad<T extends ParserRuleContext, E extends AbstractI
     }
 
     @Nested
-    static class TestLLoadN extends TestXLoad<JALParser.JvmInsLloadNContext, InstructionEvaluatorLLoadN>
+    class TestLLoadN extends XLoadTestCase<JALParser.JvmInsLloadNContext, InstructionEvaluatorLLoadN>
     {
         TestLLoadN()
         {

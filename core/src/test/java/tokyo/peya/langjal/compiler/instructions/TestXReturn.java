@@ -20,31 +20,34 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXReturn<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestXReturn
 {
-    private final String methodDescriptor;
-
-    protected TestXReturn(E evaluator, String methodDescriptor, int... expectedOpcodes)
+    private abstract class XReturnTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpcodes);
-        this.methodDescriptor = methodDescriptor;
-    }
+        private final String methodDescriptor;
 
-    @Override
-    protected MethodNode createDummyMethod()
-    {
-        return new MethodNode(
-                EOpcodes.ACC_PUBLIC,
-                "testDummyMethod",
-                this.methodDescriptor,
-                null,
-                null
-        );
+        protected XReturnTestCase(E evaluator, String methodDescriptor, int... expectedOpcodes)
+        {
+            super(evaluator, expectedOpcodes);
+            this.methodDescriptor = methodDescriptor;
+        }
+
+        @Override
+        protected MethodNode createDummyMethod()
+        {
+            return new MethodNode(
+                    EOpcodes.ACC_PUBLIC,
+                    "testDummyMethod",
+                    this.methodDescriptor,
+                    null,
+                    null
+            );
+        }
     }
 
     @Nested
-    static class TestIReturnCase extends TestXReturn<JALParser.JvmInsIreturnContext, InstructionEvaluatorIReturn>
+    class TestIReturnCase extends XReturnTestCase<JALParser.JvmInsIreturnContext, InstructionEvaluatorIReturn>
     {
         TestIReturnCase()
         {
@@ -59,7 +62,7 @@ public abstract class TestXReturn<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestLReturnCase extends TestXReturn<JALParser.JvmInsLreturnContext, InstructionEvaluatorLReturn>
+    class TestLReturnCase extends XReturnTestCase<JALParser.JvmInsLreturnContext, InstructionEvaluatorLReturn>
     {
         TestLReturnCase()
         {
@@ -74,7 +77,7 @@ public abstract class TestXReturn<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestFReturnCase extends TestXReturn<JALParser.JvmInsFreturnContext, InstructionEvaluatorFReturn>
+    class TestFReturnCase extends XReturnTestCase<JALParser.JvmInsFreturnContext, InstructionEvaluatorFReturn>
     {
         TestFReturnCase()
         {
@@ -89,7 +92,7 @@ public abstract class TestXReturn<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestDReturnCase extends TestXReturn<JALParser.JvmInsDreturnContext, InstructionEvaluatorDReturn>
+    class TestDReturnCase extends XReturnTestCase<JALParser.JvmInsDreturnContext, InstructionEvaluatorDReturn>
     {
         TestDReturnCase()
         {
@@ -104,7 +107,7 @@ public abstract class TestXReturn<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestAReturnCase extends TestXReturn<JALParser.JvmInsAreturnContext, InstructionEvaluatorAReturn>
+    class TestAReturnCase extends XReturnTestCase<JALParser.JvmInsAreturnContext, InstructionEvaluatorAReturn>
     {
         TestAReturnCase()
         {

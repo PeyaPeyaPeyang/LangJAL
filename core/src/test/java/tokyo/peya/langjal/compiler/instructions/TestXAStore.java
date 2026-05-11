@@ -23,28 +23,31 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXAStore<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestXAStore
 {
-    protected TestXAStore(E evaluator, int... expectedOpcodes)
+    private abstract class XAStoreTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpcodes);
-    }
+        protected XAStoreTestCase(E evaluator, int... expectedOpcodes)
+        {
+            super(evaluator, expectedOpcodes);
+        }
 
-    protected InstructionCase store(StackMachine.StackValue arrayType,
-                                    StackMachine.StackValue storedType,
-                                    String syntax,
-                                    int opcode)
-    {
-        return of(
-                create(arrayType, integerValue(), storedType).expected(create()),
-                syntax,
-                opcode
-        );
+        protected InstructionCase store(StackMachine.StackValue arrayType,
+                                        StackMachine.StackValue storedType,
+                                        String syntax,
+                                        int opcode)
+        {
+            return of(
+                    create(arrayType, integerValue(), storedType).expected(create()),
+                    syntax,
+                    opcode
+            );
+        }
     }
 
     @Nested
-    static class TestAAStoreCase extends TestXAStore<JALParser.JvmInsAastoreContext, InstructionEvaluatorAAStore>
+    class TestAAStoreCase extends XAStoreTestCase<JALParser.JvmInsAastoreContext, InstructionEvaluatorAAStore>
     {
         TestAAStoreCase()
         {
@@ -61,7 +64,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestBAStoreCase extends TestXAStore<JALParser.JvmInsBastoreContext, InstructionEvaluatorBAStore>
+    class TestBAStoreCase extends XAStoreTestCase<JALParser.JvmInsBastoreContext, InstructionEvaluatorBAStore>
     {
         TestBAStoreCase()
         {
@@ -76,7 +79,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestCAStoreCase extends TestXAStore<JALParser.JvmInsCastoreContext, InstructionEvaluatorCAStore>
+    class TestCAStoreCase extends XAStoreTestCase<JALParser.JvmInsCastoreContext, InstructionEvaluatorCAStore>
     {
         TestCAStoreCase()
         {
@@ -91,7 +94,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestDAStoreCase extends TestXAStore<JALParser.JvmInsDastoreContext, InstructionEvaluatorDAStore>
+    class TestDAStoreCase extends XAStoreTestCase<JALParser.JvmInsDastoreContext, InstructionEvaluatorDAStore>
     {
         TestDAStoreCase()
         {
@@ -106,7 +109,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestFAStoreCase extends TestXAStore<JALParser.JvmInsFastoreContext, InstructionEvaluatorFAStore>
+    class TestFAStoreCase extends XAStoreTestCase<JALParser.JvmInsFastoreContext, InstructionEvaluatorFAStore>
     {
         TestFAStoreCase()
         {
@@ -121,7 +124,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestIAStoreCase extends TestXAStore<JALParser.JvmInsIastoreContext, InstructionEvaluatorIAStore>
+    class TestIAStoreCase extends XAStoreTestCase<JALParser.JvmInsIastoreContext, InstructionEvaluatorIAStore>
     {
         TestIAStoreCase()
         {
@@ -136,7 +139,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestLAStoreCase extends TestXAStore<JALParser.JvmInsLastoreContext, InstructionEvaluatorLAStore>
+    class TestLAStoreCase extends XAStoreTestCase<JALParser.JvmInsLastoreContext, InstructionEvaluatorLAStore>
     {
         TestLAStoreCase()
         {
@@ -151,7 +154,7 @@ public abstract class TestXAStore<T extends ParserRuleContext, E extends Abstrac
     }
 
     @Nested
-    static class TestSAStoreCase extends TestXAStore<JALParser.JvmInsSastoreContext, InstructionEvaluatorSAStore>
+    class TestSAStoreCase extends XAStoreTestCase<JALParser.JvmInsSastoreContext, InstructionEvaluatorSAStore>
     {
         TestSAStoreCase()
         {

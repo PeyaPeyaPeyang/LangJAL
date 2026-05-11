@@ -21,35 +21,38 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestLDC<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestLDC
 {
-    protected TestLDC(E evaluator, int... expectedOpCodes)
+    private abstract class LDCTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpCodes);
-    }
+        protected LDCTestCase(E evaluator, int... expectedOpCodes)
+        {
+            super(evaluator, expectedOpCodes);
+        }
 
-    protected InstructionCase constantLoad(Object value, StackMachine.StackValue stackValue, String syntax)
-    {
-        return of(
-                create().expected(create(stackValue)),
-                syntax,
-                new LdcInsnNode(value)
-        );
-    }
+        protected InstructionCase constantLoad(Object value, StackMachine.StackValue stackValue, String syntax)
+        {
+            return of(
+                    create().expected(create(stackValue)),
+                    syntax,
+                    new LdcInsnNode(value)
+            );
+        }
 
-    @Override
-    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
-    {
-        super.assertInstructionEquals(expected, actual);
+        @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+        {
+            super.assertInstructionEquals(expected, actual);
 
-        LdcInsnNode expectedLdc = (LdcInsnNode) expected;
-        LdcInsnNode actualLdc = (LdcInsnNode) actual;
-        assertEquals(expectedLdc.cst, actualLdc.cst, "ldc constant does not match");
+            LdcInsnNode expectedLdc = (LdcInsnNode) expected;
+            LdcInsnNode actualLdc = (LdcInsnNode) actual;
+            assertEquals(expectedLdc.cst, actualLdc.cst, "ldc constant does not match");
+        }
     }
 
     @Nested
-    static class TestLdc extends TestLDC<JALParser.JvmInsLdcContext, InstructionEvaluatorLDC>
+    class TestLdc extends LDCTestCase<JALParser.JvmInsLdcContext, InstructionEvaluatorLDC>
     {
         TestLdc()
         {
@@ -68,7 +71,7 @@ public abstract class TestLDC<T extends ParserRuleContext, E extends AbstractIns
     }
 
     @Nested
-    static class TestLdcW extends TestLDC<JALParser.JvmInsLdcWContext, InstructionEvaluatorLDCW>
+    class TestLdcW extends LDCTestCase<JALParser.JvmInsLdcWContext, InstructionEvaluatorLDCW>
     {
         TestLdcW()
         {
@@ -86,7 +89,7 @@ public abstract class TestLDC<T extends ParserRuleContext, E extends AbstractIns
     }
 
     @Nested
-    static class TestLdc2W extends TestLDC<JALParser.JvmInsLdc2WContext, InstructionEvaluatorLDCW2>
+    class TestLdc2W extends LDCTestCase<JALParser.JvmInsLdc2WContext, InstructionEvaluatorLDCW2>
     {
         TestLdc2W()
         {

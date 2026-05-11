@@ -29,35 +29,38 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXStore<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestXStore
 {
-    protected TestXStore(E evaluator, int... expectedOpCodes)
+    private abstract class XStoreTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpCodes);
-    }
+        protected XStoreTestCase(E evaluator, int... expectedOpCodes)
+        {
+            super(evaluator, expectedOpCodes);
+        }
 
-    protected InstructionCase localStore(int index, StackMachine.StackValue value, String syntax, int opcode)
-    {
-        return of(
-                create(value).expected(create().set(index, value)),
-                syntax,
-                new VarInsnNode(opcode, index)
-        );
-    }
+        protected InstructionCase localStore(int index, StackMachine.StackValue value, String syntax, int opcode)
+        {
+            return of(
+                    create(value).expected(create().set(index, value)),
+                    syntax,
+                    new VarInsnNode(opcode, index)
+            );
+        }
 
-    @Override
-    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
-    {
-        super.assertInstructionEquals(expected, actual);
+        @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+        {
+            super.assertInstructionEquals(expected, actual);
 
-        VarInsnNode expectedVar = (VarInsnNode) expected;
-        VarInsnNode actualVar = (VarInsnNode) actual;
-        assertEquals(expectedVar.var, actualVar.var, "local variable index does not match");
+            VarInsnNode expectedVar = (VarInsnNode) expected;
+            VarInsnNode actualVar = (VarInsnNode) actual;
+            assertEquals(expectedVar.var, actualVar.var, "local variable index does not match");
+        }
     }
 
     @Nested
-    static class TestAStore extends TestXStore<JALParser.JvmInsAstoreContext, InstructionEvaluatorAStore>
+    class TestAStore extends XStoreTestCase<JALParser.JvmInsAstoreContext, InstructionEvaluatorAStore>
     {
         private static final StackMachine.StackValue OBJECT_VALUE = object(TypeDescriptor.parse("LMyClass;"));
 
@@ -77,7 +80,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestAStoreN extends TestXStore<JALParser.JvmInsAstoreNContext, InstructionEvaluatorAStoreN>
+    class TestAStoreN extends XStoreTestCase<JALParser.JvmInsAstoreNContext, InstructionEvaluatorAStoreN>
     {
         private static final StackMachine.StackValue OBJECT_VALUE = object(TypeDescriptor.parse("LMyClass;"));
 
@@ -99,7 +102,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestDStore extends TestXStore<JALParser.JvmInsDstoreContext, InstructionEvaluatorDStore>
+    class TestDStore extends XStoreTestCase<JALParser.JvmInsDstoreContext, InstructionEvaluatorDStore>
     {
         TestDStore()
         {
@@ -117,7 +120,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestDStoreN extends TestXStore<JALParser.JvmInsDstoreNContext, InstructionEvaluatorDStoreN>
+    class TestDStoreN extends XStoreTestCase<JALParser.JvmInsDstoreNContext, InstructionEvaluatorDStoreN>
     {
         TestDStoreN()
         {
@@ -137,7 +140,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestFStore extends TestXStore<JALParser.JvmInsFstoreContext, InstructionEvaluatorFStore>
+    class TestFStore extends XStoreTestCase<JALParser.JvmInsFstoreContext, InstructionEvaluatorFStore>
     {
         TestFStore()
         {
@@ -155,7 +158,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestFStoreN extends TestXStore<JALParser.JvmInsFstoreNContext, InstructionEvaluatorFStoreN>
+    class TestFStoreN extends XStoreTestCase<JALParser.JvmInsFstoreNContext, InstructionEvaluatorFStoreN>
     {
         TestFStoreN()
         {
@@ -175,7 +178,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestIStore extends TestXStore<JALParser.JvmInsIstoreContext, InstructionEvaluatorIStore>
+    class TestIStore extends XStoreTestCase<JALParser.JvmInsIstoreContext, InstructionEvaluatorIStore>
     {
         TestIStore()
         {
@@ -193,7 +196,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestIStoreN extends TestXStore<JALParser.JvmInsIstoreNContext, InstructionEvaluatorIStoreN>
+    class TestIStoreN extends XStoreTestCase<JALParser.JvmInsIstoreNContext, InstructionEvaluatorIStoreN>
     {
         TestIStoreN()
         {
@@ -213,7 +216,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestLStore extends TestXStore<JALParser.JvmInsLstoreContext, InstructionEvaluatorLStore>
+    class TestLStore extends XStoreTestCase<JALParser.JvmInsLstoreContext, InstructionEvaluatorLStore>
     {
         TestLStore()
         {
@@ -231,7 +234,7 @@ public abstract class TestXStore<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestLStoreN extends TestXStore<JALParser.JvmInsLstoreNContext, InstructionEvaluatorLStoreN>
+    class TestLStoreN extends XStoreTestCase<JALParser.JvmInsLstoreNContext, InstructionEvaluatorLStoreN>
     {
         TestLStoreN()
         {

@@ -19,53 +19,56 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.nullValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXConst<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestXConst
 {
-    private final StackMachine.StackValue outputValue;
-    private final String syntax;
-    private final int opcode;
-
-    protected TestXConst(E evaluator, int... expectedOpCodes)
+    private abstract class XConstTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpCodes);
-        this.outputValue = null;
-        this.syntax = null;
-        this.opcode = -1;
-    }
+        private final StackMachine.StackValue outputValue;
+        private final String syntax;
+        private final int opcode;
 
-    protected TestXConst(E evaluator, StackMachine.StackValue outputValue, String syntax, int opcode)
-    {
-        super(evaluator, opcode);
-        this.outputValue = outputValue;
-        this.syntax = syntax;
-        this.opcode = opcode;
-    }
-
-    protected AbstractInstructionTestCase.InstructionCase[] single(StackMachine.StackValue outputValue, String syntax, int opcode)
-    {
-        return set(
-                of(
-                        create().expected(create(outputValue)),
-                        syntax,
-                        opcode
-                )
-        );
-    }
-
-    @Override
-    public AbstractInstructionTestCase.InstructionCase[] getValidInstructionSyntaxes()
-    {
-        if (!(this.outputValue == null || this.syntax == null || this.opcode == -1))
+        protected XConstTestCase(E evaluator, int... expectedOpCodes)
         {
-            return single(this.outputValue, this.syntax, this.opcode);
+            super(evaluator, expectedOpCodes);
+            this.outputValue = null;
+            this.syntax = null;
+            this.opcode = -1;
         }
 
-        return set();
+        protected XConstTestCase(E evaluator, StackMachine.StackValue outputValue, String syntax, int opcode)
+        {
+            super(evaluator, opcode);
+            this.outputValue = outputValue;
+            this.syntax = syntax;
+            this.opcode = opcode;
+        }
+
+        protected AbstractInstructionTestCase.InstructionCase[] single(StackMachine.StackValue outputValue, String syntax, int opcode)
+        {
+            return set(
+                    of(
+                            create().expected(create(outputValue)),
+                            syntax,
+                            opcode
+                    )
+            );
+        }
+
+        @Override
+        public AbstractInstructionTestCase.InstructionCase[] getValidInstructionSyntaxes()
+        {
+            if (!(this.outputValue == null || this.syntax == null || this.opcode == -1))
+            {
+                return single(this.outputValue, this.syntax, this.opcode);
+            }
+
+            return set();
+        }
     }
 
     @Nested
-    static class TestAConstNull extends TestXConst<JALParser.JvmInsAconstNullContext, InstructionEvaluatorAConstNull>
+    class TestAConstNull extends XConstTestCase<JALParser.JvmInsAconstNullContext, InstructionEvaluatorAConstNull>
     {
         TestAConstNull()
         {
@@ -74,7 +77,7 @@ public abstract class TestXConst<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestDConstN extends TestXConst<JALParser.JvmInsDconstNContext, InstructionEvaluatorDConstN>
+    class TestDConstN extends XConstTestCase<JALParser.JvmInsDconstNContext, InstructionEvaluatorDConstN>
     {
         TestDConstN()
         {
@@ -92,7 +95,7 @@ public abstract class TestXConst<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestFConstN extends TestXConst<JALParser.JvmInsFconstNContext, InstructionEvaluatorFConstN>
+    class TestFConstN extends XConstTestCase<JALParser.JvmInsFconstNContext, InstructionEvaluatorFConstN>
     {
         TestFConstN()
         {
@@ -111,7 +114,7 @@ public abstract class TestXConst<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestIConstN extends TestXConst<JALParser.JvmInsIconstNContext, InstructionEvaluatorIConstN>
+    class TestIConstN extends XConstTestCase<JALParser.JvmInsIconstNContext, InstructionEvaluatorIConstN>
     {
         TestIConstN()
         {
@@ -135,7 +138,7 @@ public abstract class TestXConst<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestLConstN extends TestXConst<JALParser.JvmInsLconstNContext, InstructionEvaluatorLConstN>
+    class TestLConstN extends XConstTestCase<JALParser.JvmInsLconstNContext, InstructionEvaluatorLConstN>
     {
         TestLConstN()
         {

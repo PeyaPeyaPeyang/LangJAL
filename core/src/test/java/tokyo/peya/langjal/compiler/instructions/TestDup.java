@@ -17,10 +17,10 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestDup
+public class TestDup
 {
     @Nested
-    static class TestDupCase extends AbstractInstructionTestCase<JALParser.JvmInsDupContext, InstructionEvaluatorDup>
+    class TestDupCase extends AbstractInstructionTestCase<JALParser.JvmInsDupContext, InstructionEvaluatorDup>
     {
         TestDupCase()
         {
@@ -35,7 +35,7 @@ public abstract class TestDup
     }
 
     @Nested
-    static class TestDupX1Case extends AbstractInstructionTestCase<JALParser.JvmInsDupX1Context, InstructionEvaluatorDupX1>
+    class TestDupX1Case extends AbstractInstructionTestCase<JALParser.JvmInsDupX1Context, InstructionEvaluatorDupX1>
     {
         TestDupX1Case()
         {
@@ -50,7 +50,7 @@ public abstract class TestDup
     }
 
     @Nested
-    static class TestDupX2Case extends AbstractInstructionTestCase<JALParser.JvmInsDupX2Context, InstructionEvaluatorDupX2>
+    class TestDupX2Case extends AbstractInstructionTestCase<JALParser.JvmInsDupX2Context, InstructionEvaluatorDupX2>
     {
         TestDupX2Case()
         {
@@ -65,7 +65,7 @@ public abstract class TestDup
     }
 
     @Nested
-    static class TestDup2Case extends AbstractInstructionTestCase<JALParser.JvmInsDup2Context, InstructionEvaluatorDup2>
+    class TestDup2Case extends AbstractInstructionTestCase<JALParser.JvmInsDup2Context, InstructionEvaluatorDup2>
     {
         TestDup2Case()
         {
@@ -80,7 +80,7 @@ public abstract class TestDup
     }
 
     @Nested
-    static class TestDup2X1Case extends AbstractInstructionTestCase<JALParser.JvmInsDup2X1Context, InstructionEvaluatorDup2X1>
+    class TestDup2X1Case extends AbstractInstructionTestCase<JALParser.JvmInsDup2X1Context, InstructionEvaluatorDup2X1>
     {
         TestDup2X1Case()
         {
@@ -95,7 +95,7 @@ public abstract class TestDup
     }
 
     @Nested
-    static class TestDup2X2Case extends AbstractInstructionTestCase<JALParser.JvmInsDup2X2Context, InstructionEvaluatorDup2X2>
+    class TestDup2X2Case extends AbstractInstructionTestCase<JALParser.JvmInsDup2X2Context, InstructionEvaluatorDup2X2>
     {
         TestDup2X2Case()
         {

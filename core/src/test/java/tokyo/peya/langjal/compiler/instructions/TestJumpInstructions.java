@@ -22,9 +22,9 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestJumpInstructions
+public class TestJumpInstructions
 {
-    private abstract static class LabelJumpTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+    private abstract class LabelJumpTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
             extends AbstractInstructionTestCase<T, E>
     {
         protected LabelJumpTestCase(E evaluator, int... expectedOpcodes)
@@ -40,7 +40,7 @@ public abstract class TestJumpInstructions
         }
     }
 
-    private abstract static class LabelJumpSameTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+    private abstract class LabelJumpSameTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
             extends AbstractInstructionTestCase.Same<T, E>
     {
         protected LabelJumpSameTestCase(E evaluator, int... expectedOpcodes)
@@ -57,7 +57,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestGotoCase extends LabelJumpTestCase<JALParser.JvmInsGotoContext, InstructionEvaluatorGoto>
+    class TestGotoCase extends LabelJumpTestCase<JALParser.JvmInsGotoContext, InstructionEvaluatorGoto>
     {
         TestGotoCase()
         {
@@ -78,7 +78,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestGotoWCase extends LabelJumpTestCase<JALParser.JvmInsGotoWContext, InstructionEvaluatorGotoW>
+    class TestGotoWCase extends LabelJumpTestCase<JALParser.JvmInsGotoWContext, InstructionEvaluatorGotoW>
     {
         TestGotoWCase()
         {
@@ -99,7 +99,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestJsrCase extends LabelJumpSameTestCase<JALParser.JvmInsJsrContext, InstructionEvaluatorJsr>
+    class TestJsrCase extends LabelJumpSameTestCase<JALParser.JvmInsJsrContext, InstructionEvaluatorJsr>
     {
         TestJsrCase()
         {
@@ -120,7 +120,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestJsrWCase extends LabelJumpSameTestCase<JALParser.JvmInsJsrWContext, InstructionEvaluatorJsrW>
+    class TestJsrWCase extends LabelJumpSameTestCase<JALParser.JvmInsJsrWContext, InstructionEvaluatorJsrW>
     {
         TestJsrWCase()
         {
@@ -141,7 +141,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestRetCase extends AbstractInstructionTestCase<JALParser.JvmInsRetContext, InstructionEvaluatorRet>
+    class TestRetCase extends AbstractInstructionTestCase<JALParser.JvmInsRetContext, InstructionEvaluatorRet>
     {
         TestRetCase()
         {
@@ -166,7 +166,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestIfOPCase extends LabelJumpTestCase<JALParser.JvmInsIfOPContext, InstructionEvaluatorIfOP>
+    class TestIfOPCase extends LabelJumpTestCase<JALParser.JvmInsIfOPContext, InstructionEvaluatorIfOP>
     {
         TestIfOPCase()
         {
@@ -194,7 +194,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestIfICmpOPCase extends LabelJumpTestCase<JALParser.JvmInsIfIcmpOPContext, InstructionEvaluatorIfICmpOP>
+    class TestIfICmpOPCase extends LabelJumpTestCase<JALParser.JvmInsIfIcmpOPContext, InstructionEvaluatorIfICmpOP>
     {
         TestIfICmpOPCase()
         {
@@ -222,7 +222,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestIfACmpOPCase extends LabelJumpTestCase<JALParser.JvmInsIfAcmpOPContext, InstructionEvaluatorIfACmpOP>
+    class TestIfACmpOPCase extends LabelJumpTestCase<JALParser.JvmInsIfAcmpOPContext, InstructionEvaluatorIfACmpOP>
     {
         TestIfACmpOPCase()
         {
@@ -246,7 +246,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestIfNullCase extends LabelJumpTestCase<JALParser.JvmInsIfNullContext, InstructionEvaluatorIfNull>
+    class TestIfNullCase extends LabelJumpTestCase<JALParser.JvmInsIfNullContext, InstructionEvaluatorIfNull>
     {
         TestIfNullCase()
         {
@@ -267,7 +267,7 @@ public abstract class TestJumpInstructions
     }
 
     @Nested
-    static class TestIfNonNullCase extends LabelJumpTestCase<JALParser.JvmInsIfNonnullContext, InstructionEvaluatorIfNonNull>
+    class TestIfNonNullCase extends LabelJumpTestCase<JALParser.JvmInsIfNonnullContext, InstructionEvaluatorIfNonNull>
     {
         TestIfNonNullCase()
         {

@@ -27,55 +27,59 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
 
-public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSingleInstructionEvaluator<T>> extends AbstractInstructionTestCase<T, E>
+public class TestX2X
 {
-    private final StackMachine.StackValue inputValue;
-    private final StackMachine.StackValue outputValue;
-    private final String syntax;
-    private final int opcode;
-
-    protected TestX2X(E evaluator, int... expectedOpCodes)
+    private abstract class X2XTestCase<T extends ParserRuleContext, E extends AbstractSingleInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpCodes);
-        this.inputValue = null;
-        this.outputValue = null;
-        this.syntax = null;
-        this.opcode = -1;
-    }
+        private final StackMachine.StackValue inputValue;
+        private final StackMachine.StackValue outputValue;
+        private final String syntax;
+        private final int opcode;
 
-    protected TestX2X(E evaluator, StackMachine.StackValue inputValue, StackMachine.StackValue outputValue, String syntax, int opcode)
-    {
-        super(evaluator, opcode);
-        this.inputValue = inputValue;
-        this.outputValue = outputValue;
-        this.syntax = syntax;
-        this.opcode = opcode;
-    }
-
-    protected AbstractInstructionTestCase.InstructionCase[] single(StackMachine.StackValue inputValue, StackMachine.StackValue outputValue, String syntax, int opcode)
-    {
-        return set(
-                of(
-                        StackMachine.create(inputValue).expected(StackMachine.create(outputValue)),
-                        syntax,
-                        opcode
-                )
-        );
-    }
-
-    @Override
-    public AbstractInstructionTestCase.InstructionCase[] getValidInstructionSyntaxes()
-    {
-        if (!(this.inputValue == null || this.outputValue == null || this.syntax == null || this.opcode == -1))
+        protected X2XTestCase(E evaluator, int... expectedOpCodes)
         {
-            return single(this.inputValue, this.outputValue, this.syntax, this.opcode);
+            super(evaluator, expectedOpCodes);
+            this.inputValue = null;
+            this.outputValue = null;
+            this.syntax = null;
+            this.opcode = -1;
         }
 
-        return set();
+        protected X2XTestCase(E evaluator, StackMachine.StackValue inputValue, StackMachine.StackValue outputValue, String syntax, int opcode)
+        {
+            super(evaluator, opcode);
+            this.inputValue = inputValue;
+            this.outputValue = outputValue;
+            this.syntax = syntax;
+            this.opcode = opcode;
+        }
+
+        protected AbstractInstructionTestCase.InstructionCase[] single(StackMachine.StackValue inputValue, StackMachine.StackValue outputValue, String syntax, int opcode)
+        {
+            return set(
+                    of(
+                            StackMachine.create(inputValue).expected(StackMachine.create(outputValue)),
+                            syntax,
+                            opcode
+                    )
+            );
+        }
+
+        @Override
+        public AbstractInstructionTestCase.InstructionCase[] getValidInstructionSyntaxes()
+        {
+            if (!(this.inputValue == null || this.outputValue == null || this.syntax == null || this.opcode == -1))
+            {
+                return single(this.inputValue, this.outputValue, this.syntax, this.opcode);
+            }
+
+            return set();
+        }
     }
 
     @Nested
-    static class TestD2F extends TestX2X<JALParser.JvmInsD2FContext, InstructionEvaluatorD2F>
+    class TestD2F extends X2XTestCase<JALParser.JvmInsD2FContext, InstructionEvaluatorD2F>
     {
         TestD2F()
         {
@@ -84,7 +88,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestD2I extends TestX2X<JALParser.JvmInsD2IContext, InstructionEvaluatorD2I>
+    class TestD2I extends X2XTestCase<JALParser.JvmInsD2IContext, InstructionEvaluatorD2I>
     {
         TestD2I()
         {
@@ -93,7 +97,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestD2L extends TestX2X<JALParser.JvmInsD2LContext, InstructionEvaluatorD2L>
+    class TestD2L extends X2XTestCase<JALParser.JvmInsD2LContext, InstructionEvaluatorD2L>
     {
         TestD2L()
         {
@@ -102,7 +106,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestF2D extends TestX2X<JALParser.JvmInsF2DContext, InstructionEvaluatorF2D>
+    class TestF2D extends X2XTestCase<JALParser.JvmInsF2DContext, InstructionEvaluatorF2D>
     {
         TestF2D()
         {
@@ -111,7 +115,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestF2I extends TestX2X<JALParser.JvmInsF2IContext, InstructionEvaluatorF2I>
+    class TestF2I extends X2XTestCase<JALParser.JvmInsF2IContext, InstructionEvaluatorF2I>
     {
         TestF2I()
         {
@@ -120,7 +124,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestF2L extends TestX2X<JALParser.JvmInsF2LContext, InstructionEvaluatorF2L>
+    class TestF2L extends X2XTestCase<JALParser.JvmInsF2LContext, InstructionEvaluatorF2L>
     {
         TestF2L()
         {
@@ -129,7 +133,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestI2B extends TestX2X<JALParser.JvmInsI2BContext, InstructionEvaluatorI2B>
+    class TestI2B extends X2XTestCase<JALParser.JvmInsI2BContext, InstructionEvaluatorI2B>
     {
         TestI2B()
         {
@@ -138,7 +142,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestI2C extends TestX2X<JALParser.JvmInsI2CContext, InstructionEvaluatorI2C>
+    class TestI2C extends X2XTestCase<JALParser.JvmInsI2CContext, InstructionEvaluatorI2C>
     {
         TestI2C()
         {
@@ -147,7 +151,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestI2D extends TestX2X<JALParser.JvmInsI2DContext, InstructionEvaluatorI2D>
+    class TestI2D extends X2XTestCase<JALParser.JvmInsI2DContext, InstructionEvaluatorI2D>
     {
         TestI2D()
         {
@@ -156,7 +160,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestI2F extends TestX2X<JALParser.JvmInsI2FContext, InstructionEvaluatorI2F>
+    class TestI2F extends X2XTestCase<JALParser.JvmInsI2FContext, InstructionEvaluatorI2F>
     {
         TestI2F()
         {
@@ -165,7 +169,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestI2L extends TestX2X<JALParser.JvmInsI2LContext, InstructionEvaluatorI2L>
+    class TestI2L extends X2XTestCase<JALParser.JvmInsI2LContext, InstructionEvaluatorI2L>
     {
         TestI2L()
         {
@@ -174,7 +178,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestI2S extends TestX2X<JALParser.JvmInsI2SContext, InstructionEvaluatorI2S>
+    class TestI2S extends X2XTestCase<JALParser.JvmInsI2SContext, InstructionEvaluatorI2S>
     {
         TestI2S()
         {
@@ -183,7 +187,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestL2D extends TestX2X<JALParser.JvmInsL2DContext, InstructionEvaluatorL2D>
+    class TestL2D extends X2XTestCase<JALParser.JvmInsL2DContext, InstructionEvaluatorL2D>
     {
         TestL2D()
         {
@@ -192,7 +196,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestL2F extends TestX2X<JALParser.JvmInsL2FContext, InstructionEvaluatorL2F>
+    class TestL2F extends X2XTestCase<JALParser.JvmInsL2FContext, InstructionEvaluatorL2F>
     {
         TestL2F()
         {
@@ -201,7 +205,7 @@ public abstract class TestX2X<T extends ParserRuleContext, E extends AbstractSin
     }
 
     @Nested
-    static class TestL2I extends TestX2X<JALParser.JvmInsL2IContext, InstructionEvaluatorL2I>
+    class TestL2I extends X2XTestCase<JALParser.JvmInsL2IContext, InstructionEvaluatorL2I>
     {
         TestL2I()
         {

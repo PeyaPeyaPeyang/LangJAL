@@ -23,28 +23,31 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXALoad<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestXALoad
 {
-    protected TestXALoad(E evaluator, int... expectedOpcodes)
+    private abstract class XALoadTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpcodes);
-    }
+        protected XALoadTestCase(E evaluator, int... expectedOpcodes)
+        {
+            super(evaluator, expectedOpcodes);
+        }
 
-    protected InstructionCase load(StackMachine.StackValue arrayType,
-                                   StackMachine.StackValue resultType,
-                                   String syntax,
-                                   int opcode)
-    {
-        return of(
-                create(arrayType, integerValue()).expected(create(resultType)),
-                syntax,
-                opcode
-        );
+        protected InstructionCase load(StackMachine.StackValue arrayType,
+                                       StackMachine.StackValue resultType,
+                                       String syntax,
+                                       int opcode)
+        {
+            return of(
+                    create(arrayType, integerValue()).expected(create(resultType)),
+                    syntax,
+                    opcode
+            );
+        }
     }
 
     @Nested
-    static class TestAALoadCase extends TestXALoad<JALParser.JvmInsAaloadContext, InstructionEvaluatorAALoad>
+    class TestAALoadCase extends XALoadTestCase<JALParser.JvmInsAaloadContext, InstructionEvaluatorAALoad>
     {
         TestAALoadCase()
         {
@@ -61,7 +64,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestBALoadCase extends TestXALoad<JALParser.JvmInsBaloadContext, InstructionEvaluatorBALoad>
+    class TestBALoadCase extends XALoadTestCase<JALParser.JvmInsBaloadContext, InstructionEvaluatorBALoad>
     {
         TestBALoadCase()
         {
@@ -76,7 +79,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestCALoadCase extends TestXALoad<JALParser.JvmInsCaloadContext, InstructionEvaluatorCALoad>
+    class TestCALoadCase extends XALoadTestCase<JALParser.JvmInsCaloadContext, InstructionEvaluatorCALoad>
     {
         TestCALoadCase()
         {
@@ -91,7 +94,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestDALoadCase extends TestXALoad<JALParser.JvmInsDaloadContext, InstructionEvaluatorDALoad>
+    class TestDALoadCase extends XALoadTestCase<JALParser.JvmInsDaloadContext, InstructionEvaluatorDALoad>
     {
         TestDALoadCase()
         {
@@ -106,7 +109,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestFALoadCase extends TestXALoad<JALParser.JvmInsFaloadContext, InstructionEvaluatorFALoad>
+    class TestFALoadCase extends XALoadTestCase<JALParser.JvmInsFaloadContext, InstructionEvaluatorFALoad>
     {
         TestFALoadCase()
         {
@@ -121,7 +124,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestIALoadCase extends TestXALoad<JALParser.JvmInsIaloadContext, InstructionEvaluatorIALoad>
+    class TestIALoadCase extends XALoadTestCase<JALParser.JvmInsIaloadContext, InstructionEvaluatorIALoad>
     {
         TestIALoadCase()
         {
@@ -136,7 +139,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestLALoadCase extends TestXALoad<JALParser.JvmInsLaloadContext, InstructionEvaluatorLALoad>
+    class TestLALoadCase extends XALoadTestCase<JALParser.JvmInsLaloadContext, InstructionEvaluatorLALoad>
     {
         TestLALoadCase()
         {
@@ -151,7 +154,7 @@ public abstract class TestXALoad<T extends ParserRuleContext, E extends Abstract
     }
 
     @Nested
-    static class TestSALoadCase extends TestXALoad<JALParser.JvmInsSaloadContext, InstructionEvaluatorSALoad>
+    class TestSALoadCase extends XALoadTestCase<JALParser.JvmInsSaloadContext, InstructionEvaluatorSALoad>
     {
         TestSALoadCase()
         {

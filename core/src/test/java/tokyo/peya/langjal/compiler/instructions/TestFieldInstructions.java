@@ -18,27 +18,30 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestFieldInstructions<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-        extends AbstractInstructionTestCase<T, E>
+public class TestFieldInstructions
 {
-    protected TestFieldInstructions(E evaluator, int... expectedOpcodes)
+    private abstract class FieldInstructionTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+            extends AbstractInstructionTestCase<T, E>
     {
-        super(evaluator, expectedOpcodes);
-    }
+        protected FieldInstructionTestCase(E evaluator, int... expectedOpcodes)
+        {
+            super(evaluator, expectedOpcodes);
+        }
 
-    @Override
-    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
-    {
-        super.assertInstructionEquals(expected, actual);
-        FieldInsnNode expectedField = (FieldInsnNode) expected;
-        FieldInsnNode actualField = (FieldInsnNode) actual;
-        assertEquals(expectedField.owner, actualField.owner);
-        assertEquals(expectedField.name, actualField.name);
-        assertEquals(expectedField.desc, actualField.desc);
+        @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+        {
+            super.assertInstructionEquals(expected, actual);
+            FieldInsnNode expectedField = (FieldInsnNode) expected;
+            FieldInsnNode actualField = (FieldInsnNode) actual;
+            assertEquals(expectedField.owner, actualField.owner);
+            assertEquals(expectedField.name, actualField.name);
+            assertEquals(expectedField.desc, actualField.desc);
+        }
     }
 
     @Nested
-    static class TestGetFieldCase extends TestFieldInstructions<JALParser.JvmInsGetfieldContext, InstructionEvaluatorGetField>
+    class TestGetFieldCase extends FieldInstructionTestCase<JALParser.JvmInsGetfieldContext, InstructionEvaluatorGetField>
     {
         TestGetFieldCase()
         {
@@ -57,7 +60,7 @@ public abstract class TestFieldInstructions<T extends ParserRuleContext, E exten
     }
 
     @Nested
-    static class TestPutFieldCase extends TestFieldInstructions<JALParser.JvmInsPutfieldContext, InstructionEvaluatorPutField>
+    class TestPutFieldCase extends FieldInstructionTestCase<JALParser.JvmInsPutfieldContext, InstructionEvaluatorPutField>
     {
         TestPutFieldCase()
         {
@@ -76,7 +79,7 @@ public abstract class TestFieldInstructions<T extends ParserRuleContext, E exten
     }
 
     @Nested
-    static class TestGetStaticCase extends TestFieldInstructions<JALParser.JvmInsGetstaticContext, InstructionEvaluatorGetStatic>
+    class TestGetStaticCase extends FieldInstructionTestCase<JALParser.JvmInsGetstaticContext, InstructionEvaluatorGetStatic>
     {
         TestGetStaticCase()
         {
@@ -95,7 +98,7 @@ public abstract class TestFieldInstructions<T extends ParserRuleContext, E exten
     }
 
     @Nested
-    static class TestPutStaticCase extends TestFieldInstructions<JALParser.JvmInsPutstaticContext, InstructionEvaluatorPutStatic>
+    class TestPutStaticCase extends FieldInstructionTestCase<JALParser.JvmInsPutstaticContext, InstructionEvaluatorPutStatic>
     {
         TestPutStaticCase()
         {

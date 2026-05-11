@@ -23,9 +23,9 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestInvokeInstructions
+public class TestInvokeInstructions
 {
-    private abstract static class MethodInvokeTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+    private abstract class MethodInvokeTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
             extends AbstractInstructionTestCase<T, E>
     {
         protected MethodInvokeTestCase(E evaluator, int... expectedOpcodes)
@@ -46,7 +46,7 @@ public abstract class TestInvokeInstructions
     }
 
     @Nested
-    static class TestInvokeVirtualCase extends MethodInvokeTestCase<JALParser.JvmInsInvokevirtualContext, InstructionEvaluatorInvokeVirtual>
+    class TestInvokeVirtualCase extends MethodInvokeTestCase<JALParser.JvmInsInvokevirtualContext, InstructionEvaluatorInvokeVirtual>
     {
         TestInvokeVirtualCase()
         {
@@ -65,7 +65,7 @@ public abstract class TestInvokeInstructions
     }
 
     @Nested
-    static class TestInvokeStaticCase extends MethodInvokeTestCase<JALParser.JvmInsInvokestaticContext, InstructionEvaluatorInvokeStatic>
+    class TestInvokeStaticCase extends MethodInvokeTestCase<JALParser.JvmInsInvokestaticContext, InstructionEvaluatorInvokeStatic>
     {
         TestInvokeStaticCase()
         {
@@ -84,7 +84,7 @@ public abstract class TestInvokeInstructions
     }
 
     @Nested
-    static class TestInvokeSpecialCase extends MethodInvokeTestCase<JALParser.JvmInsInvokespecialContext, InstructionEvaluatorInvokeSpecial>
+    class TestInvokeSpecialCase extends MethodInvokeTestCase<JALParser.JvmInsInvokespecialContext, InstructionEvaluatorInvokeSpecial>
     {
         TestInvokeSpecialCase()
         {
@@ -103,7 +103,7 @@ public abstract class TestInvokeInstructions
     }
 
     @Nested
-    static class TestInvokeInterfaceCase extends MethodInvokeTestCase<JALParser.JvmInsInvokeinterfaceContext, InstructionEvaluatorInvokeInterface>
+    class TestInvokeInterfaceCase extends MethodInvokeTestCase<JALParser.JvmInsInvokeinterfaceContext, InstructionEvaluatorInvokeInterface>
     {
         TestInvokeInterfaceCase()
         {
@@ -122,7 +122,7 @@ public abstract class TestInvokeInstructions
     }
 
     @Nested
-    static class TestInvokeDynamicCase extends AbstractInstructionTestCase<JALParser.JvmInsInvokedynamicContext, InstructionEvaluatorInvokeDynamic>
+    class TestInvokeDynamicCase extends AbstractInstructionTestCase<JALParser.JvmInsInvokedynamicContext, InstructionEvaluatorInvokeDynamic>
     {
         TestInvokeDynamicCase()
         {

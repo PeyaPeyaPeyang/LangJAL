@@ -13,10 +13,10 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestSimpleInstructions
+public class TestSimpleInstructions
 {
     @Nested
-    static class TestBiPush extends AbstractInstructionTestCase<JALParser.JvmInsBipushContext, InstructionEvaluatorBiPush>
+    class TestBiPush extends AbstractInstructionTestCase<JALParser.JvmInsBipushContext, InstructionEvaluatorBiPush>
     {
         TestBiPush()
         {
@@ -34,7 +34,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestSiPush extends AbstractInstructionTestCase<JALParser.JvmInsSipushContext, InstructionEvaluatorSiPush>
+    class TestSiPush extends AbstractInstructionTestCase<JALParser.JvmInsSipushContext, InstructionEvaluatorSiPush>
     {
         TestSiPush()
         {
@@ -52,7 +52,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestPop extends AbstractInstructionTestCase<JALParser.JvmInsPopContext, InstructionEvaluatorPop>
+    class TestPop extends AbstractInstructionTestCase<JALParser.JvmInsPopContext, InstructionEvaluatorPop>
     {
         TestPop()
         {
@@ -70,7 +70,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestPop2 extends AbstractInstructionTestCase<JALParser.JvmInsPop2Context, InstructionEvaluatorPop2>
+    class TestPop2 extends AbstractInstructionTestCase<JALParser.JvmInsPop2Context, InstructionEvaluatorPop2>
     {
         TestPop2()
         {
@@ -88,7 +88,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestReturn extends AbstractInstructionTestCase.Same<JALParser.JvmInsReturnContext, InstructionEvaluatorReturn>
+    class TestReturn extends AbstractInstructionTestCase.Same<JALParser.JvmInsReturnContext, InstructionEvaluatorReturn>
     {
         TestReturn()
         {
@@ -103,7 +103,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestArrayLength extends AbstractInstructionTestCase<JALParser.JvmInsArraylengthContext, InstructionEvaluatorArrayLength>
+    class TestArrayLength extends AbstractInstructionTestCase<JALParser.JvmInsArraylengthContext, InstructionEvaluatorArrayLength>
     {
         TestArrayLength()
         {
@@ -121,7 +121,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestAThrow extends AbstractInstructionTestCase<JALParser.JvmInsAthrowContext, InstructionEvaluatorAThrow>
+    class TestAThrow extends AbstractInstructionTestCase<JALParser.JvmInsAthrowContext, InstructionEvaluatorAThrow>
     {
         TestAThrow()
         {
@@ -138,7 +138,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestMonitorEnter extends AbstractInstructionTestCase<JALParser.JvmInsMonitorenterContext, InstructionEvaluatorMonitorEnter>
+    class TestMonitorEnter extends AbstractInstructionTestCase<JALParser.JvmInsMonitorenterContext, InstructionEvaluatorMonitorEnter>
     {
         TestMonitorEnter()
         {
@@ -153,7 +153,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestMonitorExit extends AbstractInstructionTestCase<JALParser.JvmInsMonitorexitContext, InstructionEvaluatorMonitorExit>
+    class TestMonitorExit extends AbstractInstructionTestCase<JALParser.JvmInsMonitorexitContext, InstructionEvaluatorMonitorExit>
     {
         TestMonitorExit()
         {
@@ -168,7 +168,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestNop extends AbstractInstructionTestCase.Same<JALParser.JvmInsNopContext, InstructionEvaluatorNop>
+    class TestNop extends AbstractInstructionTestCase.Same<JALParser.JvmInsNopContext, InstructionEvaluatorNop>
     {
         TestNop()
         {
@@ -183,7 +183,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestNew extends AbstractInstructionTestCase<JALParser.JvmInsNewContext, InstructionEvaluatorNew>
+    class TestNew extends AbstractInstructionTestCase<JALParser.JvmInsNewContext, InstructionEvaluatorNew>
     {
         TestNew()
         {
@@ -200,7 +200,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestANewArray extends AbstractInstructionTestCase<JALParser.JvmInsAnewArrayContext, InstructionEvaluatorANewArray>
+    class TestANewArray extends AbstractInstructionTestCase<JALParser.JvmInsAnewArrayContext, InstructionEvaluatorANewArray>
     {
         TestANewArray()
         {
@@ -217,7 +217,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestNewArray extends AbstractInstructionTestCase<JALParser.JvmInsNewarrayContext, InstructionEvaluatorNewArray>
+    class TestNewArray extends AbstractInstructionTestCase<JALParser.JvmInsNewarrayContext, InstructionEvaluatorNewArray>
     {
         TestNewArray()
         {
@@ -234,7 +234,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestMultiANewArray extends AbstractInstructionTestCase<JALParser.JvmInsMultianewarrayContext, InstructionEvaluatorMultiANewArray>
+    class TestMultiANewArray extends AbstractInstructionTestCase<JALParser.JvmInsMultianewarrayContext, InstructionEvaluatorMultiANewArray>
     {
         TestMultiANewArray()
         {
@@ -253,7 +253,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestCheckCast extends AbstractInstructionTestCase<JALParser.JvmInsCheckcastContext, InstructionEvaluatorCheckCast>
+    class TestCheckCast extends AbstractInstructionTestCase<JALParser.JvmInsCheckcastContext, InstructionEvaluatorCheckCast>
     {
         TestCheckCast()
         {
@@ -270,7 +270,7 @@ public abstract class TestSimpleInstructions
     }
 
     @Nested
-    static class TestInstanceOf extends AbstractInstructionTestCase<JALParser.JvmInsInstanceofContext, InstructionEvaluatorInstanceOf>
+    class TestInstanceOf extends AbstractInstructionTestCase<JALParser.JvmInsInstanceofContext, InstructionEvaluatorInstanceOf>
     {
         TestInstanceOf()
         {

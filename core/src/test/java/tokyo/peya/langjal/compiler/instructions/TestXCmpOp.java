@@ -12,10 +12,10 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public abstract class TestXCmpOp
+public class TestXCmpOp
 {
     @Nested
-    static class TestDCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsDcmpOPContext, InstructionEvaluatorDCmpOp>
+    class TestDCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsDcmpOPContext, InstructionEvaluatorDCmpOp>
     {
         TestDCmpOpCase()
         {
@@ -33,7 +33,7 @@ public abstract class TestXCmpOp
     }
 
     @Nested
-    static class TestFCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsFcmpOPContext, InstructionEvaluatorFCmpOp>
+    class TestFCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsFcmpOPContext, InstructionEvaluatorFCmpOp>
     {
         TestFCmpOpCase()
         {

@@ -18,7 +18,7 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create
 public class TestSwitchInstructions
 {
     @Nested
-    static class TestLookupSwitchCase extends AbstractInstructionTestCase<JALParser.JvmInsLookupswitchContext, InstructionEvaluatorLookupSwitch>
+    class TestLookupSwitchCase extends AbstractInstructionTestCase<JALParser.JvmInsLookupswitchContext, InstructionEvaluatorLookupSwitch>
     {
         TestLookupSwitchCase()
         {
@@ -54,7 +54,7 @@ public class TestSwitchInstructions
     }
 
     @Nested
-    static class TestTableSwitchCase extends AbstractInstructionTestCase<JALParser.JvmInsTableswitchContext, InstructionEvaluatorTableSwitch>
+    class TestTableSwitchCase extends AbstractInstructionTestCase<JALParser.JvmInsTableswitchContext, InstructionEvaluatorTableSwitch>
     {
         TestTableSwitchCase()
         {
