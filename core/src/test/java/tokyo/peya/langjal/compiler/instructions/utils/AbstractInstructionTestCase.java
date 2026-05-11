@@ -12,7 +12,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.JALLexer;
@@ -137,7 +139,7 @@ public abstract class AbstractInstructionTestCase<P extends ParserRuleContext, T
     protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
     {
         assertEquals(expected.getOpcode(), actual.getOpcode(), "Opcodes do not match");
-        // ↑デフォの equals はザルなので，独自の比較ロジックを実装する必要がある。
+        assertEquals(expected.getClass(), actual.getClass(), "Instruction node types do not match");
     }
 
     private EvaluatedInstruction compile(P instruction, InstructionsHolder instructions, LabelsHolder labels, LocalVariablesHolder locals)

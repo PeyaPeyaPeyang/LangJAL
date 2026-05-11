@@ -1,11 +1,13 @@
 package tokyo.peya.langjal.compiler.instructions.calc;
 
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
@@ -39,5 +41,16 @@ public class TestIInc extends AbstractInstructionTestCase<JALParser.JvmInsIincCo
                         new IincInsnNode(300, 300)
                 )
         );
+    }
+
+    @Override
+    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+    {
+        super.assertInstructionEquals(expected, actual);
+
+        IincInsnNode expectedIinc = (IincInsnNode) expected;
+        IincInsnNode actualIinc = (IincInsnNode) actual;
+        assertEquals(expectedIinc.var, actualIinc.var, "IINC local variable index does not match");
+        assertEquals(expectedIinc.incr, actualIinc.incr, "IINC increment does not match");
     }
 }

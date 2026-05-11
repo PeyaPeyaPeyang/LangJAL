@@ -23,7 +23,7 @@ public class TestLCmp extends AbstractInstructionTestCase<JALParser.JvmInsLcmpCo
                         create(longValue(), longValue())
                                 .expected(create(longValue())),
                         "lcmp",
-                        null
+                        EOpcodes.LCMP
                 )
         );
     }
