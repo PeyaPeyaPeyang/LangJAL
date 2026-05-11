@@ -21,7 +21,7 @@ public class InstructionEvaluatorLCmp extends AbstractSingleInstructionEvaluator
         return FrameDifferenceInfo.builder(instruction)
                                   .popPrimitive(StackElementType.LONG)
                                   .popPrimitive(StackElementType.LONG)
-                                  .pushPrimitive(StackElementType.LONG)
+                                  .pushPrimitive(StackElementType.INTEGER)
                                   .build();
     }
 
