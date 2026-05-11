@@ -236,22 +236,19 @@ public class FrameDifferenceInfo
         @NotNull
         public Builder push(@NotNull StackElement element)
         {
-            if (element instanceof NullElement)
-                return this.pushNull();
-            else if (element instanceof PrimitiveElement primitive)
-                return this.pushPrimitive(primitive.type());
-            else if (element instanceof ObjectElement object)
-                return this.pushObjectRef(object.content());
-            else if (element instanceof UninitializedElement)
-                return this.pushUninitialized();
-            else if (element instanceof UninitializedThisElement)
-                return this.pushUninitializedThis();
-            else if (element instanceof StackElementCapsule capsule)
-                return this.pushFromCapsule(capsule);
-            else if (element instanceof TopElement)
-                throw new IllegalArgumentException("Cannot push TopElement directly to stack");
-            else
-                throw new IllegalArgumentException("Unknown stack element type: " + element.getClass().getName());
+            return switch (element)
+            {
+                case NullElement ignored -> this.pushNull();
+                case PrimitiveElement primitive -> this.pushPrimitive(primitive.type());
+                case ObjectElement object -> this.pushObjectRef(object.content());
+                case UninitializedElement ignored -> this.pushUninitialized();
+                case UninitializedThisElement ignored -> this.pushUninitializedThis();
+                case StackElementCapsule capsule -> this.pushFromCapsule(capsule);
+                case TopElement ignored ->
+                        throw new IllegalArgumentException("Cannot push TopElement directly to stack");
+                default -> throw new IllegalArgumentException("Unknown stack element type: " + element.getClass()
+                                                                                                      .getName());
+            };
         }
 
         /**
