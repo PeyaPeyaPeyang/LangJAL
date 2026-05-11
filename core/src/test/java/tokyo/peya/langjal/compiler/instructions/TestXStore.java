@@ -1,0 +1,252 @@
+package tokyo.peya.langjal.compiler.instructions;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.junit.jupiter.api.Nested;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
+import tokyo.peya.langjal.compiler.JALParser;
+import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
+import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorAStore;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorAStoreN;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorDStore;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorDStoreN;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorFStore;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorFStoreN;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorIStore;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorIStoreN;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorLStore;
+import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorLStoreN;
+import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
+
+public abstract class TestXStore<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
+        extends AbstractInstructionTestCase<T, E>
+{
+    protected TestXStore(E evaluator, int... expectedOpCodes)
+    {
+        super(evaluator, expectedOpCodes);
+    }
+
+    protected InstructionCase localStore(int index, StackMachine.StackValue value, String syntax, int opcode)
+    {
+        return of(
+                create(value).expected(create().set(index, value)),
+                syntax,
+                new VarInsnNode(opcode, index)
+        );
+    }
+
+    @Override
+    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
+    {
+        super.assertInstructionEquals(expected, actual);
+
+        VarInsnNode expectedVar = (VarInsnNode) expected;
+        VarInsnNode actualVar = (VarInsnNode) actual;
+        assertEquals(expectedVar.var, actualVar.var, "local variable index does not match");
+    }
+
+    @Nested
+    static class TestAStore extends TestXStore<JALParser.JvmInsAstoreContext, InstructionEvaluatorAStore>
+    {
+        private static final StackMachine.StackValue OBJECT_VALUE = object(TypeDescriptor.parse("LMyClass;"));
+
+        TestAStore()
+        {
+            super(new InstructionEvaluatorAStore(), EOpcodes.ASTORE);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(1, OBJECT_VALUE, "astore 1", Opcodes.ASTORE),
+                    localStore(300, OBJECT_VALUE, "wide astore 300", Opcodes.ASTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestAStoreN extends TestXStore<JALParser.JvmInsAstoreNContext, InstructionEvaluatorAStoreN>
+    {
+        private static final StackMachine.StackValue OBJECT_VALUE = object(TypeDescriptor.parse("LMyClass;"));
+
+        TestAStoreN()
+        {
+            super(new InstructionEvaluatorAStoreN(), EOpcodes.ASTORE_0, EOpcodes.ASTORE_1, EOpcodes.ASTORE_2, EOpcodes.ASTORE_3);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(0, OBJECT_VALUE, "astore_0", Opcodes.ASTORE),
+                    localStore(1, OBJECT_VALUE, "astore_1", Opcodes.ASTORE),
+                    localStore(2, OBJECT_VALUE, "astore_2", Opcodes.ASTORE),
+                    localStore(3, OBJECT_VALUE, "astore_3", Opcodes.ASTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestDStore extends TestXStore<JALParser.JvmInsDstoreContext, InstructionEvaluatorDStore>
+    {
+        TestDStore()
+        {
+            super(new InstructionEvaluatorDStore(), EOpcodes.DSTORE);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(1, doubleValue(), "dstore 1", Opcodes.DSTORE),
+                    localStore(300, doubleValue(), "wide dstore 300", Opcodes.DSTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestDStoreN extends TestXStore<JALParser.JvmInsDstoreNContext, InstructionEvaluatorDStoreN>
+    {
+        TestDStoreN()
+        {
+            super(new InstructionEvaluatorDStoreN(), EOpcodes.DSTORE_0, EOpcodes.DSTORE_1, EOpcodes.DSTORE_2, EOpcodes.DSTORE_3);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(0, doubleValue(), "dstore_0", Opcodes.DSTORE),
+                    localStore(1, doubleValue(), "dstore_1", Opcodes.DSTORE),
+                    localStore(2, doubleValue(), "dstore_2", Opcodes.DSTORE),
+                    localStore(3, doubleValue(), "dstore_3", Opcodes.DSTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestFStore extends TestXStore<JALParser.JvmInsFstoreContext, InstructionEvaluatorFStore>
+    {
+        TestFStore()
+        {
+            super(new InstructionEvaluatorFStore(), EOpcodes.FSTORE);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(1, floatValue(), "fstore 1", Opcodes.FSTORE),
+                    localStore(300, floatValue(), "wide fstore 300", Opcodes.FSTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestFStoreN extends TestXStore<JALParser.JvmInsFstoreNContext, InstructionEvaluatorFStoreN>
+    {
+        TestFStoreN()
+        {
+            super(new InstructionEvaluatorFStoreN(), EOpcodes.FSTORE_0, EOpcodes.FSTORE_1, EOpcodes.FSTORE_2, EOpcodes.FSTORE_3);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(0, floatValue(), "fstore_0", Opcodes.FSTORE),
+                    localStore(1, floatValue(), "fstore_1", Opcodes.FSTORE),
+                    localStore(2, floatValue(), "fstore_2", Opcodes.FSTORE),
+                    localStore(3, floatValue(), "fstore_3", Opcodes.FSTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestIStore extends TestXStore<JALParser.JvmInsIstoreContext, InstructionEvaluatorIStore>
+    {
+        TestIStore()
+        {
+            super(new InstructionEvaluatorIStore(), EOpcodes.ISTORE);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(1, integerValue(), "istore 1", Opcodes.ISTORE),
+                    localStore(300, integerValue(), "wide istore 300", Opcodes.ISTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestIStoreN extends TestXStore<JALParser.JvmInsIstoreNContext, InstructionEvaluatorIStoreN>
+    {
+        TestIStoreN()
+        {
+            super(new InstructionEvaluatorIStoreN(), EOpcodes.ISTORE_0, EOpcodes.ISTORE_1, EOpcodes.ISTORE_2, EOpcodes.ISTORE_3);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(0, integerValue(), "istore_0", Opcodes.ISTORE),
+                    localStore(1, integerValue(), "istore_1", Opcodes.ISTORE),
+                    localStore(2, integerValue(), "istore_2", Opcodes.ISTORE),
+                    localStore(3, integerValue(), "istore_3", Opcodes.ISTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestLStore extends TestXStore<JALParser.JvmInsLstoreContext, InstructionEvaluatorLStore>
+    {
+        TestLStore()
+        {
+            super(new InstructionEvaluatorLStore(), EOpcodes.LSTORE);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(1, longValue(), "lstore 1", Opcodes.LSTORE),
+                    localStore(300, longValue(), "wide lstore 300", Opcodes.LSTORE)
+            );
+        }
+    }
+
+    @Nested
+    static class TestLStoreN extends TestXStore<JALParser.JvmInsLstoreNContext, InstructionEvaluatorLStoreN>
+    {
+        TestLStoreN()
+        {
+            super(new InstructionEvaluatorLStoreN(), EOpcodes.LSTORE_0, EOpcodes.LSTORE_1, EOpcodes.LSTORE_2, EOpcodes.LSTORE_3);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes()
+        {
+            return set(
+                    localStore(0, longValue(), "lstore_0", Opcodes.LSTORE),
+                    localStore(1, longValue(), "lstore_1", Opcodes.LSTORE),
+                    localStore(2, longValue(), "lstore_2", Opcodes.LSTORE),
+                    localStore(3, longValue(), "lstore_3", Opcodes.LSTORE)
+            );
+        }
+    }
+}
