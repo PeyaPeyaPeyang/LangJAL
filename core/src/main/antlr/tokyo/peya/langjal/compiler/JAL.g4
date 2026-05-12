@@ -622,7 +622,7 @@ jvmInsArgScalarType
 jvmInsArgFieldRef
  : fullQualifiedClassName
    REF
-   ID
+   fieldName
    COLON
    typeDescriptor
  ;

@@ -14,7 +14,7 @@ public class InstructionEvaluateHelperField
                                                 @NotNull JALParser.JvmInsArgFieldRefContext ref, int opcode)
     {
         JALParser.FullQualifiedClassNameContext fieldOwner = ref.fullQualifiedClassName();
-        TerminalNode fieldName = ref.ID();
+        JALParser.FieldNameContext fieldName = ref.fieldName();
         JALParser.TypeDescriptorContext fieldType = ref.typeDescriptor();
 
         FieldInsnNode fieldInsn = new FieldInsnNode(
