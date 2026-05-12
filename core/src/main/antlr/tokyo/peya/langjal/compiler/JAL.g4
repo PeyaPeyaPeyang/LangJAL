@@ -345,6 +345,9 @@ METHOD_DESCRIPTOR
       )
    )
  ;
+FULL_QUALIFIED_CLASS_NAME
+ : [a-zA-Z$_][a-zA-Z$0-9_]* ('/' [a-zA-Z$_][a-zA-Z$0-9_]*)+
+ ;
 
 // ====================================================================
 // ROOT
@@ -373,7 +376,8 @@ className
  ;
 
 fullQualifiedClassName
- : ID (SLASH ID)*
+ : FULL_QUALIFIED_CLASS_NAME
+ | ID
  ;
 
 classMeta
