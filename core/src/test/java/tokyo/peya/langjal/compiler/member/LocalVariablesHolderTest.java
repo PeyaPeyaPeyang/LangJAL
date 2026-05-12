@@ -18,20 +18,23 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("LocalVariablesHolder")
-class LocalVariablesHolderTest
-{
+class LocalVariablesHolderTest {
+    private static LocalVariablesHolder newHolder(LabelsHolder labels) {
+        return new LocalVariablesHolder(
+                new FileEvaluatingReporter(new RecordingCompileReporter(), Path.of("sample.jal")),
+                labels
+        );
+    }
+
+    private static LabelInfo label(String name, int instructionIndex) {
+        return new LabelInfo(name, new Label(), instructionIndex);
+    }
+
     @Test
-    void registersAndResolvesLocalsByIndexAndLivingName()
-    {
+    void registersAndResolvesLocalsByIndexAndLivingName() {
         LabelsHolder labels = new LabelsHolder();
         LocalVariablesHolder holder = newHolder(labels);
         LabelInfo start = label("START", 10);
@@ -49,25 +52,31 @@ class LocalVariablesHolderTest
     }
 
     @Test
-    void rejectsNegativeAndDuplicateIndexes()
-    {
+    void rejectsNegativeAndDuplicateIndexes() {
         LabelsHolder labels = new LabelsHolder();
         LocalVariablesHolder holder = newHolder(labels);
 
         holder.register(1, TypeDescriptor.INTEGER, "first");
 
-        assertThrows(UnknownLocalVariableException.class, () -> holder.register(-1, TypeDescriptor.INTEGER, "negative"));
-        assertThrows(UnknownLocalVariableException.class, () -> holder.register(1, TypeDescriptor.INTEGER, "duplicate"));
+        assertThrows(
+                UnknownLocalVariableException.class,
+                () -> holder.register(-1, TypeDescriptor.INTEGER, "negative")
+        );
+        assertThrows(
+                UnknownLocalVariableException.class,
+                () -> holder.register(1, TypeDescriptor.INTEGER, "duplicate")
+        );
     }
 
     @Test
-    void nullNameUsesGeneratedLocalName()
-    {
+    void nullNameUsesGeneratedLocalName() {
         LabelsHolder labels = new LabelsHolder();
         LocalVariablesHolder holder = newHolder(labels);
 
-        LocalVariableInfo local = holder.register(12, TypeDescriptor.LONG, null,
-                                                  labels.getCurrentLabel(), labels.getGlobalEnd());
+        LocalVariableInfo local = holder.register(
+                12, TypeDescriptor.LONG, null,
+                labels.getCurrentLabel(), labels.getGlobalEnd()
+        );
 
         assertEquals("local00012", local.name());
         assertEquals(12, local.index());
@@ -75,8 +84,7 @@ class LocalVariablesHolderTest
     }
 
     @Test
-    void parametersAreSortedAndSkippedWhenFinalisingLocalVariableTable()
-    {
+    void parametersAreSortedAndSkippedWhenFinalisingLocalVariableTable() {
         LabelsHolder labels = new LabelsHolder();
         LocalVariablesHolder holder = newHolder(labels);
         LabelInfo start = labels.getGlobalStart();
@@ -101,8 +109,7 @@ class LocalVariablesHolderTest
     }
 
     @Test
-    void availableLocalsAreFilteredByScope()
-    {
+    void availableLocalsAreFilteredByScope() {
         LocalVariablesHolder holder = newHolder(new LabelsHolder());
         LabelInfo first = label("FIRST", 1);
         LabelInfo second = label("SECOND", 2);
@@ -115,8 +122,7 @@ class LocalVariablesHolderTest
     }
 
     @Test
-    void importLocalVariableUsesKnownLabelsOrGlobalFallback()
-    {
+    void importLocalVariableUsesKnownLabelsOrGlobalFallback() {
         LabelsHolder labels = new LabelsHolder();
         LocalVariablesHolder holder = newHolder(labels);
         LabelNode knownStart = new LabelNode(new Label());
@@ -133,52 +139,32 @@ class LocalVariablesHolderTest
         assertSame(labels.getGlobalEnd(), imported.end());
     }
 
-    private static LocalVariablesHolder newHolder(LabelsHolder labels)
-    {
-        return new LocalVariablesHolder(
-                new FileEvaluatingReporter(new RecordingCompileReporter(), Path.of("sample.jal")),
-                labels
-        );
-    }
-
-    private static LabelInfo label(String name, int instructionIndex)
-    {
-        return new LabelInfo(name, new Label(), instructionIndex);
-    }
-
-    private static final class RecordingCompileReporter implements CompileReporter
-    {
+    private static final class RecordingCompileReporter implements CompileReporter {
         private final List<String> infoMessages = new ArrayList<>();
 
         @Override
-        public void postWarning(@NotNull String message, Path sourcePath)
-        {
+        public void postWarning(@NotNull String message, Path sourcePath) {
         }
 
         @Override
-        public void postInfo(@NotNull String message, Path sourcePath)
-        {
+        public void postInfo(@NotNull String message, Path sourcePath) {
             this.infoMessages.add(message);
         }
 
         @Override
-        public void postError(@NotNull String message, Path sourcePath)
-        {
+        public void postError(@NotNull String message, Path sourcePath) {
         }
 
         @Override
-        public void postError(@NotNull String message, @NotNull CompileErrorException cause, Path sourcePath)
-        {
+        public void postError(@NotNull String message, @NotNull CompileErrorException cause, Path sourcePath) {
         }
 
         @Override
-        public void postWarning(@NotNull String message, Path sourcePath, long line, long column, long length)
-        {
+        public void postWarning(@NotNull String message, Path sourcePath, long line, long column, long length) {
         }
 
         @Override
-        public void postWarning(@NotNull String message, @NotNull Path sourcePath, @NotNull ParserRuleContext ctxt)
-        {
+        public void postWarning(@NotNull String message, @NotNull Path sourcePath, @NotNull ParserRuleContext ctxt) {
         }
     }
 }

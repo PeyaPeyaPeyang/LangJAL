@@ -12,16 +12,14 @@ import java.util.function.Function;
 /**
  * Utility class providing common evaluation functions for the compiler.
  */
-public class EvaluatorCommons
-{
+public class EvaluatorCommons {
     /**
      * Converts an access level context to its corresponding opcode value.
      *
      * @param accessLevel The access level context.
      * @return The opcode value for the access level.
      */
-    public static int asAccessLevel(@Nullable JALParser.AccessLevelContext accessLevel)
-    {
+    public static int asAccessLevel(@Nullable JALParser.AccessLevelContext accessLevel) {
         if (accessLevel == null)
             return 0;
 
@@ -41,8 +39,7 @@ public class EvaluatorCommons
      * @param node The terminal node.
      * @return The unwrapped string value, or null if empty.
      */
-    public static String asString(@NotNull TerminalNode node)
-    {
+    public static String asString(@NotNull TerminalNode node) {
         String text = node.getText();
         if (text == null || text.isEmpty())
             return null;
@@ -53,8 +50,8 @@ public class EvaluatorCommons
             text = text.substring(1, text.length() - 1);
 
         return text.replace("\\\"", "\"")
-                   .replace("\\'", "'")
-                   .replace("\\\\", "\\");
+                .replace("\\'", "'")
+                .replace("\\\\", "\\");
     }
 
     /**
@@ -64,8 +61,7 @@ public class EvaluatorCommons
      * @return The integer value.
      * @throws IllegalValueException if the value is invalid.
      */
-    public static int asInteger(@NotNull TerminalNode node)
-    {
+    public static int asInteger(@NotNull TerminalNode node) {
         Number number = toNumber(node);
         if (number == null)
             throw new IllegalValueException("Invalid integer value: " + node.getText(), node);
@@ -79,17 +75,13 @@ public class EvaluatorCommons
      * @return The Number object, or null if invalid.
      * @throws IllegalValueException if the value is invalid.
      */
-    public static Number toNumber(@Nullable TerminalNode number)
-    {
+    public static Number toNumber(@Nullable TerminalNode number) {
         if (number == null || number.getText() == null || number.getText().isEmpty())
             return null;
 
-        try
-        {
+        try {
             return toNumber(number.getText());
-        }
-        catch (IllegalArgumentException e)
-        {
+        } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage(), number);
         }
     }
@@ -101,8 +93,7 @@ public class EvaluatorCommons
      * @return The Number object, or null if invalid.
      * @throws IllegalArgumentException if the value is invalid.
      */
-    public static Number toNumber(@Nullable String numberString)
-    {
+    public static Number toNumber(@Nullable String numberString) {
         if (numberString == null || numberString.isEmpty())
             return null;
 
@@ -111,8 +102,7 @@ public class EvaluatorCommons
         if (parseFunction == null)
             throw new IllegalArgumentException("Unknown number type: " + type + " for number: " + numberString);
 
-        if (!type.startsWith("may-"))
-        {
+        if (!type.startsWith("may-")) {
             // "may-" で始まらない場合は，接尾辞がついているので，取り除く
             numberString = numberString.replaceAll("[fFdDlL]$", "");
         }
@@ -121,12 +111,9 @@ public class EvaluatorCommons
                     ? "-" + numberString.substring(3)
                     : numberString.substring(2);
 
-        try
-        {
+        try {
             return parseFunction.apply(numberString);
-        }
-        catch (NumberFormatException e)
-        {
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid number format: " + numberString + " for type: " + type, e);
         }
     }
@@ -137,18 +124,14 @@ public class EvaluatorCommons
      * @param number The string to check.
      * @return True if valid, false otherwise.
      */
-    public static boolean isNumber(@Nullable String number)
-    {
+    public static boolean isNumber(@Nullable String number) {
         if (number == null || number.isEmpty())
             return false;
 
-        try
-        {
+        try {
             toNumber(number);
             return true;
-        }
-        catch (IllegalArgumentException e)
-        {
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
@@ -159,10 +142,8 @@ public class EvaluatorCommons
      * @param type The number type.
      * @return The parsing function, or null if unknown.
      */
-    private static Function<String, ? extends Number> getNumberParsingFunction(@NotNull String type)
-    {
-        return switch (type)
-        {
+    private static Function<String, ? extends Number> getNumberParsingFunction(@NotNull String type) {
+        return switch (type) {
             case "float" -> Float::parseFloat;
             case "double", "may-double" -> Double::parseDouble;
             case "long" -> Long::parseLong;
@@ -180,13 +161,11 @@ public class EvaluatorCommons
      * @param number The number string.
      * @return The type string, or null if invalid.
      */
-    public static String getNumberType(String number)
-    {
+    public static String getNumberType(String number) {
         if (number == null || number.isEmpty())
             return null;
 
-        if (number.startsWith("0x") || number.startsWith("-0x"))
-        {
+        if (number.startsWith("0x") || number.startsWith("-0x")) {
             if (number.endsWith("l") || number.endsWith("L"))
                 return "long-hex";
             else
@@ -212,8 +191,7 @@ public class EvaluatorCommons
      * @return The internal class name.
      * @throws IllegalValueException if the descriptor is invalid.
      */
-    public static String unwrapClassTypeDescriptor(@NotNull JALParser.TypeDescriptorContext typeDescriptor)
-    {
+    public static String unwrapClassTypeDescriptor(@NotNull JALParser.TypeDescriptorContext typeDescriptor) {
         String typeName = typeDescriptor.getText();
         while (typeName.startsWith("[")) {
             typeName = typeName.substring(1);
@@ -232,8 +210,7 @@ public class EvaluatorCommons
      * @return The boolean value.
      * @throws IllegalValueException if the value is invalid.
      */
-    public static boolean toBoolean(@NotNull TerminalNode value)
-    {
+    public static boolean toBoolean(@NotNull TerminalNode value) {
 
         String valueText = value.getText();
         if ("true".equalsIgnoreCase(valueText) || "1".equals(valueText))
@@ -251,16 +228,13 @@ public class EvaluatorCommons
      * @return The evaluated value (Number, String, or Boolean).
      * @throws IllegalValueException if the type is unknown.
      */
-    public static Object evaluateScalar(JALParser.JvmInsArgScalarTypeContext scalar)
-    {
+    public static Object evaluateScalar(JALParser.JvmInsArgScalarTypeContext scalar) {
         if (scalar.NUMBER() != null)
             return toNumber(scalar.NUMBER());
-        else if (scalar.STRING() != null)
-        {
+        else if (scalar.STRING() != null) {
             String value = scalar.STRING().getText();
             return value.substring(1, value.length() - 1); // Remove quotes
-        }
-        else if (scalar.BOOLEAN() != null)
+        } else if (scalar.BOOLEAN() != null)
             return toBoolean(scalar.BOOLEAN());
         else
             throw new IllegalValueException("Unknown scalar type: " + scalar.getText(), scalar);

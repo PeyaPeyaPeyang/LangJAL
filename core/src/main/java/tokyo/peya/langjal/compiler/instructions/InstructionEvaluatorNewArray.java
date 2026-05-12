@@ -4,25 +4,19 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.Type;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<JALParser.JvmInsNewarrayContext>
-{
-    public InstructionEvaluatorNewArray()
-    {
+public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<JALParser.JvmInsNewarrayContext> {
+    public InstructionEvaluatorNewArray() {
         super(EOpcodes.NEWARRAY);
     }
 
@@ -32,8 +26,7 @@ public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<J
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsNewarrayContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsNewarrayContext instruction) {
         JALParser.TypeDescriptorContext typeDescriptor = instruction.typeDescriptor();
         TypeDescriptor desc = TypeDescriptor.parse(typeDescriptor.getText());
         Type descType = desc.getBaseType();
@@ -58,21 +51,18 @@ public class InstructionEvaluatorNewArray extends AbstractInstructionEvaluator<J
         return EvaluatedInstruction.of(this, type);
     }
 
-
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         IntInsnNode insn = (IntInsnNode) instruction.insn();
         TypeDescriptor desc = TypeDescriptor.parse("[" + PrimitiveTypes.fromASMType(insn.operand));
         return FrameDifferenceInfo.builder(instruction)
-                                  .popPrimitive(StackElementType.INTEGER) // 配列のサイズを指定する int 型をポップ
-                                  .pushObjectRef(desc)
-                                  .build();
+                .popPrimitive(StackElementType.INTEGER) // 配列のサイズを指定する int 型をポップ
+                .pushObjectRef(desc)
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsNewarrayContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsNewarrayContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsNewarray();
     }
 }

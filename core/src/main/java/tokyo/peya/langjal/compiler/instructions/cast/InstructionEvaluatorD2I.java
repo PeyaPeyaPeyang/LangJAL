@@ -1,32 +1,28 @@
 package tokyo.peya.langjal.compiler.instructions.cast;
 
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.AbstractSingleInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
-public class InstructionEvaluatorD2I extends AbstractSingleInstructionEvaluator<JALParser.JvmInsD2IContext>
-{
-    public InstructionEvaluatorD2I()
-    {
+public class InstructionEvaluatorD2I extends AbstractSingleInstructionEvaluator<JALParser.JvmInsD2IContext> {
+    public InstructionEvaluatorD2I() {
         super(EOpcodes.D2I);
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                                  .popPrimitive(StackElementType.DOUBLE)
-                                  .pushPrimitive(StackElementType.INTEGER)
-                                  .build();
+                .popPrimitive(StackElementType.DOUBLE)
+                .pushPrimitive(StackElementType.INTEGER)
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsD2IContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsD2IContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsD2I();
     }
 }

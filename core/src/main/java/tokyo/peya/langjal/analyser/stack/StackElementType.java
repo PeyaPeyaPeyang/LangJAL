@@ -8,8 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum StackElementType
-{
+public enum StackElementType {
     NOP("NOP", -2),
     RETURN_ADDRESS("RETURN_ADDRESS", -1),
     TOP("TOP", 0),

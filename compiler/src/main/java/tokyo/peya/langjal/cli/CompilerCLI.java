@@ -7,20 +7,17 @@ import tokyo.peya.langjal.compiler.CompileSettings;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class CompilerCLI
-{
+public class CompilerCLI {
     public static String[] ALLOWED_INPUT_EXTENSIONS = {".jal"};
     public static String[] ALLOWED_OUTPUT_EXTENSIONS = {".jar", ".zip"};
 
     public static void runCompiler(@NotNull String input, @NotNull String output,
                                    @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags,
-                                   boolean verbose)
-    {
+                                   boolean verbose) {
         Path inputPath = resolveAbsolutePath(input);
         Path outputPath = resolveAbsolutePath(output);
 
-        if (verbose)
-        {
+        if (verbose) {
             System.out.println("Input path: " + inputPath);
             System.out.println("Output path: " + outputPath);
         }
@@ -49,17 +46,14 @@ public class CompilerCLI
             );
     }
 
-    public static boolean hasValidInputFileName(@NotNull Path path)
-    {
+    public static boolean hasValidInputFileName(@NotNull Path path) {
         Path fileName = path.getFileName();
-        if (fileName == null || !Files.isRegularFile(path) || fileName.toString().isEmpty())
-        {
+        if (fileName == null || !Files.isRegularFile(path) || fileName.toString().isEmpty()) {
             System.err.println("Error: " + path + " is not a valid input file.");
             return false;
         }
 
-        for (String ext : ALLOWED_INPUT_EXTENSIONS)
-        {
+        for (String ext : ALLOWED_INPUT_EXTENSIONS) {
             if (fileName.toString().endsWith(ext))
                 return true;
         }
@@ -67,17 +61,14 @@ public class CompilerCLI
         return false;
     }
 
-    public static boolean hasValidOutputFileName(@NotNull Path path)
-    {
+    public static boolean hasValidOutputFileName(@NotNull Path path) {
         Path fileName = path.getFileName();
-        if (fileName == null || !Files.isRegularFile(path) || fileName.toString().isEmpty())
-        {
+        if (fileName == null || !Files.isRegularFile(path) || fileName.toString().isEmpty()) {
             System.err.println("Error: " + path + " is not a valid output file.");
             return false;
         }
 
-        for (String ext : ALLOWED_OUTPUT_EXTENSIONS)
-        {
+        for (String ext : ALLOWED_OUTPUT_EXTENSIONS) {
             if (fileName.toString().endsWith(ext))
                 return true;
         }
@@ -85,33 +76,30 @@ public class CompilerCLI
         return false;
     }
 
-    private static boolean validateInputPath(@NotNull String path)
-    {
+    private static boolean validateInputPath(@NotNull String path) {
         Path resolvedPath = resolveAbsolutePath(path);
-        if (!Files.exists(resolvedPath))
-        {
+        if (!Files.exists(resolvedPath)) {
             System.err.println("Error: Input path does not exist: " + resolvedPath);
             return false;
         }
         if (isDirectoryLike(path))
             return true;
 
-        if (!hasValidInputFileName(resolvedPath))
-        {
-            System.err.println("Error: Input path must have one of the following extensions: " + String.join(", ", ALLOWED_INPUT_EXTENSIONS));
+        if (!hasValidInputFileName(resolvedPath)) {
+            System.err.println("Error: Input path must have one of the following extensions: " + String.join(
+                    ", ",
+                    ALLOWED_INPUT_EXTENSIONS
+            ));
             return false;
         }
         return true;
     }
 
-    private static boolean validateOutputPath(@NotNull String path)
-    {
+    private static boolean validateOutputPath(@NotNull String path) {
         Path resolvedPath = resolveAbsolutePath(path);
 
-        if (isDirectoryLike(path))
-        {
-            if (Files.exists(resolvedPath) && !Files.isDirectory(resolvedPath))
-            {
+        if (isDirectoryLike(path)) {
+            if (Files.exists(resolvedPath) && !Files.isDirectory(resolvedPath)) {
                 System.err.println("Error: Output path must be a directory or a new file: " + resolvedPath);
                 return false;
             }
@@ -120,17 +108,17 @@ public class CompilerCLI
             return true;
         }
 
-        if (!hasValidOutputFileName(resolvedPath))
-        {
-            System.err.println("Error: Output path must have one of the following extensions: " + String.join(", ", ALLOWED_OUTPUT_EXTENSIONS));
+        if (!hasValidOutputFileName(resolvedPath)) {
+            System.err.println("Error: Output path must have one of the following extensions: " + String.join(
+                    ", ",
+                    ALLOWED_OUTPUT_EXTENSIONS
+            ));
             return false;
         }
         return true;
     }
 
-
-    public static boolean isDirectoryLike(@NotNull String pathName)
-    {
+    public static boolean isDirectoryLike(@NotNull String pathName) {
         Path path = resolveAbsolutePath(pathName);
         if (Files.isDirectory(path))
             return true;
@@ -145,8 +133,7 @@ public class CompilerCLI
         return fileName.isEmpty() || fileName.indexOf('.') < 0;
     }
 
-    private static Path resolveAbsolutePath(@NotNull String path)
-    {
+    private static Path resolveAbsolutePath(@NotNull String path) {
         Path resolvedPath = Path.of(path);
         if (!resolvedPath.isAbsolute())
             resolvedPath = Path.of(System.getProperty("user.dir")).resolve(resolvedPath);

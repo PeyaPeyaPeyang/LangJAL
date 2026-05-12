@@ -8,16 +8,13 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public class TestLCmp extends AbstractInstructionTestCase<JALParser.JvmInsLcmpContext, InstructionEvaluatorLCmp>
-{
-    public TestLCmp()
-    {
+public class TestLCmp extends AbstractInstructionTestCase<JALParser.JvmInsLcmpContext, InstructionEvaluatorLCmp> {
+    public TestLCmp() {
         super(new InstructionEvaluatorLCmp(), EOpcodes.LCMP);
     }
 
     @Override
-    public InstructionCase[] getValidInstructionSyntaxes()
-    {
+    public InstructionCase[] getValidInstructionSyntaxes() {
         return set(
                 of(
                         create(longValue(), longValue())

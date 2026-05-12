@@ -6,73 +6,28 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
-import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 import java.util.List;
 
 public class InstructionEvaluatorInvokeDynamic
-        extends AbstractInstructionEvaluator<JALParser.JvmInsInvokedynamicContext>
-{
-    public InstructionEvaluatorInvokeDynamic()
-    {
+        extends AbstractInstructionEvaluator<JALParser.JvmInsInvokedynamicContext> {
+    public InstructionEvaluatorInvokeDynamic() {
         super(EOpcodes.INVOKEDYNAMIC);
     }
 
-    @Override
-    @NotNull
-    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
-                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
-                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
-                                         @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsInvokedynamicContext instruction)
-    {
-        String methodName = instruction.methodName().getText();
-        String methodDesc = instruction.methodDescriptor().getText();
-        Handle bootstrapMethod = toHandle(instruction.jvmInsArgInvokeDynamicMethodHandle());
-        List<JALParser.JvmInsArgInvokeDynamicRefContext> args = instruction.jvmInsArgInvokeDynamicRef();
-        List<Object> bootstrapArgs = args.stream()
-                                         .map(InstructionEvaluatorInvokeDynamic::evaluateBootstrapArg)
-                                         .toList();
-
-        InvokeDynamicInsnNode insn = new InvokeDynamicInsnNode(
-                methodName,
-                methodDesc,
-                bootstrapMethod,
-                bootstrapArgs.toArray(new Object[0])
-        );
-        return EvaluatedInstruction.of(this, insn, calcSize(instruction));
-    }
-
-    @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
-        return InstructionEvaluateHelperInvocation.getFrameInvokedynamicFrameDifference(instruction);
-    }
-
-    @Override
-    public JALParser.JvmInsInvokedynamicContext map(JALParser.@NotNull InstructionContext instruction)
-    {
-        return instruction.jvmInsInvokedynamic();
-    }
-
-    private static int calcSize(JALParser.JvmInsInvokedynamicContext ctxt)
-    {
+    private static int calcSize(JALParser.JvmInsInvokedynamicContext ctxt) {
         int size = 0;
         if (ctxt.jvmInsArgInvokeDynamicMethodHandle() != null)
             size += 1; // Handle
-        for (JALParser.JvmInsArgInvokeDynamicRefContext arg : ctxt.jvmInsArgInvokeDynamicRef())
-        {
+        for (JALParser.JvmInsArgInvokeDynamicRefContext arg : ctxt.jvmInsArgInvokeDynamicRef()) {
             if (arg.jvmInsArgInvokeDynamicMethodType() != null)
                 size += 1; // Method type
             else if (arg.jvmInsArgScalarType() != null)
@@ -81,29 +36,21 @@ public class InstructionEvaluatorInvokeDynamic
         return size;
     }
 
-    private static Object evaluateBootstrapArg(JALParser.JvmInsArgInvokeDynamicRefContext arg)
-    {
-        if (arg.jvmInsArgScalarType() != null)
-        {
+    private static Object evaluateBootstrapArg(JALParser.JvmInsArgInvokeDynamicRefContext arg) {
+        if (arg.jvmInsArgScalarType() != null) {
             JALParser.JvmInsArgScalarTypeContext scalarType = arg.jvmInsArgScalarType();
             return EvaluatorCommons.evaluateScalar(scalarType);
-        }
-        else if (arg.jvmInsArgInvokeDynamicMethodType() != null)
-        {
+        } else if (arg.jvmInsArgInvokeDynamicMethodType() != null) {
             String desc = arg.jvmInsArgInvokeDynamicMethodType().methodDescriptor().getText();
             return Type.getMethodType(desc);
-        }
-        else if (arg.jvmInsArgInvokeDynamicMethodType() != null)
-        {
+        } else if (arg.jvmInsArgInvokeDynamicMethodType() != null) {
             JALParser.JvmInsArgInvokeDynamicMethodHandleContext handle = arg.jvmInsArgInvokeDynamicMethodHandle();
             return toHandle(handle);
-        }
-        else
+        } else
             throw new IllegalInstructionException("Invalid bootstrap argument type: " + arg.getText(), arg);
     }
 
-    private static Handle toHandle(JALParser.JvmInsArgInvokeDynamicMethodHandleContext handle)
-    {
+    private static Handle toHandle(JALParser.JvmInsArgInvokeDynamicMethodHandleContext handle) {
         JALParser.JvmInsArgMethodRefContext ref = handle.jvmInsArgMethodRef();
         String ownerType = ref.fullQualifiedClassName().getText();
         String methodName = ref.methodName().getText();
@@ -119,8 +66,7 @@ public class InstructionEvaluatorInvokeDynamic
         );
     }
 
-    private static int toTag(JALParser.JvmInsArgInvokeDynamicMethodHandleTypeContext handle)
-    {
+    private static int toTag(JALParser.JvmInsArgInvokeDynamicMethodHandleTypeContext handle) {
         if (handle.INSN_GETFIELD() != null)
             return EOpcodes.H_GETFIELD;
         else if (handle.INSN_GETSTATIC() != null)
@@ -141,5 +87,39 @@ public class InstructionEvaluatorInvokeDynamic
             return EOpcodes.H_INVOKEINTERFACE;
         else
             throw new IllegalInstructionException("Unknown method handle type: " + handle.getText(), handle);
+    }
+
+    @Override
+    @NotNull
+    public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
+                                         @NotNull ClassNode clazz, @NotNull MethodNode method,
+                                         @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
+                                         @NotNull LocalVariablesHolder locals,
+                                         JALParser.@NotNull JvmInsInvokedynamicContext instruction) {
+        String methodName = instruction.methodName().getText();
+        String methodDesc = instruction.methodDescriptor().getText();
+        Handle bootstrapMethod = toHandle(instruction.jvmInsArgInvokeDynamicMethodHandle());
+        List<JALParser.JvmInsArgInvokeDynamicRefContext> args = instruction.jvmInsArgInvokeDynamicRef();
+        List<Object> bootstrapArgs = args.stream()
+                .map(InstructionEvaluatorInvokeDynamic::evaluateBootstrapArg)
+                .toList();
+
+        InvokeDynamicInsnNode insn = new InvokeDynamicInsnNode(
+                methodName,
+                methodDesc,
+                bootstrapMethod,
+                bootstrapArgs.toArray(new Object[0])
+        );
+        return EvaluatedInstruction.of(this, insn, calcSize(instruction));
+    }
+
+    @Override
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
+        return InstructionEvaluateHelperInvocation.getFrameInvokedynamicFrameDifference(instruction);
+    }
+
+    @Override
+    public JALParser.JvmInsInvokedynamicContext map(JALParser.@NotNull InstructionContext instruction) {
+        return instruction.jvmInsInvokedynamic();
     }
 }

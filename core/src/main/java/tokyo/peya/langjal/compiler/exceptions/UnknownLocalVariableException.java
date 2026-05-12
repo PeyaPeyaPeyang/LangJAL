@@ -12,8 +12,7 @@ import tokyo.peya.langjal.compiler.JALParser;
  * </p>
  */
 @Getter
-public class UnknownLocalVariableException extends CompileErrorException
-{
+public class UnknownLocalVariableException extends CompileErrorException {
     /**
      * The name of the local variable that could not be resolved.
      */
@@ -28,8 +27,7 @@ public class UnknownLocalVariableException extends CompileErrorException
      */
     public UnknownLocalVariableException(@NotNull String message,
                                          @NotNull String name,
-                                         @NotNull JALParser.JvmInsArgLocalRefContext ref)
-    {
+                                         @NotNull JALParser.JvmInsArgLocalRefContext ref) {
         super(message, ref);
         this.name = name;
     }
@@ -42,8 +40,7 @@ public class UnknownLocalVariableException extends CompileErrorException
      * @param name    The name of the unknown local variable.
      */
     public UnknownLocalVariableException(@NotNull String message,
-                                         @NotNull String name)
-    {
+                                         @NotNull String name) {
         super(message, 0, 0, 0);
         this.name = name;
     }

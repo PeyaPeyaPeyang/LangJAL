@@ -20,11 +20,11 @@ import tokyo.peya.langjal.analyser.stack.StackElement;
  * </pre>
  *
  * @param analyzedInstructions The analyzed instructions.
- * @param framePropagations   The frame propagations (jump/branch information).
- * @param stack               The final stack state.
- * @param locals              The final local variable state.
- * @param maxStackSize        The maximum stack size encountered.
- * @param maxLocalSize        The maximum local variable size encountered.
+ * @param framePropagations    The frame propagations (jump/branch information).
+ * @param stack                The final stack state.
+ * @param locals               The final local variable state.
+ * @param maxStackSize         The maximum stack size encountered.
+ * @param maxLocalSize         The maximum local variable size encountered.
  */
 public record InstructionSetAnalysisResult(
         @NotNull
@@ -38,6 +38,5 @@ public record InstructionSetAnalysisResult(
 
         int maxStackSize,
         int maxLocalSize
-)
-{
+) {
 }

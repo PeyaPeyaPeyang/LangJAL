@@ -4,31 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.InternalCompileErrorException;
-import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorANewArray;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorAThrow;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorArrayLength;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorBiPush;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorCheckCast;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorGoto;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorGotoW;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorInstanceOf;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorJsr;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorJsrW;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorLookupSwitch;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorMonitorEnter;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorMonitorExit;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorMultiANewArray;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNew;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNewArray;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNop;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorPop;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorPop2;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorRet;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorReturn;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorSiPush;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorSwap;
-import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorTableSwitch;
+import tokyo.peya.langjal.compiler.instructions.*;
 import tokyo.peya.langjal.compiler.instructions.calc.InstructionEvaluatorIInc;
 import tokyo.peya.langjal.compiler.instructions.calc.InstructionEvaluatorLCmp;
 import tokyo.peya.langjal.compiler.instructions.calc.xadd.InstructionEvaluatorDAdd;
@@ -67,92 +43,25 @@ import tokyo.peya.langjal.compiler.instructions.calc.xushr.InstructionEvaluatorI
 import tokyo.peya.langjal.compiler.instructions.calc.xushr.InstructionEvaluatorLUShr;
 import tokyo.peya.langjal.compiler.instructions.calc.xxor.InstructionEvaluatorIXOr;
 import tokyo.peya.langjal.compiler.instructions.calc.xxor.InstructionEvaluatorLXOr;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorD2F;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorD2I;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorD2L;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorF2D;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorF2I;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorF2L;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2B;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2C;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2D;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2F;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2L;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorI2S;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorL2D;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorL2F;
-import tokyo.peya.langjal.compiler.instructions.cast.InstructionEvaluatorL2I;
-import tokyo.peya.langjal.compiler.instructions.dup.InstructionEvaluatorDup;
-import tokyo.peya.langjal.compiler.instructions.dup.InstructionEvaluatorDup2;
-import tokyo.peya.langjal.compiler.instructions.dup.InstructionEvaluatorDup2X1;
-import tokyo.peya.langjal.compiler.instructions.dup.InstructionEvaluatorDup2X2;
-import tokyo.peya.langjal.compiler.instructions.dup.InstructionEvaluatorDupX1;
-import tokyo.peya.langjal.compiler.instructions.dup.InstructionEvaluatorDupX2;
+import tokyo.peya.langjal.compiler.instructions.cast.*;
+import tokyo.peya.langjal.compiler.instructions.dup.*;
 import tokyo.peya.langjal.compiler.instructions.field.InstructionEvaluatorGetField;
 import tokyo.peya.langjal.compiler.instructions.field.InstructionEvaluatorGetStatic;
 import tokyo.peya.langjal.compiler.instructions.field.InstructionEvaluatorPutField;
 import tokyo.peya.langjal.compiler.instructions.field.InstructionEvaluatorPutStatic;
-import tokyo.peya.langjal.compiler.instructions.ifx.InstructionEvaluatorIfACmpOP;
-import tokyo.peya.langjal.compiler.instructions.ifx.InstructionEvaluatorIfICmpOP;
-import tokyo.peya.langjal.compiler.instructions.ifx.InstructionEvaluatorIfNonNull;
-import tokyo.peya.langjal.compiler.instructions.ifx.InstructionEvaluatorIfNull;
-import tokyo.peya.langjal.compiler.instructions.ifx.InstructionEvaluatorIfOP;
-import tokyo.peya.langjal.compiler.instructions.invokex.InstructionEvaluatorInvokeDynamic;
-import tokyo.peya.langjal.compiler.instructions.invokex.InstructionEvaluatorInvokeInterface;
-import tokyo.peya.langjal.compiler.instructions.invokex.InstructionEvaluatorInvokeSpecial;
-import tokyo.peya.langjal.compiler.instructions.invokex.InstructionEvaluatorInvokeStatic;
-import tokyo.peya.langjal.compiler.instructions.invokex.InstructionEvaluatorInvokeVirtual;
+import tokyo.peya.langjal.compiler.instructions.ifx.*;
+import tokyo.peya.langjal.compiler.instructions.invokex.*;
 import tokyo.peya.langjal.compiler.instructions.ldc.InstructionEvaluatorLDC;
 import tokyo.peya.langjal.compiler.instructions.ldc.InstructionEvaluatorLDCW;
 import tokyo.peya.langjal.compiler.instructions.ldc.InstructionEvaluatorLDCW2;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorAALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorBALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorCALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorDALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorFALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorIALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorLALoad;
-import tokyo.peya.langjal.compiler.instructions.xaload.InstructionEvaluatorSALoad;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorAAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorBAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorCAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorDAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorFAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorIAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorLAStore;
-import tokyo.peya.langjal.compiler.instructions.xastore.InstructionEvaluatorSAStore;
+import tokyo.peya.langjal.compiler.instructions.xaload.*;
+import tokyo.peya.langjal.compiler.instructions.xastore.*;
 import tokyo.peya.langjal.compiler.instructions.xcmp_op.InstructionEvaluatorDCmpOp;
 import tokyo.peya.langjal.compiler.instructions.xcmp_op.InstructionEvaluatorFCmpOp;
-import tokyo.peya.langjal.compiler.instructions.xconst.InstructionEvaluatorAConstNull;
-import tokyo.peya.langjal.compiler.instructions.xconst.InstructionEvaluatorDConstN;
-import tokyo.peya.langjal.compiler.instructions.xconst.InstructionEvaluatorFConstN;
-import tokyo.peya.langjal.compiler.instructions.xconst.InstructionEvaluatorIConstN;
-import tokyo.peya.langjal.compiler.instructions.xconst.InstructionEvaluatorLConstN;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorALoad;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorALoadN;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorDLoad;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorDLoadN;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorFLoad;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorFLoadN;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorILoad;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorILoadN;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorLLoad;
-import tokyo.peya.langjal.compiler.instructions.xload.InstructionEvaluatorLLoadN;
-import tokyo.peya.langjal.compiler.instructions.xreturn.InstructionEvaluatorAReturn;
-import tokyo.peya.langjal.compiler.instructions.xreturn.InstructionEvaluatorDReturn;
-import tokyo.peya.langjal.compiler.instructions.xreturn.InstructionEvaluatorFReturn;
-import tokyo.peya.langjal.compiler.instructions.xreturn.InstructionEvaluatorIReturn;
-import tokyo.peya.langjal.compiler.instructions.xreturn.InstructionEvaluatorLReturn;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorAStore;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorAStoreN;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorDStore;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorDStoreN;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorFStore;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorFStoreN;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorIStore;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorIStoreN;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorLStore;
-import tokyo.peya.langjal.compiler.instructions.xstore.InstructionEvaluatorLStoreN;
+import tokyo.peya.langjal.compiler.instructions.xconst.*;
+import tokyo.peya.langjal.compiler.instructions.xload.*;
+import tokyo.peya.langjal.compiler.instructions.xreturn.*;
+import tokyo.peya.langjal.compiler.instructions.xstore.*;
 
 import java.util.List;
 
@@ -160,8 +69,7 @@ import java.util.List;
  * Provides evaluation logic for JAL instructions by delegating to registered evaluators.
  * Maintains a list of supported instruction evaluators and selects the appropriate one for each instruction.
  */
-public class JALInstructionEvaluator
-{
+public class JALInstructionEvaluator {
     private static final List<AbstractInstructionEvaluator<?>> EVALUATORS = List.of(
             // ---- カテゴリ 1 ----
             new InstructionEvaluatorNop(),
@@ -380,8 +288,7 @@ public class JALInstructionEvaluator
      */
     @Nullable
     public static EvaluatedInstruction evaluateInstruction(@NotNull JALMethodCompiler methodEvaluator,
-                                                    @NotNull JALParser.InstructionContext instruction)
-    {
+                                                           @NotNull JALParser.InstructionContext instruction) {
         for (AbstractInstructionEvaluator<?> evaluator : EVALUATORS)
             if (evaluator.isApplicable(instruction))
                 return evaluator.evaluate(
@@ -398,8 +305,7 @@ public class JALInstructionEvaluator
     }
 
     @NotNull
-    public static AbstractInstructionEvaluator<?> getEvaluatorByOpcode(int opcode)
-    {
+    public static AbstractInstructionEvaluator<?> getEvaluatorByOpcode(int opcode) {
         for (AbstractInstructionEvaluator<?> evaluator : EVALUATORS)
             for (int supportedOpcode : evaluator.getEvaluatableOpcodes())
                 if (supportedOpcode == opcode)

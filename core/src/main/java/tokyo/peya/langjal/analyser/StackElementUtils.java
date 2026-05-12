@@ -2,11 +2,7 @@ package tokyo.peya.langjal.analyser;
 
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
-import tokyo.peya.langjal.analyser.stack.LocalStackElement;
-import tokyo.peya.langjal.analyser.stack.NullElement;
-import tokyo.peya.langjal.analyser.stack.ObjectElement;
-import tokyo.peya.langjal.analyser.stack.StackElement;
-import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.exceptions.analyse.StackElementMismatchedException;
 import tokyo.peya.langjal.compiler.exceptions.analyse.StackSizeDifferentException;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
@@ -31,8 +27,7 @@ import java.util.List;
  * }</pre>
  */
 @UtilityClass
-public class StackElementUtils
-{
+public class StackElementUtils {
     /**
      * Removes trailing TOP elements from the local variable array, except when preceded by category 2 elements.
      * For example:
@@ -40,21 +35,19 @@ public class StackElementUtils
      *   <li>[I, I, TOP, TOP, TOP] -> [I, I]</li>
      *   <li>[I, I, TOP, D, TOP, TOP] -> [I, I, TOP, D, TOP]</li>
      * </ul>
+     *
      * @param locals The local variable array.
      * @return A cleaned local variable array.
      */
-    public static LocalStackElement[] cleanUpLocals(@NotNull LocalStackElement[] locals)
-    {
+    public static LocalStackElement[] cleanUpLocals(@NotNull LocalStackElement[] locals) {
         // ローカルスタック要素の中で，末尾から連続して続く TOP 要素を削除する。
         // ただし， TOP 要素の前がカテゴリ２の要素（LONG, DOUBLE）である場合は削除しない。
         // [I, I, TOP, TOP, TOP] -> [I, I]
         // [I, I, TOP, D, TOP, TOP] -> [I, I, TOP, D, TOP]
         int lastNonTopIndex = locals.length - 1;
-        while (lastNonTopIndex >= 0 && locals[lastNonTopIndex].stackElement().type() == StackElementType.TOP)
-        {
+        while (lastNonTopIndex >= 0 && locals[lastNonTopIndex].stackElement().type() == StackElementType.TOP) {
             // カテゴリ2の要素が続いている場合は削除しない
-            if (lastNonTopIndex > 0)
-            {
+            if (lastNonTopIndex > 0) {
                 StackElementType previousType = locals[lastNonTopIndex - 1].stackElement().type();
                 if (previousType == StackElementType.LONG || previousType == StackElementType.DOUBLE)
                     break;
@@ -64,8 +57,7 @@ public class StackElementUtils
 
         // 最後の非 TOP 要素のインデックスがローカルスタック要素の長さより小さい場合は，
         // そのインデックスまでの要素を新しい配列にコピーして返す。
-        if (lastNonTopIndex < locals.length - 1)
-        {
+        if (lastNonTopIndex < locals.length - 1) {
             LocalStackElement[] cleanedLocals = new LocalStackElement[lastNonTopIndex + 1];
             System.arraycopy(locals, 0, cleanedLocals, 0, lastNonTopIndex + 1);
             return cleanedLocals;
@@ -78,38 +70,36 @@ public class StackElementUtils
         return locals;
     }
 
-
     /**
      * Merges two local variable arrays, checking type consistency and removing trailing TOP elements.
+     *
      * @param existingLocal The first local variable array.
-     * @param newLocal The second local variable array.
+     * @param newLocal      The second local variable array.
      * @return The merged local variable array.
      */
     public static LocalStackElement[] mergeLocals(@NotNull LocalStackElement[] existingLocal,
-                                                  @NotNull LocalStackElement[] newLocal)
-    {
+                                                  @NotNull LocalStackElement[] newLocal) {
         return mergeLocals(existingLocal, newLocal, Math.min(existingLocal.length, newLocal.length));
     }
 
     /**
      * Merges two local variable arrays up to the specified minimum size.
+     *
      * @param existingLocal The first local variable array.
-     * @param newLocal The second local variable array.
-     * @param minLocalSize The minimum size to merge.
+     * @param newLocal      The second local variable array.
+     * @param minLocalSize  The minimum size to merge.
      * @return The merged local variable array.
      */
     public static LocalStackElement[] mergeLocals(@NotNull LocalStackElement[] existingLocal,
                                                   @NotNull LocalStackElement[] newLocal,
-                                                  int minLocalSize)
-    {
+                                                  int minLocalSize) {
         if (minLocalSize > existingLocal.length || minLocalSize > newLocal.length)
             throw new IllegalArgumentException(
                     "minLocalSize must be less than or equal to the length of both existingLocal and newLocal arrays."
             );
 
         LocalStackElement[] mergedLocals = new LocalStackElement[minLocalSize];
-        for (int i = 0; i < minLocalSize; i++)
-        {
+        for (int i = 0; i < minLocalSize; i++) {
             LocalStackElement existingLocalElement = existingLocal[i];
             LocalStackElement newLocalElement = newLocal[i];
             StackElement existingElement = existingLocalElement.stackElement();
@@ -132,8 +122,7 @@ public class StackElementUtils
     private static void checkStackSize(@NotNull LabelInfo frameLabel,
                                        @NotNull String stackType,
                                        @NotNull Collection<? extends StackElement> existingStack,
-                                       @NotNull Collection<? extends StackElement> newStack)
-    {
+                                       @NotNull Collection<? extends StackElement> newStack) {
         if (existingStack.size() != newStack.size())
             throw new StackSizeDifferentException(
                     String.format(getSizeMismatchMessage(
@@ -153,20 +142,19 @@ public class StackElementUtils
     /**
      * Merges two stack arrays, checking type consistency.
      * Throws if stack sizes or types differ.
-     * @param frameLabel The label for error reporting.
+     *
+     * @param frameLabel    The label for error reporting.
      * @param existingStack The first stack array.
-     * @param newStack The second stack array.
+     * @param newStack      The second stack array.
      * @return The merged stack array.
      */
     public static StackElement[] mergeStack(@NotNull LabelInfo frameLabel,
                                             @NotNull StackElement[] existingStack,
-                                            @NotNull StackElement[] newStack)
-    {
+                                            @NotNull StackElement[] newStack) {
         checkStackSize(frameLabel, "stack", List.of(existingStack), List.of(newStack));
 
         StackElement[] mergedStack = new StackElement[existingStack.length];
-        for (int i = 0; i < newStack.length; i++)
-        {
+        for (int i = 0; i < newStack.length; i++) {
             StackElement existingElement = existingStack[i];
             StackElement newElement = newStack[i];
             // 既存のスタック要素と新しいスタック要素の型が一致しない場合は例外を投げる
@@ -183,8 +171,7 @@ public class StackElementUtils
                                                  @NotNull String stackType,
                                                  int expectedSize, int actualSize,
                                                  @NotNull Collection<? extends StackElement> expectedStack,
-                                                 @NotNull Collection<? extends StackElement> stack)
-    {
+                                                 @NotNull Collection<? extends StackElement> stack) {
         return String.format(
                 """
                         Expected %s size %d at label '%s', but got %d.
@@ -202,12 +189,12 @@ public class StackElementUtils
 
     /**
      * Checks if two stack elements have the same type, throws if not.
-     * @param element The first stack element.
+     *
+     * @param element         The first stack element.
      * @param expectedElement The second stack element.
      * @throws StackElementMismatchedException if types differ.
      */
-    public static void checkSameType(@NotNull StackElement element, @NotNull StackElement expectedElement)
-    {
+    public static void checkSameType(@NotNull StackElement element, @NotNull StackElement expectedElement) {
         if (element.type() != expectedElement.type())
             throw new StackElementMismatchedException(
                     element.producer(), expectedElement, element,
@@ -220,12 +207,12 @@ public class StackElementUtils
     /**
      * Merges two stack elements, handling object types and nulls.
      * For object types, finds a common super type if needed.
+     *
      * @param existingElement The first stack element.
-     * @param newElement The second stack element.
+     * @param newElement      The second stack element.
      * @return The merged stack element.
      */
-    public static StackElement mergeElement(@NotNull StackElement existingElement, @NotNull StackElement newElement)
-    {
+    public static StackElement mergeElement(@NotNull StackElement existingElement, @NotNull StackElement newElement) {
         StackElementUtils.checkSameType(existingElement, newElement);
 
         // null は任意のオブジェクト型と互換性があるのでそのまま返す
@@ -234,12 +221,10 @@ public class StackElementUtils
         else if (existingElement instanceof NullElement)
             return existingElement;
 
-        return switch (existingElement.type())
-        {
+        return switch (existingElement.type()) {
             case TOP, INTEGER, FLOAT, LONG, DOUBLE, NULL, RETURN_ADDRESS, NOP -> existingElement;
             // オブジェクト型はマージする
-            case OBJECT ->
-            {
+            case OBJECT -> {
                 assert newElement instanceof ObjectElement;  // #checkType() でチェック済み
                 yield mergeObjects((ObjectElement) existingElement, (ObjectElement) newElement);
             }
@@ -249,23 +234,21 @@ public class StackElementUtils
 
     /**
      * Merges two object stack elements, finding their common super type if needed.
+     *
      * @param existingObject The first object element.
-     * @param newObject The second object element.
+     * @param newObject      The second object element.
      * @return The merged object element.
      */
-    public static ObjectElement mergeObjects(@NotNull ObjectElement existingObject, @NotNull ObjectElement newObject)
-    {
+    public static ObjectElement mergeObjects(@NotNull ObjectElement existingObject, @NotNull ObjectElement newObject) {
         TypeDescriptor existingType = existingObject.content();
         TypeDescriptor newType = newObject.content();
         if (existingType.equals(newType)
-                || existingType.getBaseType().equals(ClassReferenceType.OBJECT))
-        {
+                || existingType.getBaseType().equals(ClassReferenceType.OBJECT)) {
             // 型が同じまたは Object 型の場合はそのまま返す
             return newObject;
         }
 
-        if (existingType.getArrayDimensions() != newType.getArrayDimensions())
-        {
+        if (existingType.getArrayDimensions() != newType.getArrayDimensions()) {
             // 配列の次元が異なる場合はエラー
             throw new StackElementMismatchedException(
                     newObject.producer(), existingObject, newObject,
@@ -277,8 +260,7 @@ public class StackElementUtils
 
         if (existingType.getBaseType().equals(newType.getBaseType()))
             return newObject; // 基本型が同じならそのまま返す
-        else if (existingType.getBaseType().isPrimitive() || newType.getBaseType().isPrimitive())
-        {
+        else if (existingType.getBaseType().isPrimitive() || newType.getBaseType().isPrimitive()) {
             // ここに到達するプリミティブは，型が違うことが保証されている
             throw new StackElementMismatchedException(
                     newObject.producer(), existingObject, newObject,
@@ -304,22 +286,19 @@ public class StackElementUtils
     /**
      * Finds the common super type of two class reference types.
      * If either is an interface, returns Object.
+     *
      * @param type1 The first class reference type.
      * @param type2 The second class reference type.
      * @return The common super type.
      */
     public static ClassReferenceType getCommonSuperType(@NotNull ClassReferenceType type1,
-                                                        @NotNull ClassReferenceType type2)
-    {
+                                                        @NotNull ClassReferenceType type2) {
         ClassLoader classLoader = ClassReferenceType.class.getClassLoader();
         Class<?> class1, class2;
-        try
-        {
+        try {
             class1 = Class.forName(type1.getDottedName(), false, classLoader);
             class2 = Class.forName(type2.getDottedName(), false, classLoader);
-        }
-        catch (ClassNotFoundException e)
-        {
+        } catch (ClassNotFoundException e) {
             return type1;  // クラスが見つからない場合は，片方の型をそのまま返す
         }
 
@@ -331,8 +310,7 @@ public class StackElementUtils
         if (class1.isInterface() || class2.isInterface())
             return ClassReferenceType.parse(Object.class.getName());  // インターフェースの場合は Object を返す
 
-        do
-        {
+        do {
             Class<?> newClass1 = class1.getSuperclass();
             if (newClass1 == null)
                 break;  // Object まで到達したらループを抜ける
@@ -344,17 +322,14 @@ public class StackElementUtils
         return ClassReferenceType.parse(class1.getName());
     }
 
-    static String stackToString(@NotNull Collection<? extends StackElement> stack)
-    {
+    static String stackToString(@NotNull Collection<? extends StackElement> stack) {
         return stackToString(stack.toArray(new StackElement[0]));
     }
 
-    static <T extends StackElement> String stackToString(@NotNull T[] stack)
-    {
+    static <T extends StackElement> String stackToString(@NotNull T[] stack) {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        for (int i = 0; i < stack.length; i++)
-        {
+        for (int i = 0; i < stack.length; i++) {
             sb.append(stackElementToString(stack[i]));
             if (i < stack.length - 1)
                 sb.append(" | ");
@@ -364,13 +339,11 @@ public class StackElementUtils
         return sb.toString();
     }
 
-    private static String stackElementToString(@NotNull StackElement element)
-    {
+    private static String stackElementToString(@NotNull StackElement element) {
         if (element instanceof LocalStackElement local)
             element = local.stackElement();
 
-        return switch (element.type())
-        {
+        return switch (element.type()) {
             case TOP -> "T";
             case UNINITIALIZED_THIS -> "U_T";
             case INTEGER -> "I";

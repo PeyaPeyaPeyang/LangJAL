@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("TypeDescriptor")
 class TypeDescriptorTest {
@@ -27,35 +23,41 @@ class TypeDescriptorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "I,false",
-            "[I,true",
-            "[[Ljava/lang/String;,true"
-    })
+    @CsvSource(
+            {
+                    "I,false",
+                    "[I,true",
+                    "[[Ljava/lang/String;,true"
+            }
+    )
     void isArrayDetectsArrayTypes(String descriptor, boolean expected) {
         TypeDescriptor type = TypeDescriptor.parse(descriptor);
         assertEquals(expected, type.isArray());
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "I,I",
-            "Ljava/lang/String;,Ljava/lang/String;",
-            "[I,[I",
-            "[[D,[[D"
-    })
+    @CsvSource(
+            {
+                    "I,I",
+                    "Ljava/lang/String;,Ljava/lang/String;",
+                    "[I,[I",
+                    "[[D,[[D"
+            }
+    )
     void parseAndToStringRoundTrip(String descriptor, String expected) {
         TypeDescriptor type = TypeDescriptor.parse(descriptor);
         assertEquals(expected, type.toString());
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "I,0",
-            "[I,1",
-            "[[Ljava/lang/String;,2",
-            "[[[D,3"
-    })
+    @CsvSource(
+            {
+                    "I,0",
+                    "[I,1",
+                    "[[Ljava/lang/String;,2",
+                    "[[[D,3"
+            }
+    )
     void arrayDimensionsAreTracked(String descriptor, int expectedDimensions) {
         TypeDescriptor type = TypeDescriptor.parse(descriptor);
         assertEquals(expectedDimensions, type.getArrayDimensions());
@@ -69,8 +71,10 @@ class TypeDescriptorTest {
 
     @Test
     void constructorWithNegativeDimensionsThrows() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new TypeDescriptor(PrimitiveTypes.INT, -1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new TypeDescriptor(PrimitiveTypes.INT, -1)
+        );
     }
 
     @Test
@@ -102,17 +106,19 @@ class TypeDescriptorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "B",
-            "S",
-            "I",
-            "J",
-            "F",
-            "D",
-            "Z",
-            "C",
-            "V"
-    })
+    @CsvSource(
+            {
+                    "B",
+                    "S",
+                    "I",
+                    "J",
+                    "F",
+                    "D",
+                    "Z",
+                    "C",
+                    "V"
+            }
+    )
     void parsePrimitiveTypes(String descriptor) {
         TypeDescriptor type = TypeDescriptor.parse(descriptor);
         assertTrue(type.getBaseType().isPrimitive());
@@ -120,11 +126,13 @@ class TypeDescriptorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "Ljava/lang/String;",
-            "Ljava/lang/Object;",
-            "Ljava/util/List;"
-    })
+    @CsvSource(
+            {
+                    "Ljava/lang/String;",
+                    "Ljava/lang/Object;",
+                    "Ljava/util/List;"
+            }
+    )
     void parseClassReferences(String descriptor) {
         TypeDescriptor type = TypeDescriptor.parse(descriptor);
         assertFalse(type.getBaseType().isPrimitive());

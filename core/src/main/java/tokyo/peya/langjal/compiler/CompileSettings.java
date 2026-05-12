@@ -6,8 +6,7 @@ package tokyo.peya.langjal.compiler;
  * Use these constants to control the behavior of the compiler.
  * </p>
  */
-public interface CompileSettings
-{
+public interface CompileSettings {
     /**
      * No additional compile settings.
      * This is the default setting and does not enable any special features.
@@ -39,6 +38,7 @@ public interface CompileSettings
     /**
      * Full compile settings.
      * This setting computes the stack frame map and includes the line number table.
+     *
      * @see #COMPUTE_STACK_FRAME_MAP
      * @see #INCLUDE_LINE_NUMBER_TABLE
      */

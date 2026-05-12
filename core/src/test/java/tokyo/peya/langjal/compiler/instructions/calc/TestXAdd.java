@@ -8,45 +8,33 @@ import tokyo.peya.langjal.compiler.instructions.calc.xadd.InstructionEvaluatorIA
 import tokyo.peya.langjal.compiler.instructions.calc.xadd.InstructionEvaluatorLAdd;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 
-public class TestXAdd
-{
+public class TestXAdd {
     @Nested
-    class TestIAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsIaddContext, InstructionEvaluatorIAdd>
-    {
-        TestIAdd()
-        {
+    class TestIAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsIaddContext, InstructionEvaluatorIAdd> {
+        TestIAdd() {
             super(new InstructionEvaluatorIAdd(), integerValue(), "iadd", EOpcodes.IADD);
         }
     }
 
     @Nested
-    class TestFAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsFaddContext, InstructionEvaluatorFAdd>
-    {
-        TestFAdd()
-        {
+    class TestFAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsFaddContext, InstructionEvaluatorFAdd> {
+        TestFAdd() {
             super(new InstructionEvaluatorFAdd(), floatValue(), "fadd", EOpcodes.FADD);
         }
     }
 
     @Nested
-    class TestDAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsDaddContext, InstructionEvaluatorDAdd>
-    {
-        TestDAdd()
-        {
+    class TestDAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsDaddContext, InstructionEvaluatorDAdd> {
+        TestDAdd() {
             super(new InstructionEvaluatorDAdd(), doubleValue(), "dadd", EOpcodes.DADD);
         }
     }
 
     @Nested
-    class TestLAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsLaddContext, InstructionEvaluatorLAdd>
-    {
-        TestLAdd()
-        {
+    class TestLAdd extends AbstractMathInstructionTestCase<JALParser.JvmInsLaddContext, InstructionEvaluatorLAdd> {
+        TestLAdd() {
             super(new InstructionEvaluatorLAdd(), longValue(), "ladd", EOpcodes.LADD);
         }
     }

@@ -3,17 +3,7 @@ package tokyo.peya.langjal.analyser;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import tokyo.peya.langjal.analyser.stack.LocalStackElement;
-import tokyo.peya.langjal.analyser.stack.NullElement;
-import tokyo.peya.langjal.analyser.stack.ObjectElement;
-import tokyo.peya.langjal.analyser.stack.PrimitiveElement;
-import tokyo.peya.langjal.analyser.stack.StackElement;
-import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
-import tokyo.peya.langjal.analyser.stack.StackElementType;
-import tokyo.peya.langjal.analyser.stack.StackOperation;
-import tokyo.peya.langjal.analyser.stack.TopElement;
-import tokyo.peya.langjal.analyser.stack.UninitializedElement;
-import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
+import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
@@ -26,8 +16,7 @@ import java.util.List;
  * Contains label information and a list of stack operations.
  */
 @Getter
-public class FrameDifferenceInfo
-{
+public class FrameDifferenceInfo {
     /**
      * A static instance representing no change in the frame.
      */
@@ -54,8 +43,7 @@ public class FrameDifferenceInfo
      * @param stackOperations The stack operations.
      */
     private FrameDifferenceInfo(@Nullable LabelInfo label,
-                                @NotNull StackOperation[] stackOperations)
-    {
+                                @NotNull StackOperation[] stackOperations) {
         this.label = label;
         this.stackOperations = stackOperations;
     }
@@ -66,8 +54,7 @@ public class FrameDifferenceInfo
      * @return The SAME instance.
      */
     @NotNull
-    public static FrameDifferenceInfo same()
-    {
+    public static FrameDifferenceInfo same() {
         return SAME;
     }
 
@@ -77,8 +64,7 @@ public class FrameDifferenceInfo
      * @param instruction The instruction info.
      * @return The Builder instance.
      */
-    public static @NotNull Builder builder(@NotNull InstructionInfo instruction)
-    {
+    public static @NotNull Builder builder(@NotNull InstructionInfo instruction) {
         return new Builder(instruction);
     }
 
@@ -86,8 +72,7 @@ public class FrameDifferenceInfo
      * Builder class for FrameDifferenceInfo.
      * Provides methods to describe stack and local variable changes.
      */
-    public static class Builder
-    {
+    public static class Builder {
         @NotNull
         private final InstructionInfo instruction;
 
@@ -102,8 +87,7 @@ public class FrameDifferenceInfo
          *
          * @param instruction The instruction info.
          */
-        public Builder(@NotNull InstructionInfo instruction)
-        {
+        public Builder(@NotNull InstructionInfo instruction) {
             this.instruction = instruction;
             this.labelInfo = instruction.assignedLabel();
             this.stackOperations = new ArrayList<>();
@@ -116,8 +100,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushPrimitive(@NotNull StackElementType type)
-        {
+        public Builder pushPrimitive(@NotNull StackElementType type) {
             if (!(type == StackElementType.INTEGER ||
                     type == StackElementType.FLOAT ||
                     type == StackElementType.LONG ||
@@ -125,8 +108,7 @@ public class FrameDifferenceInfo
                 throw new IllegalArgumentException("Invalid primitive type: " + type);
 
             this.stackOperations.add(StackOperation.push(PrimitiveElement.of(this.instruction, type)));
-            if (type == StackElementType.LONG || type == StackElementType.DOUBLE)
-            {
+            if (type == StackElementType.LONG || type == StackElementType.DOUBLE) {
                 // LONG と DOUBLE はスタックに 2 つの要素を追加する。
                 this.stackOperations.add(StackOperation.push(new TopElement(this.instruction)));
             }
@@ -139,8 +121,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushReturnAddress()
-        {
+        public Builder pushReturnAddress() {
             this.stackOperations.add(StackOperation.push(new PrimitiveElement(
                     this.instruction,
                     StackElementType.RETURN_ADDRESS
@@ -154,8 +135,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushNull()
-        {
+        public Builder pushNull() {
             this.stackOperations.add(StackOperation.push(NullElement.of(this.instruction)));
             return this;
         }
@@ -167,8 +147,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushObjectRef(@NotNull TypeDescriptor reference)
-        {
+        public Builder pushObjectRef(@NotNull TypeDescriptor reference) {
             this.stackOperations.add(StackOperation.push(new ObjectElement(this.instruction, reference)));
             return this;
         }
@@ -179,7 +158,7 @@ public class FrameDifferenceInfo
          * @param reference The type descriptor.
          * @return This builder.
          */
-        public Builder pushUnknownType(@NotNull TypeDescriptor reference){
+        public Builder pushUnknownType(@NotNull TypeDescriptor reference) {
             if (reference.isArray())
                 return this.pushObjectRef(reference);
             else if (reference.getBaseType().isPrimitive())
@@ -194,7 +173,7 @@ public class FrameDifferenceInfo
          * @param reference The type descriptor.
          * @return This builder.
          */
-        public Builder popUnknownType(@NotNull TypeDescriptor reference){
+        public Builder popUnknownType(@NotNull TypeDescriptor reference) {
             if (reference.isArray())
                 return this.popObjectRef(reference);
             else if (reference.getBaseType().isPrimitive())
@@ -209,8 +188,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushUninitialized()
-        {
+        public Builder pushUninitialized() {
             this.stackOperations.add(StackOperation.push(new UninitializedElement(this.instruction)));
             return this;
         }
@@ -221,8 +199,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushUninitializedThis()
-        {
+        public Builder pushUninitializedThis() {
             this.stackOperations.add(StackOperation.push(new UninitializedThisElement(this.instruction)));
             return this;
         }
@@ -234,10 +211,8 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder push(@NotNull StackElement element)
-        {
-            return switch (element)
-            {
+        public Builder push(@NotNull StackElement element) {
+            return switch (element) {
                 case NullElement ignored -> this.pushNull();
                 case PrimitiveElement primitive -> this.pushPrimitive(primitive.type());
                 case ObjectElement object -> this.pushObjectRef(object.content());
@@ -247,7 +222,7 @@ public class FrameDifferenceInfo
                 case TopElement ignored ->
                         throw new IllegalArgumentException("Cannot push TopElement directly to stack");
                 default -> throw new IllegalArgumentException("Unknown stack element type: " + element.getClass()
-                                                                                                      .getName());
+                        .getName());
             };
         }
 
@@ -257,8 +232,7 @@ public class FrameDifferenceInfo
          * @param local The local stack element.
          * @return This builder.
          */
-        public @NotNull Builder addLocal(@NotNull LocalStackElement local)
-        {
+        public @NotNull Builder addLocal(@NotNull LocalStackElement local) {
             int index = local.index();
             boolean isParameter = local.isParameter();
             if (index < 0 || index > 65535)
@@ -281,8 +255,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pop(@NotNull StackElement element)
-        {
+        public Builder pop(@NotNull StackElement element) {
             if (element instanceof NullElement)
                 return this.popNull();
             else if (element instanceof PrimitiveElement primitive)
@@ -311,8 +284,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder addLocalPrimitive(int idx, @NotNull StackElementType type)
-        {
+        public Builder addLocalPrimitive(int idx, @NotNull StackElementType type) {
             if (!(type == StackElementType.INTEGER ||
                     type == StackElementType.FLOAT ||
                     type == StackElementType.LONG ||
@@ -332,13 +304,12 @@ public class FrameDifferenceInfo
         /**
          * Adds an object local variable.
          *
-         * @param idx      The index.
+         * @param idx       The index.
          * @param reference The type descriptor.
          * @return This builder.
          */
         @NotNull
-        public Builder addLocalObject(int idx, @NotNull TypeDescriptor reference)
-        {
+        public Builder addLocalObject(int idx, @NotNull TypeDescriptor reference) {
             this.stackOperations.add(StackOperation.push(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -356,8 +327,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder addLocalFromCapsule(int idx, @NotNull StackElementCapsule capsule)
-        {
+        public Builder addLocalFromCapsule(int idx, @NotNull StackElementCapsule capsule) {
             this.stackOperations.add(StackOperation.push(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -374,8 +344,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder addLocalUninitialized(int idx)
-        {
+        public Builder addLocalUninitialized(int idx) {
             this.stackOperations.add(StackOperation.push(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -391,8 +360,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder addUninitializedThis()
-        {
+        public Builder addUninitializedThis() {
             this.stackOperations.add(StackOperation.push(new LocalStackElement(
                     this.instruction,
                     0, // "this" は常にローカル変数のインデックス 0 にある
@@ -405,13 +373,12 @@ public class FrameDifferenceInfo
         /**
          * Adds a local variable from a capsule element.
          *
-         * @param i      The index.
+         * @param i       The index.
          * @param capsule The capsule.
          * @return This builder.
          */
         @NotNull
-        public Builder addFromCapsule(int i, @NotNull StackElementCapsule capsule)
-        {
+        public Builder addFromCapsule(int i, @NotNull StackElementCapsule capsule) {
             this.stackOperations.add(StackOperation.push(new LocalStackElement(
                     this.instruction,
                     i,
@@ -427,8 +394,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder consumeUninitializedThis()
-        {
+        public Builder consumeUninitializedThis() {
             this.stackOperations.add(StackOperation.pop(new LocalStackElement(
                     this.instruction,
                     0, // "this" は常にローカル変数のインデックス 0 にある
@@ -444,8 +410,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popNull()
-        {
+        public Builder popNull() {
             this.stackOperations.add(StackOperation.pop(NullElement.of(this.instruction)));
             return this;
         }
@@ -457,8 +422,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popPrimitive(@NotNull StackElementType type)
-        {
+        public Builder popPrimitive(@NotNull StackElementType type) {
             if (!(type == StackElementType.INTEGER ||
                     type == StackElementType.FLOAT ||
                     type == StackElementType.LONG ||
@@ -466,8 +430,7 @@ public class FrameDifferenceInfo
                     type == StackElementType.OBJECT))
                 throw new IllegalArgumentException("Invalid stack element type: " + type);
 
-            if (type == StackElementType.LONG || type == StackElementType.DOUBLE)
-            {
+            if (type == StackElementType.LONG || type == StackElementType.DOUBLE) {
                 // LONG と DOUBLE はスタックから 2 つの要素を消費する。
                 this.stackOperations.add(StackOperation.pop(new TopElement(this.instruction)));
             }
@@ -482,8 +445,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popObjectRef(@NotNull TypeDescriptor reference)
-        {
+        public Builder popObjectRef(@NotNull TypeDescriptor reference) {
             this.stackOperations.add(StackOperation.pop(new ObjectElement(this.instruction, reference)));
             return this;
         }
@@ -494,8 +456,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushObjectRef()
-        {
+        public Builder pushObjectRef() {
             this.stackOperations.add(StackOperation.push(new ObjectElement(this.instruction)));
             return this;
         }
@@ -506,8 +467,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popObjectRef()
-        {
+        public Builder popObjectRef() {
             this.stackOperations.add(StackOperation.pop(new ObjectElement(this.instruction)));
             return this;
         }
@@ -519,8 +479,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popToCapsule(@NotNull StackElementCapsule capsule)
-        {
+        public Builder popToCapsule(@NotNull StackElementCapsule capsule) {
             // DUP や SWAP 用に， 現在の スタックの状態をカプセル化して保持する。
             this.stackOperations.add(StackOperation.pop(capsule));
             return this;
@@ -533,8 +492,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder pushFromCapsule(@NotNull StackElementCapsule capsule)
-        {
+        public Builder pushFromCapsule(@NotNull StackElementCapsule capsule) {
             // DUP や SWAP 用に， カプセル化されたスタックの状態を復元する。
             this.stackOperations.add(StackOperation.push(capsule));
             return this;
@@ -546,8 +504,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popUninitialized()
-        {
+        public Builder popUninitialized() {
             this.stackOperations.add(StackOperation.pop(new UninitializedElement(this.instruction)));
             return this;
         }
@@ -558,8 +515,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder popUninitializedThis()
-        {
+        public Builder popUninitializedThis() {
             this.stackOperations.add(StackOperation.pop(new UninitializedThisElement(this.instruction)));
             return this;
         }
@@ -572,8 +528,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder consumeLocalPrimitive(int idx, @NotNull StackElementType type)
-        {
+        public Builder consumeLocalPrimitive(int idx, @NotNull StackElementType type) {
             if (!(type == StackElementType.INTEGER ||
                     type == StackElementType.FLOAT ||
                     type == StackElementType.LONG ||
@@ -593,13 +548,12 @@ public class FrameDifferenceInfo
         /**
          * Consumes an object local variable.
          *
-         * @param idx      The index.
+         * @param idx       The index.
          * @param reference The type descriptor.
          * @return This builder.
          */
         @NotNull
-        public Builder consumeLocalObject(int idx, @NotNull TypeDescriptor reference)
-        {
+        public Builder consumeLocalObject(int idx, @NotNull TypeDescriptor reference) {
             this.stackOperations.add(StackOperation.pop(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -616,8 +570,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder consumeLocalUninitialized(int idx)
-        {
+        public Builder consumeLocalUninitialized(int idx) {
             this.stackOperations.add(StackOperation.pop(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -635,8 +588,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder consumeLocalCapsule(int idx, @NotNull StackElementCapsule capsule)
-        {
+        public Builder consumeLocalCapsule(int idx, @NotNull StackElementCapsule capsule) {
             this.stackOperations.add(StackOperation.pop(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -654,8 +606,7 @@ public class FrameDifferenceInfo
          * @return This builder.
          */
         @NotNull
-        public Builder consumeLocal(int idx, @NotNull StackElement element)
-        {
+        public Builder consumeLocal(int idx, @NotNull StackElement element) {
             if (element instanceof NullElement)
                 return this.consumeLocalNull(idx);
             else if (element instanceof PrimitiveElement primitive)
@@ -682,8 +633,7 @@ public class FrameDifferenceInfo
          * @param idx The index.
          * @return This builder.
          */
-        public @NotNull Builder consumeLocalNull(int idx)
-        {
+        public @NotNull Builder consumeLocalNull(int idx) {
             this.stackOperations.add(StackOperation.pop(new LocalStackElement(
                     this.instruction,
                     idx,
@@ -698,8 +648,7 @@ public class FrameDifferenceInfo
          * @return The FrameDifferenceInfo instance.
          */
         @NotNull
-        public FrameDifferenceInfo build()
-        {
+        public FrameDifferenceInfo build() {
             if (this.stackOperations.isEmpty())
                 return FrameDifferenceInfo.same();
 

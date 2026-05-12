@@ -11,35 +11,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public class DirectoryCompiler
-{
+public class DirectoryCompiler {
     public static void runCompiler(@NotNull Path sourceDirectory, @NotNull Path output,
                                    boolean isOutputDirectoryLike,
                                    @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags,
-                                   boolean verbose)
-    {
+                                   boolean verbose) {
         FileOutputter outputter = new FileOutputter(output, isOutputDirectoryLike, verbose);
-        if (!outputter.prepareOutput(output, verbose))
-        {
+        if (!outputter.prepareOutput(output, verbose)) {
             System.err.println("Failed to prepare output directory: " + output);
             return;
         }
 
         Path[] sourceFiles = scanInputDirectory(sourceDirectory, verbose);
-        if (sourceFiles.length == 0)
-        {
+        if (sourceFiles.length == 0) {
             System.out.println("No source files found in directory: " + sourceDirectory);
             return;
         }
 
         JALCompilerReporter reporter = new JALCompilerReporter(verbose);
         JALFileCompiler compiler;
-        try
-        {
-             compiler = new JALFileCompiler(reporter, outputter.getActualCompileOutput(), compileFlags);
-        }
-        catch (IOException e)
-        {
+        try {
+            compiler = new JALFileCompiler(reporter, outputter.getActualCompileOutput(), compileFlags);
+        } catch (IOException e) {
             System.err.println("Failed to initialize compiler: " + e.getMessage());
             return;
         }
@@ -47,17 +40,13 @@ public class DirectoryCompiler
         if (verbose)
             System.out.println("Compiling " + sourceFiles.length + " source files...");
 
-        for (Path sourceFile : sourceFiles)
-        {
+        for (Path sourceFile : sourceFiles) {
             if (verbose)
                 System.out.println("Compiling: " + sourceFile);
 
-            try
-            {
+            try {
                 compiler.compile(sourceFile);
-            }
-            catch (CompileErrorException e)
-            {
+            } catch (CompileErrorException e) {
                 reporter.postError("Failed to compile " + sourceFile, e, sourceFile);
                 return;
             }
@@ -68,13 +57,11 @@ public class DirectoryCompiler
             System.out.println("Compilation completed successfully.");
     }
 
-    private static Path[] scanInputDirectory(@NotNull Path sourceDirectory, boolean verbose)
-    {
+    private static Path[] scanInputDirectory(@NotNull Path sourceDirectory, boolean verbose) {
         if (verbose)
             System.out.println("Scanning directory: " + sourceDirectory);
         Path[] sourceFiles = getAllCompilableSources(sourceDirectory);
-        if (verbose)
-        {
+        if (verbose) {
             System.out.println("Found " + sourceFiles.length + " source files to compile.");
             for (Path sourceFile : sourceFiles)
                 System.out.println("- " + sourceFile);
@@ -83,18 +70,13 @@ public class DirectoryCompiler
         return sourceFiles;
     }
 
-
-    private static Path[] getAllCompilableSources(@NotNull Path sourceDirectory)
-    {
-        try(Stream<Path> paths = Files.walk(sourceDirectory))
-        {
+    private static Path[] getAllCompilableSources(@NotNull Path sourceDirectory) {
+        try (Stream<Path> paths = Files.walk(sourceDirectory)) {
             return paths
                     .filter(Files::isRegularFile)
                     .filter(CompilerCLI::hasValidInputFileName)
                     .toArray(Path[]::new);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to list source files in directory: " + sourceDirectory, e);
         }
     }

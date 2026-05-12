@@ -1,36 +1,35 @@
 package tokyo.peya.langjal.compiler.instructions.xaload;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.ObjectElement;
 import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
-import tokyo.peya.langjal.compiler.JALParser;
-import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.AbstractSingleInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
-public class InstructionEvaluatorAALoad extends AbstractSingleInstructionEvaluator<JALParser.JvmInsAaloadContext>
-{
-    public InstructionEvaluatorAALoad()
-    {
+public class InstructionEvaluatorAALoad extends AbstractSingleInstructionEvaluator<JALParser.JvmInsAaloadContext> {
+    public InstructionEvaluatorAALoad() {
         super(EOpcodes.AALOAD);
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
-        StackElementCapsule popObject = new StackElementCapsule(instruction, elm -> ((ObjectElement) elm).content().atomicElement(instruction));
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
+        StackElementCapsule popObject = new StackElementCapsule(instruction,
+                elm -> ((ObjectElement) elm).content()
+                        .atomicElement(instruction)
+        );
         return FrameDifferenceInfo.builder(instruction)
-                                  .popPrimitive(StackElementType.INTEGER)
-                                  .popToCapsule(popObject)
-                                  .pushFromCapsule(popObject)
-                                  .build();
+                .popPrimitive(StackElementType.INTEGER)
+                .popToCapsule(popObject)
+                .pushFromCapsule(popObject)
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsAaloadContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsAaloadContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsAaload();
     }
 }

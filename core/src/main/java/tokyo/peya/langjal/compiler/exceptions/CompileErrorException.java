@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * Stores detailed message and location information for error reporting.
  */
 @Getter
-public class CompileErrorException extends RuntimeException
-{
+public class CompileErrorException extends RuntimeException {
     /**
      * Detailed error message.
      */
@@ -38,8 +37,7 @@ public class CompileErrorException extends RuntimeException
      * @param length          Length of the error region.
      */
     public CompileErrorException(@NotNull String detailedMessage,
-                                 long line, long column, long length)
-    {
+                                 long line, long column, long length) {
         super(detailedMessage);
         this.detailedMessage = detailedMessage;
         this.line = line;
@@ -53,8 +51,7 @@ public class CompileErrorException extends RuntimeException
      * @param detailedMessage Detailed error message.
      * @param node            Parser rule context.
      */
-    public CompileErrorException(@NotNull String detailedMessage, @NotNull ParserRuleContext node)
-    {
+    public CompileErrorException(@NotNull String detailedMessage, @NotNull ParserRuleContext node) {
         this(
                 detailedMessage,
                 node.getStart().getLine(),
@@ -69,8 +66,7 @@ public class CompileErrorException extends RuntimeException
      * @param detailedMessage Detailed error message.
      * @param node            Terminal node.
      */
-    public CompileErrorException(@NotNull String detailedMessage, @NotNull TerminalNode node)
-    {
+    public CompileErrorException(@NotNull String detailedMessage, @NotNull TerminalNode node) {
         this(
                 detailedMessage,
                 node.getSymbol().getLine(),
@@ -91,8 +87,7 @@ public class CompileErrorException extends RuntimeException
      */
     public CompileErrorException(@NotNull String message, @NotNull Throwable cause,
                                  @NotNull String detailedMessage, long line,
-                                 long column, long length)
-    {
+                                 long column, long length) {
         super(message, cause);
         this.detailedMessage = detailedMessage;
         this.line = line;
@@ -108,8 +103,7 @@ public class CompileErrorException extends RuntimeException
      * @param detailedMessage Detailed error message.
      */
     public CompileErrorException(@NotNull String message, @NotNull Throwable cause,
-                                 @NotNull String detailedMessage)
-    {
+                                 @NotNull String detailedMessage) {
         super(message, cause);
         this.detailedMessage = detailedMessage;
         this.line = 0;

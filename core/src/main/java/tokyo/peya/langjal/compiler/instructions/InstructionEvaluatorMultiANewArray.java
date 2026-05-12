@@ -4,24 +4,18 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
 public class InstructionEvaluatorMultiANewArray
-        extends AbstractInstructionEvaluator<JALParser.JvmInsMultianewarrayContext>
-{
-    public InstructionEvaluatorMultiANewArray()
-    {
+        extends AbstractInstructionEvaluator<JALParser.JvmInsMultianewarrayContext> {
+    public InstructionEvaluatorMultiANewArray() {
         super(EOpcodes.MULTIANEWARRAY);
     }
 
@@ -31,8 +25,7 @@ public class InstructionEvaluatorMultiANewArray
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsMultianewarrayContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsMultianewarrayContext instruction) {
         JALParser.TypeDescriptorContext typeDescriptor = instruction.typeDescriptor();
         // Ljava/lang/String; -> java.lang.String に変換
         String typeName = EvaluatorCommons.unwrapClassTypeDescriptor(typeDescriptor);
@@ -43,8 +36,7 @@ public class InstructionEvaluatorMultiANewArray
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         MultiANewArrayInsnNode insn = (MultiANewArrayInsnNode) instruction.insn();
 
         FrameDifferenceInfo.Builder builder = FrameDifferenceInfo.builder(instruction);
@@ -57,8 +49,7 @@ public class InstructionEvaluatorMultiANewArray
     }
 
     @Override
-    public JALParser.JvmInsMultianewarrayContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsMultianewarrayContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsMultianewarray();
     }
 }

@@ -14,8 +14,7 @@ import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
  * This class extracts class metadata, inheritance information, access flags, and methods,
  * reporting progress and errors via a {@link FileEvaluatingReporter}.
  */
-public class ClassImporter
-{
+public class ClassImporter {
     private final FileEvaluatingReporter reporter;
 
     /**
@@ -23,8 +22,7 @@ public class ClassImporter
      *
      * @param reporter The reporter used to post informational and error messages during import.
      */
-    public ClassImporter(@NotNull FileEvaluatingReporter reporter)
-    {
+    public ClassImporter(@NotNull FileEvaluatingReporter reporter) {
         this.reporter = reporter;
     }
 
@@ -37,8 +35,7 @@ public class ClassImporter
      * @return The result of the class import, encapsulated in a {@link ClassImportResult}.
      */
     @NotNull
-    public ClassImportResult importClass(@NotNull ClassNode asmClass)
-    {
+    public ClassImportResult importClass(@NotNull ClassNode asmClass) {
         this.reporter.postInfo("Importing class: " + asmClass.name);
 
         int majorVersion = asmClass.version & 0xFFFF0000;
@@ -65,8 +62,7 @@ public class ClassImporter
         MethodImporter methodImporter = new MethodImporter(asmClass, this.reporter);
         MethodImportResult[] importedMethods = new MethodImportResult[asmClass.methods.size()];
         MethodNode[] methods = asmClass.methods.toArray(new MethodNode[0]);
-        for (int i = 0; i < methods.length; i++)
-        {
+        for (int i = 0; i < methods.length; i++) {
             MethodNode method = methods[i];
             importedMethods[i] = methodImporter.importMethod(method);
         }

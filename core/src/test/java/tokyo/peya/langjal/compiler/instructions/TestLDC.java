@@ -14,25 +14,17 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public class TestLDC
-{
+public class TestLDC {
     private abstract class LDCTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
-            extends AbstractInstructionTestCase<T, E>
-    {
-        protected LDCTestCase(E evaluator, int... expectedOpCodes)
-        {
+            extends AbstractInstructionTestCase<T, E> {
+        protected LDCTestCase(E evaluator, int... expectedOpCodes) {
             super(evaluator, expectedOpCodes);
         }
 
-        protected InstructionCase constantLoad(Object value, StackMachine.StackValue stackValue, String syntax)
-        {
+        protected InstructionCase constantLoad(Object value, StackMachine.StackValue stackValue, String syntax) {
             return of(
                     create().expected(create(stackValue)),
                     syntax,
@@ -40,8 +32,7 @@ public class TestLDC
             );
         }
 
-        protected InstructionCase constantLoadWithBase(Object value, StackMachine.StackValue stackValue, String syntax)
-        {
+        protected InstructionCase constantLoadWithBase(Object value, StackMachine.StackValue stackValue, String syntax) {
             return of(
                     create(object(TypeDescriptor.className("java/lang/String")))
                             .expected(create(object(TypeDescriptor.className("java/lang/String")), stackValue)),
@@ -51,8 +42,7 @@ public class TestLDC
         }
 
         @Override
-        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
-        {
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual) {
             super.assertInstructionEquals(expected, actual);
 
             LdcInsnNode expectedLdc = (LdcInsnNode) expected;
@@ -62,16 +52,13 @@ public class TestLDC
     }
 
     @Nested
-    class TestLdc extends LDCTestCase<JALParser.JvmInsLdcContext, InstructionEvaluatorLDC>
-    {
-        TestLdc()
-        {
+    class TestLdc extends LDCTestCase<JALParser.JvmInsLdcContext, InstructionEvaluatorLDC> {
+        TestLdc() {
             super(new InstructionEvaluatorLDC(), EOpcodes.LDC);
         }
 
         @Override
-        public InstructionCase[] getValidInstructionSyntaxes()
-        {
+        public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     constantLoad(123, integerValue(), "ldc 123"),
                     constantLoadWithBase(123, integerValue(), "ldc 123"),
@@ -83,16 +70,13 @@ public class TestLDC
     }
 
     @Nested
-    class TestLdcW extends LDCTestCase<JALParser.JvmInsLdcWContext, InstructionEvaluatorLDCW>
-    {
-        TestLdcW()
-        {
+    class TestLdcW extends LDCTestCase<JALParser.JvmInsLdcWContext, InstructionEvaluatorLDCW> {
+        TestLdcW() {
             super(new InstructionEvaluatorLDCW(), EOpcodes.LDC_W);
         }
 
         @Override
-        public InstructionCase[] getValidInstructionSyntaxes()
-        {
+        public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     constantLoad(456, integerValue(), "ldc_w 456"),
                     constantLoadWithBase(456, integerValue(), "ldc_w 456"),
@@ -102,16 +86,13 @@ public class TestLDC
     }
 
     @Nested
-    class TestLdc2W extends LDCTestCase<JALParser.JvmInsLdc2WContext, InstructionEvaluatorLDCW2>
-    {
-        TestLdc2W()
-        {
+    class TestLdc2W extends LDCTestCase<JALParser.JvmInsLdc2WContext, InstructionEvaluatorLDCW2> {
+        TestLdc2W() {
             super(new InstructionEvaluatorLDCW2(), EOpcodes.LDC2_W);
         }
 
         @Override
-        public InstructionCase[] getValidInstructionSyntaxes()
-        {
+        public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     constantLoad(123L, longValue(), "ldc2_w 123L"),
                     constantLoadWithBase(123L, longValue(), "ldc2_w 123L"),

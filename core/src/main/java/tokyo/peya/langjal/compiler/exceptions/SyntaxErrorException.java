@@ -14,8 +14,7 @@ import java.nio.file.Path;
  * </p>
  */
 @Getter
-public class SyntaxErrorException extends CompileErrorException
-{
+public class SyntaxErrorException extends CompileErrorException {
     /**
      * The path to the source file where the syntax error occurred, or null if unknown.
      */
@@ -31,8 +30,7 @@ public class SyntaxErrorException extends CompileErrorException
      * @param length The length of the erroneous token or region.
      */
     public SyntaxErrorException(@NotNull RecognitionException cause, long line,
-                                long column, long length)
-    {
+                                long column, long length) {
         super(
                 "Syntax error",
                 cause,
@@ -55,8 +53,7 @@ public class SyntaxErrorException extends CompileErrorException
     public SyntaxErrorException(@NotNull RecognitionException cause,
                                 @Nullable Path sourcePath,
                                 long line,
-                                long column, long length)
-    {
+                                long column, long length) {
         super(
                 "Syntax error",
                 cause,

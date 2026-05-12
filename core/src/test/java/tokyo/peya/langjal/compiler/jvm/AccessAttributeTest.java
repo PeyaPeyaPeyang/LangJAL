@@ -10,16 +10,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("AccessAttribute")
-class AccessAttributeTest
-{
+class AccessAttributeTest {
+    static Stream<AccessAttribute> allAttributes() {
+        return Arrays.stream(AccessAttribute.values());
+    }
+
     @Test
     void enumValuesHaveUniqueNamesAndFlags() {
         AccessAttribute[] values = AccessAttribute.values();
@@ -36,13 +34,15 @@ class AccessAttributeTest
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "STATIC,static",
-            "final,final",
-            "  AbStRaCt  ,abstract",
-            "InTeRfAcE,interface",
-            "  volatile  ,volatile"
-    })
+    @CsvSource(
+            {
+                    "STATIC,static",
+                    "final,final",
+                    "  AbStRaCt  ,abstract",
+                    "InTeRfAcE,interface",
+                    "  volatile  ,volatile"
+            }
+    )
     void fromStringAcceptsCaseAndWhitespace(String input, String expected) {
         assertEquals(expected, AccessAttribute.fromString(input).getName());
     }
@@ -63,10 +63,6 @@ class AccessAttributeTest
     @MethodSource("allAttributes")
     void roundTripsThroughName(AccessAttribute attribute) {
         assertSame(attribute, AccessAttribute.fromString(attribute.getName()));
-    }
-
-    static Stream<AccessAttribute> allAttributes() {
-        return Arrays.stream(AccessAttribute.values());
     }
 }
 

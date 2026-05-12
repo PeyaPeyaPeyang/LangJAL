@@ -8,9 +8,9 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 /**
  * Represents an evaluated instruction, including its evaluator, instruction node, and custom size.
  *
- * @param evaluator   The instruction evaluator.
- * @param insn        The ASM instruction node.
- * @param customSize  The custom size for variable-sized instructions (e.g., wide, lookupswitch).
+ * @param evaluator  The instruction evaluator.
+ * @param insn       The ASM instruction node.
+ * @param customSize The custom size for variable-sized instructions (e.g., wide, lookupswitch).
  */
 public record EvaluatedInstruction(
         @NotNull
@@ -18,31 +18,15 @@ public record EvaluatedInstruction(
         @NotNull
         AbstractInsnNode insn,
         int customSize // wide, lookupswitch, tableswitch, etc.
-)
-{
+) {
     /**
      * Constructs an EvaluatedInstruction with default size.
      *
      * @param evaluator The instruction evaluator.
      * @param insn      The ASM instruction node.
      */
-    private EvaluatedInstruction(@NotNull AbstractInstructionEvaluator<?> evaluator, @NotNull AbstractInsnNode insn)
-    {
+    private EvaluatedInstruction(@NotNull AbstractInstructionEvaluator<?> evaluator, @NotNull AbstractInsnNode insn) {
         this(evaluator, insn, 0);
-    }
-
-    /**
-     * Returns the size of the instruction.
-     * If a custom size is specified, returns it; otherwise, determines size from opcode.
-     *
-     * @return The instruction size.
-     */
-    public int getInstructionSize()
-    {
-        if (this.customSize > 0)
-            return this.customSize;  // Returns explicitly specified size
-        else
-            return EOpcodes.getOpcodeSize(this.insn.getOpcode());
     }
 
     /**
@@ -53,8 +37,7 @@ public record EvaluatedInstruction(
      * @return The EvaluatedInstruction instance.
      */
     public static EvaluatedInstruction of(@NotNull AbstractInstructionEvaluator<?> evaluator,
-                                          @NotNull AbstractInsnNode insn)
-    {
+                                          @NotNull AbstractInsnNode insn) {
         return new EvaluatedInstruction(evaluator, insn);
     }
 
@@ -68,8 +51,7 @@ public record EvaluatedInstruction(
      * @throws IllegalArgumentException if a custom size is required but not provided.
      */
     public static EvaluatedInstruction of(@NotNull AbstractInstructionEvaluator<?> evaluator,
-                                          @NotNull AbstractInsnNode insn, int size)
-    {
+                                          @NotNull AbstractInsnNode insn, int size) {
         checkSizeProvided(insn.getOpcode(), size);
         return new EvaluatedInstruction(evaluator, insn, size);
     }
@@ -81,8 +63,7 @@ public record EvaluatedInstruction(
      * @param size   The provided size.
      * @throws IllegalArgumentException if a custom size is required but not provided.
      */
-    private static void checkSizeProvided(int opcode, int size)
-    {
+    private static void checkSizeProvided(int opcode, int size) {
         if (size > 0)
             return;
 
@@ -91,5 +72,18 @@ public record EvaluatedInstruction(
                 || opcode == EOpcodes.WIDE
                 || opcode == EOpcodes.INVOKEDYNAMIC)
             throw new IllegalArgumentException("Instruction with opcode(" + opcode + ") requires a custom size to be specified.");
+    }
+
+    /**
+     * Returns the size of the instruction.
+     * If a custom size is specified, returns it; otherwise, determines size from opcode.
+     *
+     * @return The instruction size.
+     */
+    public int getInstructionSize() {
+        if (this.customSize > 0)
+            return this.customSize;  // Returns explicitly specified size
+        else
+            return EOpcodes.getOpcodeSize(this.insn.getOpcode());
     }
 }

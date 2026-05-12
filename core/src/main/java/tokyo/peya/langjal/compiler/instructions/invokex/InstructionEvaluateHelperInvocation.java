@@ -1,12 +1,11 @@
 package tokyo.peya.langjal.compiler.instructions.invokex;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
@@ -15,27 +14,24 @@ import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
-public class InstructionEvaluateHelperInvocation
-{
+public class InstructionEvaluateHelperInvocation {
     @NotNull
     public static EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                 @NotNull ClassNode ownerClazz,
-                                                @NotNull JALParser.JvmInsArgMethodRefContext ref, int opcode)
-    {
+                                                @NotNull JALParser.JvmInsArgMethodRefContext ref, int opcode) {
         JALParser.FullQualifiedClassNameContext methodOwner = ref.fullQualifiedClassName();
         JALParser.MethodNameContext methodName = ref.methodName();
         JALParser.MethodDescriptorContext methodDescriptor = ref.methodDescriptor();
         return evaluate(
                 evaluator,
-                methodOwner == null ? ownerClazz.name: methodOwner.getText(),
+                methodOwner == null ? ownerClazz.name : methodOwner.getText(),
                 methodName.getText(),
                 methodDescriptor.getText(),
                 opcode
         );
     }
 
-    public static FrameDifferenceInfo getFrameNormalDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public static FrameDifferenceInfo getFrameNormalDifferenceInfo(@NotNull InstructionInfo instruction) {
         MethodInsnNode method = (MethodInsnNode) instruction.insn();
         MethodDescriptor descriptor = MethodDescriptor.parse(method.desc);
         TypeDescriptor returnType = descriptor.getReturnType();
@@ -43,8 +39,7 @@ public class InstructionEvaluateHelperInvocation
 
         FrameDifferenceInfo.Builder builder = FrameDifferenceInfo.builder(instruction);
         opArguments(builder, instruction, parameterTypes);
-        if (!(method.getOpcode() == EOpcodes.INVOKESTATIC || method.getOpcode() == EOpcodes.INVOKEDYNAMIC))
-        {
+        if (!(method.getOpcode() == EOpcodes.INVOKESTATIC || method.getOpcode() == EOpcodes.INVOKEDYNAMIC)) {
             // インスタンスメソッドの場合は，所有者クラスのインスタンスをスタックからポップする
             builder.popObjectRef(TypeDescriptor.className(method.owner));
         }
@@ -53,9 +48,7 @@ public class InstructionEvaluateHelperInvocation
         return builder.build();
     }
 
-
-    public static FrameDifferenceInfo getFrameInvokedynamicFrameDifference(@NotNull InstructionInfo instruction)
-    {
+    public static FrameDifferenceInfo getFrameInvokedynamicFrameDifference(@NotNull InstructionInfo instruction) {
         InvokeDynamicInsnNode method = (InvokeDynamicInsnNode) instruction.insn();
         MethodDescriptor descriptor = MethodDescriptor.parse(method.desc);
         TypeDescriptor returnType = descriptor.getReturnType();
@@ -69,8 +62,7 @@ public class InstructionEvaluateHelperInvocation
 
     public static FrameDifferenceInfo.Builder opArguments(@NotNull FrameDifferenceInfo.Builder builder,
                                                           @NotNull InstructionInfo instruction,
-                                                          @NotNull TypeDescriptor[] parameterTypes)
-    {
+                                                          @NotNull TypeDescriptor[] parameterTypes) {
 
         for (int i = parameterTypes.length - 1; i >= 0; i--)   // 逆順
         {
@@ -84,8 +76,7 @@ public class InstructionEvaluateHelperInvocation
     @NotNull
     public static FrameDifferenceInfo.Builder opReturnType(@NotNull FrameDifferenceInfo.Builder builder,
                                                            @NotNull InstructionInfo instruction,
-                                                           @NotNull TypeDescriptor returnType)
-    {
+                                                           @NotNull TypeDescriptor returnType) {
         if (returnType.getBaseType() != PrimitiveTypes.VOID)
             builder.push(returnType.toStackElement(instruction));
         return builder;
@@ -94,8 +85,7 @@ public class InstructionEvaluateHelperInvocation
     public static EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                 @NotNull String ownerType,
                                                 @NotNull String methodName,
-                                                @NotNull String methodDescriptor, int opcode)
-    {
+                                                @NotNull String methodDescriptor, int opcode) {
         MethodInsnNode insn = new MethodInsnNode(
                 opcode,
                 ownerType,

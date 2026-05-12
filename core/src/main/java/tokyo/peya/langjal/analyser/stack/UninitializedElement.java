@@ -12,56 +12,55 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
 public record UninitializedElement(
         @NotNull
         InstructionInfo instruction // new をしている命令
-) implements StackElement
-{
+) implements StackElement {
     /**
      * Validates that the instruction is a NEW opcode.
+     *
      * @param instruction The instruction info.
      */
-    public UninitializedElement
-    {
+    public UninitializedElement {
         if (instruction.opcode() != EOpcodes.NEW)
             throw new IllegalArgumentException("UninitializedElement must be created with a NEW instruction, but was: " + instruction.opcode());
     }
 
     /**
      * Gets the instruction that produced this uninitialized element.
+     *
      * @return The instruction info.
      */
     @Override
-    public @NotNull InstructionInfo producer()
-    {
+    public @NotNull InstructionInfo producer() {
         return this.instruction;
     }
 
     /**
      * Gets the type of this stack element.
+     *
      * @return The stack element type.
      */
     @Override
-    public @NotNull StackElementType type()
-    {
+    public @NotNull StackElementType type() {
         return StackElementType.UNINITIALIZED;
     }
 
     /**
      * Converts this element to an ASM stack element.
+     *
      * @return The ASM representation.
      */
     @Override
-    public Object toASMStackElement()
-    {
+    public Object toASMStackElement() {
         // TODO: ラベルがいるらしい。
         return this.instruction.toString();
     }
 
     /**
      * Returns a string representation of this uninitialized element.
+     *
      * @return String representation.
      */
     @Override
-    public @NotNull String toString()
-    {
+    public @NotNull String toString() {
         return "Uninitialized type (by " + this.instruction + ")";
     }
 }

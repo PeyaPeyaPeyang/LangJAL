@@ -4,22 +4,15 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
-import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelInfo;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorIfNull extends AbstractInstructionEvaluator<JALParser.JvmInsIfNullContext>
-{
-    public InstructionEvaluatorIfNull()
-    {
+public class InstructionEvaluatorIfNull extends AbstractInstructionEvaluator<JALParser.JvmInsIfNullContext> {
+    public InstructionEvaluatorIfNull() {
         super(EOpcodes.IFNULL);
     }
 
@@ -29,8 +22,7 @@ public class InstructionEvaluatorIfNull extends AbstractInstructionEvaluator<JAL
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsIfNullContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsIfNullContext instruction) {
         JALParser.LabelNameContext labelNameContext = instruction.labelName();
         LabelInfo label = labels.resolve(labelNameContext);
 
@@ -39,16 +31,14 @@ public class InstructionEvaluatorIfNull extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                                  .popObjectRef()
-                                  .build();
+                .popObjectRef()
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsIfNullContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsIfNullContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsIfNull();
     }
 }

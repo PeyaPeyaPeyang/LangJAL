@@ -5,14 +5,7 @@ import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.IincInsnNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.LookupSwitchInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TableSwitchInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.*;
 import tokyo.peya.langjal.compiler.CompileSettings;
 import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorReturn;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
@@ -25,8 +18,7 @@ import java.util.List;
  * Holds and manages a list of {@link InstructionInfo} objects for a method,
  * tracking bytecode offsets and providing methods to add, finalize, and query instructions.
  */
-public class InstructionsHolder
-{
+public class InstructionsHolder {
     /**
      * The class that owns these instructions.
      */
@@ -44,7 +36,6 @@ public class InstructionsHolder
      */
     private final List<InstructionInfo> instructions;
 
-
     /**
      * Current bytecode offset for the next instruction.
      */
@@ -60,8 +51,7 @@ public class InstructionsHolder
      */
     public InstructionsHolder(@NotNull ClassNode ownerClass,
                               @NotNull MethodNode ownerMethod,
-                              @NotNull LabelsHolder labels)
-    {
+                              @NotNull LabelsHolder labels) {
         this.ownerClass = ownerClass;
         this.ownerMethod = ownerMethod;
         this.labels = labels;
@@ -75,8 +65,7 @@ public class InstructionsHolder
      *
      * @return The instruction count.
      */
-    public int getSize()
-    {
+    public int getSize() {
         return this.instructions.size();
     }
 
@@ -85,8 +74,7 @@ public class InstructionsHolder
      *
      * @return The added InstructionInfo.
      */
-    public InstructionInfo addReturn()
-    {
+    public InstructionInfo addReturn() {
         int returnOpcode = EOpcodes.RETURN;
         InstructionInfo instruction = new InstructionInfo(
                 new InstructionEvaluatorReturn(),
@@ -113,8 +101,7 @@ public class InstructionsHolder
      */
     public InstructionInfo addInstruction(@NotNull EvaluatedInstruction evaluatedInstruction,
                                           @Nullable LabelInfo labelAssignation,
-                                          int sourceLine)
-    {
+                                          int sourceLine) {
         InstructionInfo instruction = new InstructionInfo(
                 this.bytecodeOffset,
                 evaluatedInstruction.insn(),
@@ -132,8 +119,7 @@ public class InstructionsHolder
 
     public InstructionInfo importInstruction(@NotNull AbstractInsnNode instruction,
                                              @Nullable LabelInfo labelAssignation,
-                                             int sourceLine)
-    {
+                                             int sourceLine) {
         int opcode = instruction.getOpcode();
         if (opcode == -1)  // 無効な命令コードの場合
             throw new IllegalArgumentException("Invalid opcode for instruction: " + instruction);
@@ -153,15 +139,13 @@ public class InstructionsHolder
         return instructionInfo;
     }
 
-    private int calcInstructionSize(@NotNull AbstractInsnNode instruction)
-    {
+    private int calcInstructionSize(@NotNull AbstractInsnNode instruction) {
         int opcode = instruction.getOpcode();
         if (opcode == -1)  // 無効な命令コードの場合
             throw new IllegalArgumentException("Invalid opcode for instruction: " + instruction);
 
         // tableswitch/lookupswitch/wide は可変だが，その他は固定なのでらくらく。
-        return switch (opcode)
-        {
+        return switch (opcode) {
             case EOpcodes.TABLESWITCH -> {
                 TableSwitchInsnNode tableSwitch = (TableSwitchInsnNode) instruction;
                 int padding = this.calcSwitchPadding(); // パディングを計算
@@ -202,14 +186,12 @@ public class InstructionsHolder
         };
     }
 
-    private int calcSwitchPadding()
-    {
+    private int calcSwitchPadding() {
         // パディングは 4 バイト境界に合わせる
         return (4 - (this.bytecodeOffset + 1) % 4) % 4;
     }
 
-    private void addInstruction(@NotNull InstructionInfo instruction)
-    {
+    private void addInstruction(@NotNull InstructionInfo instruction) {
         this.instructions.add(instruction);
         this.bytecodeOffset += instruction.instructionSize();
     }
@@ -217,12 +199,10 @@ public class InstructionsHolder
     /**
      * Finalizes instructions by adding them to the method and handling labels and line numbers.
      */
-    public void finaliseInstructions(@MagicConstant(flagsFromClass = CompileSettings.class) int compileSettings)
-    {
+    public void finaliseInstructions(@MagicConstant(flagsFromClass = CompileSettings.class) int compileSettings) {
         boolean includeLineNumberTable =
                 (compileSettings & CompileSettings.INCLUDE_LINE_NUMBER_TABLE) != 0;
-        for (InstructionInfo instruction : this.instructions)
-        {
+        for (InstructionInfo instruction : this.instructions) {
             if (instruction.assignedLabel() != null)  // 命令にラベルが割り当てられている場合
                 this.ownerMethod.instructions.add(instruction.assignedLabel().node());
 
@@ -235,18 +215,14 @@ public class InstructionsHolder
         }
     }
 
-    private void addLineNumberOnCurrentInstruction(@NotNull InstructionInfo instruction)
-    {
+    private void addLineNumberOnCurrentInstruction(@NotNull InstructionInfo instruction) {
         int lineNumber = instruction.sourceLine();
-        if (lineNumber >= 0)
-        {
+        if (lineNumber >= 0) {
             Label label;
-            if (instruction.assignedLabel() == null)
-            {
+            if (instruction.assignedLabel() == null) {
                 label = new Label();
                 this.ownerMethod.visitLabel(label);
-            }
-            else
+            } else
                 label = instruction.assignedLabel().node().getLabel();
             this.ownerMethod.visitLineNumber(lineNumber, label);
         }
@@ -257,8 +233,7 @@ public class InstructionsHolder
      *
      * @return True if empty, false otherwise.
      */
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return this.instructions.isEmpty();
     }
 
@@ -269,8 +244,7 @@ public class InstructionsHolder
      * @return The InstructionInfo or null.
      */
     @Nullable
-    public InstructionInfo getInstruction(int index)
-    {
+    public InstructionInfo getInstruction(int index) {
         if (index < 0 || index >= this.instructions.size())
             return null; // インデックスが範囲外の場合はnullを返す
         return this.instructions.get(index);
@@ -283,8 +257,7 @@ public class InstructionsHolder
      * @throws IllegalStateException If there are no instructions.
      */
     @NotNull
-    public InstructionInfo getLastInstruction()
-    {
+    public InstructionInfo getLastInstruction() {
         if (this.instructions.isEmpty())
             throw new IllegalStateException("No instructions available");
         return this.instructions.get(this.instructions.size() - 1);
@@ -297,15 +270,13 @@ public class InstructionsHolder
      * @return List of InstructionInfo objects.
      * @throws IndexOutOfBoundsException If the start index is invalid.
      */
-    public List<InstructionInfo> getInstructions(LabelInfo instructionSet)
-    {
+    public List<InstructionInfo> getInstructions(LabelInfo instructionSet) {
         int startIndex = instructionSet.instructionIndex();
         if (startIndex < 0 || startIndex >= this.instructions.size())
             throw new IndexOutOfBoundsException("Start index is out of bounds: " + startIndex);
 
         List<InstructionInfo> instructionSetList = new ArrayList<>();
-        for (int i = startIndex; i < this.instructions.size(); i++)
-        {
+        for (int i = startIndex; i < this.instructions.size(); i++) {
             InstructionInfo instruction = this.instructions.get(i);
             if (!(instruction.assignedLabel() == null || instruction.assignedLabel().equals(instructionSet)))
                 break; // 次のラベルが割り当てられた命令に到達したら終了

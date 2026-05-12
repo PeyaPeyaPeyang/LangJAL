@@ -23,24 +23,21 @@ import java.util.List;
  * When a method explicitly defines a label as its start, it will be registered as the global start label,
  * replacing the default <code>MBEGIN</code>.
  */
-public class LabelsHolder
-{
+public class LabelsHolder {
     /**
      * List of all labels registered in this holder.
      */
     private final List<LabelInfo> labels;
-
-    /**
-     * The global start label for the method.
-     */
-    @Getter
-    private LabelInfo globalStart;
     /**
      * The global end label for the method.
      */
     @Getter
     private final LabelInfo globalEnd;
-
+    /**
+     * The global start label for the method.
+     */
+    @Getter
+    private LabelInfo globalStart;
     /**
      * The current label being processed.
      */
@@ -51,12 +48,28 @@ public class LabelsHolder
     /**
      * Creates a new LabelsHolder with default global start and end labels.
      */
-    public LabelsHolder()
-    {
+    public LabelsHolder() {
         this.labels = new ArrayList<>();
 
         this.globalStart = this.currentLabel = new LabelInfo("MBEGIN", new Label(), 0);
         this.globalEnd = new LabelInfo("MEND", new Label(), 50);
+    }
+
+    /**
+     * Checks if a label is in scope between two labels.
+     *
+     * @param scopeStart   The start label.
+     * @param scopeEnd     The end label.
+     * @param currentLabel The label to check.
+     * @return True if in scope.
+     */
+    public static boolean isInScope(@NotNull LabelInfo scopeStart, @NotNull LabelInfo scopeEnd,
+                                    @NotNull LabelInfo currentLabel) {
+        int startIndex = scopeStart.instructionIndex();
+        int endIndex = scopeEnd.instructionIndex();
+        int currentIndex = currentLabel.instructionIndex();
+
+        return currentIndex >= startIndex && currentIndex <= endIndex;
     }
 
     /**
@@ -65,8 +78,7 @@ public class LabelsHolder
      * @param globalStart The label to set as global start.
      * @throws IllegalStateException If already initialized.
      */
-    public void setGlobalStart(@NotNull LabelInfo globalStart)
-    {
+    public void setGlobalStart(@NotNull LabelInfo globalStart) {
         if (!this.globalStart.name().equals("MBEGIN"))
             throw new IllegalStateException("Global start label cannot be set after it has been initialized.");
 
@@ -83,8 +95,7 @@ public class LabelsHolder
      * @throws UnknownLabelException If not found.
      */
     @NotNull
-    public LabelInfo resolve(@NotNull JALParser.LabelNameContext labelName)
-    {
+    public LabelInfo resolve(@NotNull JALParser.LabelNameContext labelName) {
         LabelInfo resolvedLabel = this.resolveSafe(labelName.getText());
         if (resolvedLabel == null)
             throw new UnknownLabelException(
@@ -103,10 +114,8 @@ public class LabelsHolder
      * @return The resolved LabelInfo or null.
      */
     @Nullable
-    public LabelInfo resolveSafe(@NotNull String labelName)
-    {
-        for (LabelInfo existingLabel : this.labels)
-        {
+    public LabelInfo resolveSafe(@NotNull String labelName) {
+        for (LabelInfo existingLabel : this.labels) {
             if (existingLabel.name().equals(labelName))
                 return existingLabel;  // すでに登録されているラベルを返す
         }
@@ -123,8 +132,7 @@ public class LabelsHolder
      * @throws UnknownLabelException If already defined.
      */
     @NotNull
-    public LabelInfo register(@NotNull JALParser.LabelNameContext labelName, int instructionIndex)
-    {
+    public LabelInfo register(@NotNull JALParser.LabelNameContext labelName, int instructionIndex) {
         LabelInfo existingLabel = this.resolveSafe(labelName.getText());
         if (existingLabel != null)
             throw new UnknownLabelException(
@@ -149,12 +157,12 @@ public class LabelsHolder
      * and register it in the LabelsHolder.
      * <p>
      * Each label is associated with a random-generated name like <code>L123456</code> which is identifiable and unique within the method.
-     * @param asmLabelNode The ASM label node to import.
+     *
+     * @param asmLabelNode     The ASM label node to import.
      * @param instructionIndex The instruction index where the label is defined.
      * @return The registered LabelInfo.
      */
-    public LabelInfo importASMLabel(@NotNull LabelNode asmLabelNode, int instructionIndex)
-    {
+    public LabelInfo importASMLabel(@NotNull LabelNode asmLabelNode, int instructionIndex) {
         // ASMのラベルノードからラベル情報を登録
         LabelInfo existingLabel = this.getLabelByNode(asmLabelNode);
         if (existingLabel != null)
@@ -177,8 +185,7 @@ public class LabelsHolder
      * @param scopeEnd   The end label.
      * @return True if current label is in scope.
      */
-    public boolean isInScope(@NotNull LabelInfo scopeStart, @NotNull LabelInfo scopeEnd)
-    {
+    public boolean isInScope(@NotNull LabelInfo scopeStart, @NotNull LabelInfo scopeEnd) {
         return isInScope(scopeStart, scopeEnd, this.currentLabel);
     }
 
@@ -188,8 +195,7 @@ public class LabelsHolder
      * @param label The current label.
      * @return The next LabelInfo or null.
      */
-    public LabelInfo getNextBlock(@NotNull LabelInfo label)
-    {
+    public LabelInfo getNextBlock(@NotNull LabelInfo label) {
         int currentIndex = label.instructionIndex();
         for (LabelInfo nextLabel : this.labels)
             if (nextLabel.instructionIndex() > currentIndex)
@@ -202,8 +208,7 @@ public class LabelsHolder
      *
      * @param method The method node.
      */
-    public void finalise(@NotNull MethodNode method)
-    {
+    public void finalise(@NotNull MethodNode method) {
         LabelNode globalEndNode = this.globalEnd.node();
         method.instructions.add(globalEndNode);
         this.labels.add(this.globalEnd);  // グローバル終了ラベルも登録
@@ -215,8 +220,7 @@ public class LabelsHolder
      *
      * @param method The method node.
      */
-    public void registerGlobalStart(@NotNull MethodNode method)
-    {
+    public void registerGlobalStart(@NotNull MethodNode method) {
         LabelNode globalStartNode = this.globalStart.node();
         method.instructions.add(globalStartNode);
         this.labels.add(this.globalStart);  // グローバル開始ラベルも登録
@@ -228,8 +232,7 @@ public class LabelsHolder
      * @return List of LabelInfo.
      */
     @NotNull
-    public List<LabelInfo> getLabels()
-    {
+    public List<LabelInfo> getLabels() {
         return Collections.unmodifiableList(this.labels);
     }
 
@@ -240,12 +243,10 @@ public class LabelsHolder
      * @return The LabelInfo or null.
      */
     @Nullable
-    public LabelInfo getLabelByNode(@NotNull LabelNode targetNode)
-    {
+    public LabelInfo getLabelByNode(@NotNull LabelNode targetNode) {
         Label targetLabel = targetNode.getLabel();
 
-        for (LabelInfo label : this.labels)
-        {
+        for (LabelInfo label : this.labels) {
             LabelNode node = label.node();
             Label asmLabel = label.label();
             if (node.getLabel() == targetLabel
@@ -255,23 +256,5 @@ public class LabelsHolder
         }
 
         return null;  // 見つからなかった場合は null を返す
-    }
-
-    /**
-     * Checks if a label is in scope between two labels.
-     *
-     * @param scopeStart   The start label.
-     * @param scopeEnd     The end label.
-     * @param currentLabel The label to check.
-     * @return True if in scope.
-     */
-    public static boolean isInScope(@NotNull LabelInfo scopeStart, @NotNull LabelInfo scopeEnd,
-                                    @NotNull LabelInfo currentLabel)
-    {
-        int startIndex = scopeStart.instructionIndex();
-        int endIndex = scopeEnd.instructionIndex();
-        int currentIndex = currentLabel.instructionIndex();
-
-        return currentIndex >= startIndex && currentIndex <= endIndex;
     }
 }

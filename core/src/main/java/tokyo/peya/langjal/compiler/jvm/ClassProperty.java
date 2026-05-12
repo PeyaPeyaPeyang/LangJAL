@@ -9,8 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Getter
 @AllArgsConstructor
-public enum ClassProperty
-{
+public enum ClassProperty {
     /**
      * Major version of the class file.
      */
@@ -43,8 +42,7 @@ public enum ClassProperty
      * @param name The property name to look up.
      * @return The matching ClassProperty, or UNKNOWN if not found.
      */
-    public static @NotNull ClassProperty fromString(@NotNull String name)
-    {
+    public static @NotNull ClassProperty fromString(@NotNull String name) {
         for (ClassProperty property : ClassProperty.values())
             if (property.getName().equalsIgnoreCase(name))
                 return property;

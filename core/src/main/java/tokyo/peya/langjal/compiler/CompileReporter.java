@@ -11,8 +11,7 @@ import java.nio.file.Path;
  * Interface for reporting compile-time messages such as warnings, info, and errors.
  * Implementations can handle reporting to logs, consoles, or other outputs.
  */
-public interface CompileReporter
-{
+public interface CompileReporter {
     /**
      * Posts a warning message.
      *

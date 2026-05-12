@@ -1,7 +1,7 @@
 <div align="center">
   <h1>JAL</h1>
 
-  <a href="https://javadoc.io/doc/tokyo.peya/langjal"><img src="https://javadoc.io/badge2/tokyo.peya/langjal/javadoc.svg?style=flat-square"></a>
+<a href="https://javadoc.io/doc/tokyo.peya/langjal"><img src="https://javadoc.io/badge2/tokyo.peya/langjal/javadoc.svg?style=flat-square"></a>
 </div>
 
 **JAL (JVM Assembly Language)**  is a custom-designed assembly language for the Java Virtual Machine.  
@@ -11,9 +11,12 @@ It makes exploring the internals of the JVM not just possible, but genuinely fun
 
 ## 🚀 What is JAL?
 
-JAL is a fresh take on Java assembly — a spiritual successor to projects like **Jasmin**, but with modern features and design.
+JAL is a fresh take on Java assembly — a spiritual successor to projects like **Jasmin**, but with modern features and
+design.
 
-Unlike Jasmin, which stopped development around 2022 and only supports outdated Java versions, **JAL supports modern JVM features**, including automatic generation of **StackMapFrames**, which are mandatory from Java 1.6 and up. Jasmin users may remember `VerifyError`s haunting their dreams — JAL eliminates them.
+Unlike Jasmin, which stopped development around 2022 and only supports outdated Java versions, **JAL supports modern JVM
+features**, including automatic generation of **StackMapFrames**, which are mandatory from Java 1.6 and up. Jasmin users
+may remember `VerifyError`s haunting their dreams — JAL eliminates them.
 
 ### Why JAL is cool:
 
@@ -61,16 +64,19 @@ public class HelloWorld {
 ## 🧠 StackMapFrame? Automatically Done.
 
 One of the biggest pain points in JVM bytecode writing is StackMapFrame management.  
-JAL's compiler **calculates and inserts StackMapFrames automatically** — no more manual frame declaration, no more hair-pulling `VerifyError`s.
+JAL's compiler **calculates and inserts StackMapFrames automatically** — no more manual frame declaration, no more
+hair-pulling `VerifyError`s.
 
 ---
 
 ## 📦 Installation
 
-JAL is available as a [Javasm IntelliJ plugin](https://plugins.jetbrains.com/plugin/27944-javasm), [jal-gradle-plugin](https://github.com/PeyaPeyaPeyang/jal-gradle-plugin)
+JAL is available as
+a [Javasm IntelliJ plugin](https://plugins.jetbrains.com/plugin/27944-javasm), [jal-gradle-plugin](https://github.com/PeyaPeyaPeyang/jal-gradle-plugin)
 or [JAL CLI Compiler](https://github.com/PeyaPeyaPeyang/LangJAL/releases)
 
-To install the JAL CLI Compiler, download the latest release from the [releases page](https://github.com/PeyaPeyaPeyang/LangJAL/releases)
+To install the JAL CLI Compiler, download the latest release from
+the [releases page](https://github.com/PeyaPeyaPeyang/LangJAL/releases)
 and decompress it to a directory of your choice.
 To use the JAL CLI Compiler, add the `bin` directory to your system's PATH environment variable.
 
@@ -112,7 +118,8 @@ $ jalc MyJALFiles --output /path/to/output/directory
 
 ## 🔌 Javasm IntelliJ Plugin Features
 
-Javasm supercharges your JAL development inside IntelliJ IDEA with [Javasm](https://plugins.jetbrains.com/plugin/27944-javasm) plugin:
+Javasm supercharges your JAL development inside IntelliJ IDEA
+with [Javasm](https://plugins.jetbrains.com/plugin/27944-javasm) plugin:
 
 - ✅ **Instruction name completion**  
   Start typing and get autocompletion for all instructions.
@@ -129,9 +136,9 @@ Javasm supercharges your JAL development inside IntelliJ IDEA with [Javasm](http
 
 - 📊 **Frame and Stack Viewer**   
   A custom tool window that shows:
-  - Stack state at the selected instruction
-  - Local variable states
-  - Visualises the stack during live debugging sessions
+    - Stack state at the selected instruction
+    - Local variable states
+    - Visualises the stack during live debugging sessions
 
 ---
 

@@ -7,8 +7,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Exception thrown when an illegal instruction is encountered during compilation.
  */
-public class IllegalInstructionException extends IllegalValueException
-{
+public class IllegalInstructionException extends IllegalValueException {
     /**
      * Constructs an IllegalInstructionException with a message and terminal node.
      *
@@ -16,8 +15,7 @@ public class IllegalInstructionException extends IllegalValueException
      * @param node            The terminal node where the error occurred.
      */
     public IllegalInstructionException(@NotNull String detailedMessage,
-                                       @NotNull TerminalNode node)
-    {
+                                       @NotNull TerminalNode node) {
         super(detailedMessage, node);
     }
 
@@ -28,8 +26,7 @@ public class IllegalInstructionException extends IllegalValueException
      * @param node            The parser rule context where the error occurred.
      */
     public IllegalInstructionException(@NotNull String detailedMessage,
-                                       @NotNull ParserRuleContext node)
-    {
+                                       @NotNull ParserRuleContext node) {
         super(detailedMessage, node);
     }
 }

@@ -2,60 +2,37 @@ package tokyo.peya.langjal.compiler.instructions.utils;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.tree.LabelNode;
 import org.opentest4j.AssertionFailedError;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
-import tokyo.peya.langjal.analyser.stack.LocalStackElement;
-import tokyo.peya.langjal.analyser.stack.NullElement;
-import tokyo.peya.langjal.analyser.stack.ObjectElement;
-import tokyo.peya.langjal.analyser.stack.PrimitiveElement;
-import tokyo.peya.langjal.analyser.stack.StackElement;
-import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
-import tokyo.peya.langjal.analyser.stack.StackElementType;
-import tokyo.peya.langjal.analyser.stack.StackOperation;
-import tokyo.peya.langjal.analyser.stack.TopElement;
-import tokyo.peya.langjal.analyser.stack.UninitializedElement;
-import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
+import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
-import tokyo.peya.langjal.compiler.member.LabelInfo;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
 import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-public class StackMachine implements Cloneable
-{
+public class StackMachine implements Cloneable {
     private final List<StackValue> initialStack;
     private final Map<Integer, StackValue> locals;
     @Nullable
     private StackMachine expected;
 
-    private StackMachine()
-    {
+    private StackMachine() {
         this.initialStack = new ArrayList<>();
         this.locals = new HashMap<>();
     }
 
-    public static StackMachine create()
-    {
+    public static StackMachine create() {
         return new StackMachine();
     }
 
-    public static StackMachine create(StackValue... initialStack)
-    {
+    public static StackMachine create(StackValue... initialStack) {
         StackMachine emulator = new StackMachine();
         emulator.push(initialStack);
         return emulator;
     }
 
-    public StackMachine push(StackValue... value)
-    {
+    public StackMachine push(StackValue... value) {
         for (StackValue v : value) {
             this.initialStack.add(v);
             if (v instanceof LongStackValue || v instanceof DoubleStackValue) {
@@ -66,15 +43,13 @@ public class StackMachine implements Cloneable
         return this;
     }
 
-    public StackMachine pop(int count)
-    {
+    public StackMachine pop(int count) {
         for (int i = 0; i < count; i++)
             this.initialStack.removeLast();
         return this;
     }
 
-    public StackMachine set(int index, StackValue value)
-    {
+    public StackMachine set(int index, StackValue value) {
         this.locals.put(index, value);
         return this;
     }
@@ -101,8 +76,7 @@ public class StackMachine implements Cloneable
 
     @Override
     @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod"})
-    protected StackMachine clone()
-    {
+    protected StackMachine clone() {
         StackMachine cloned = new StackMachine();
         cloned.initialStack.addAll(this.initialStack);
         cloned.locals.putAll(this.locals);
@@ -120,9 +94,24 @@ public class StackMachine implements Cloneable
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "[stack={" + this.initialStack + "}, locals=" + this.locals + "]";
+    }
+
+    public sealed interface StackValue {
+        StackElementType type();
+
+        default TypeDescriptor desc() {
+            return switch (this.type()) {
+                case INTEGER -> TypeDescriptor.INTEGER;
+                case FLOAT -> TypeDescriptor.FLOAT;
+                case DOUBLE -> TypeDescriptor.DOUBLE;
+                case LONG -> TypeDescriptor.LONG;
+                case NULL -> TypeDescriptor.OBJECT;
+                case OBJECT -> ((ObjectStackValue) this).typeName();
+                default -> TypeDescriptor.VOID;
+            };
+        }
     }
 
     private static class Emulator {
@@ -145,8 +134,7 @@ public class StackMachine implements Cloneable
             }
 
             StackOperation[] operations = frameDifferenceInfo.getStackOperations();
-            for (int i = 0; i < operations.length; i++)
-            {
+            for (int i = 0; i < operations.length; i++) {
                 this.currentStep = i;
                 this.stepOne(operations[i]);
             }
@@ -161,24 +149,17 @@ public class StackMachine implements Cloneable
             }
         }
 
-        private void push(StackElement element)
-        {
-            if (Objects.requireNonNull(element) instanceof LocalStackElement local)
-            {
+        private void push(StackElement element) {
+            if (Objects.requireNonNull(element) instanceof LocalStackElement local) {
                 this.locals.put(local.index(), convert(local.stackElement()));
-            }
-            else
-            {
+            } else {
                 this.stack.add(convert(element));
             }
         }
 
-        private @NotNull StackValue convert(@NotNull StackElement element)
-        {
-            return switch (element)
-            {
-                case ObjectElement obj ->
-                        new ObjectStackValue(obj.content());
+        private @NotNull StackValue convert(@NotNull StackElement element) {
+            return switch (element) {
+                case ObjectElement obj -> new ObjectStackValue(obj.content());
 
                 case StackElementCapsule capsule -> {
                     StackValue value = this.shelter.get(capsule);
@@ -194,36 +175,28 @@ public class StackMachine implements Cloneable
                     yield value;
                 }
 
-                case PrimitiveElement prim ->
-                        switch (prim.type())
-                        {
-                            case INTEGER -> new IntegerStackValue();
-                            case FLOAT -> new FloatStackValue();
-                            case DOUBLE -> new DoubleStackValue();
-                            case LONG -> new LongStackValue();
+                case PrimitiveElement prim -> switch (prim.type()) {
+                    case INTEGER -> new IntegerStackValue();
+                    case FLOAT -> new FloatStackValue();
+                    case DOUBLE -> new DoubleStackValue();
+                    case LONG -> new LongStackValue();
 
-                            default ->
-                                    throw new AssertionFailedError(
-                                            "Unknown primitive type: " + prim.type()
-                                    );
-                        };
+                    default -> throw new AssertionFailedError(
+                            "Unknown primitive type: " + prim.type()
+                    );
+                };
 
-                case UninitializedElement ignored ->
-                        new UninitializedStackValue();
+                case UninitializedElement ignored -> new UninitializedStackValue();
 
-                case UninitializedThisElement ignored ->
-                        new UninitializedThisStackValue();
+                case UninitializedThisElement ignored -> new UninitializedThisStackValue();
 
-                case NullElement ignored ->
-                        new NullStackValue();
+                case NullElement ignored -> new NullStackValue();
 
-                case TopElement ignored ->
-                        new TopStackValue();
+                case TopElement ignored -> new TopStackValue();
 
-                case LocalStackElement ignored ->
-                        throw new IllegalArgumentException(
-                                "LocalStackElement cannot be converted to StackValue directly"
-                        );
+                case LocalStackElement ignored -> throw new IllegalArgumentException(
+                        "LocalStackElement cannot be converted to StackValue directly"
+                );
             };
         }
 
@@ -284,7 +257,8 @@ public class StackMachine implements Cloneable
 
         private boolean checkObjectEquality(ObjectStackValue value, ObjectElement element) {
             // java.lang.Object の場合はどんなオブジェクトも許容する
-            return element.content().getBaseType().equals(ClassReferenceType.OBJECT) || value.typeName().equals(element.content());
+            return element.content().getBaseType().equals(ClassReferenceType.OBJECT) || value.typeName()
+                    .equals(element.content());
         }
     }
 
@@ -302,7 +276,6 @@ public class StackMachine implements Cloneable
             this.assertStacMachineResult(this, expected);
             return this;
         }
-
 
         private void assertStacMachineResult(EmulateResult result, StackMachine expected) {
             List<StackValue> expectedStack = expected.initialStack;
@@ -357,7 +330,6 @@ public class StackMachine implements Cloneable
         private static final StackValue STACK_VALUE_UNINITIALIZED_THIS = new UninitializedThisStackValue();
         private static final StackValue STACK_VALUE_TOP = new TopStackValue();
 
-
         public static StackValue integerValue() {
             return STACK_VALUE_INTEGER;
         }
@@ -399,89 +371,63 @@ public class StackMachine implements Cloneable
         }
     }
 
-    public sealed interface StackValue
-    {
-        StackElementType type();
-
-        default TypeDescriptor desc() {
-            return switch (this.type()) {
-                case INTEGER -> TypeDescriptor.INTEGER;
-                case FLOAT -> TypeDescriptor.FLOAT;
-                case DOUBLE -> TypeDescriptor.DOUBLE;
-                case LONG -> TypeDescriptor.LONG;
-                case NULL -> TypeDescriptor.OBJECT;
-                case OBJECT -> ((ObjectStackValue) this).typeName();
-                default -> TypeDescriptor.VOID;
-            };
-        }
-    }
-
-    private record IntegerStackValue() implements StackValue
-    {
+    private record IntegerStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.INTEGER;
         }
     }
 
-    private record FloatStackValue() implements StackValue
-    {
+    private record FloatStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.FLOAT;
         }
     }
 
-    private record DoubleStackValue() implements StackValue
-    {
+    private record DoubleStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.DOUBLE;
         }
     }
 
-    private record LongStackValue() implements StackValue
-    {
+    private record LongStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.LONG;
         }
     }
 
-    private record NullStackValue() implements StackValue
-    {
+    private record NullStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.NULL;
         }
     }
 
-    private record ObjectStackValue(TypeDescriptor typeName) implements StackValue
-    {
+    private record ObjectStackValue(TypeDescriptor typeName) implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.OBJECT;
         }
     }
 
-    private record UninitializedStackValue() implements StackValue
-    {
+    private record UninitializedStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.UNINITIALIZED;
         }
     }
 
-    private record UninitializedThisStackValue() implements StackValue
-    {
+    private record UninitializedThisStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.UNINITIALIZED_THIS;
         }
     }
 
-    private record TopStackValue() implements StackValue
-    {
+    private record TopStackValue() implements StackValue {
         @Override
         public StackElementType type() {
             return StackElementType.TOP;

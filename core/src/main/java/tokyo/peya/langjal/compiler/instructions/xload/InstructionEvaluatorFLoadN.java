@@ -3,23 +3,17 @@ package tokyo.peya.langjal.compiler.instructions.xload;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorFLoadN extends AbstractInstructionEvaluator<JALParser.JvmInsFloadNContext>
-{
-    public InstructionEvaluatorFLoadN()
-    {
+public class InstructionEvaluatorFLoadN extends AbstractInstructionEvaluator<JALParser.JvmInsFloadNContext> {
+    public InstructionEvaluatorFLoadN() {
         super(EOpcodes.FLOAD_0, EOpcodes.FLOAD_1, EOpcodes.FLOAD_2, EOpcodes.FLOAD_3);
     }
 
@@ -29,8 +23,7 @@ public class InstructionEvaluatorFLoadN extends AbstractInstructionEvaluator<JAL
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsFloadNContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsFloadNContext instruction) {
         if (has(instruction.INSN_FLOAD_0()))
             return InstructionEvaluateHelperXLoad.evaluateN(this, instruction, locals, EOpcodes.FLOAD, 0);
         else if (has(instruction.INSN_FLOAD_1()))
@@ -44,16 +37,14 @@ public class InstructionEvaluatorFLoadN extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                                  .pushPrimitive(StackElementType.FLOAT)
-                                  .build();
+                .pushPrimitive(StackElementType.FLOAT)
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsFloadNContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsFloadNContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsFloadN();
     }
 }

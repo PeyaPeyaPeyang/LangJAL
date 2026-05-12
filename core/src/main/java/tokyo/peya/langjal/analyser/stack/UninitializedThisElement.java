@@ -11,35 +11,34 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
  */
 public record UninitializedThisElement(
         @NotNull InstructionInfo producer // かならず NOP
-) implements StackElement
-{
+) implements StackElement {
     /**
      * Gets the type of this stack element.
+     *
      * @return The stack element type.
      */
     @Override
-    public @NotNull StackElementType type()
-    {
+    public @NotNull StackElementType type() {
         return StackElementType.UNINITIALIZED_THIS;
     }
 
     /**
      * Converts this element to an ASM stack element.
+     *
      * @return The ASM representation for uninitialized this.
      */
     @Override
-    public Object toASMStackElement()
-    {
+    public Object toASMStackElement() {
         return EOpcodes.UNINITIALIZED_THIS;
     }
 
     /**
      * Returns a string representation of this uninitialized this element.
+     *
      * @return String representation.
      */
     @Override
-    public @NotNull String toString()
-    {
+    public @NotNull String toString() {
         return "Uninitialized this";
     }
 }

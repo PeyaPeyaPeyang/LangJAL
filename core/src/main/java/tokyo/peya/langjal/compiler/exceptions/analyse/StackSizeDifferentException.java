@@ -11,8 +11,7 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
  * Used for stack consistency verification during control flow analysis.
  */
 @Getter
-public class StackSizeDifferentException extends ClassAnalyseException
-{
+public class StackSizeDifferentException extends ClassAnalyseException {
     /**
      * The label at which the stack size mismatch occurred.
      */
@@ -42,8 +41,7 @@ public class StackSizeDifferentException extends ClassAnalyseException
     public StackSizeDifferentException(@NotNull String message,
                                        @NotNull LabelInfo atLabel,
                                        @NotNull StackElement[] expected,
-                                       @NotNull StackElement[] actual)
-    {
+                                       @NotNull StackElement[] actual) {
         super(message);
         this.atLabel = atLabel;
         this.expected = expected;

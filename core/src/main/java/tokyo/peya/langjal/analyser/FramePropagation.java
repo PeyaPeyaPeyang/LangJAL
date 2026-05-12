@@ -13,13 +13,13 @@ import java.util.Objects;
  * Contains sender and receiver label info, analysed instructions, stack and local variable states,
  * and maximum stack/local sizes.
  *
- * @param sender        The label sending the frame.
- * @param analysed      The analysed instructions in the propagation.
- * @param receiver      The label receiving the frame.
- * @param stack         The stack state at the receiver.
- * @param locals        The local variable state at the receiver.
- * @param maxStackSize  The maximum stack size encountered.
- * @param maxLocalSize  The maximum local variable size encountered.
+ * @param sender       The label sending the frame.
+ * @param analysed     The analysed instructions in the propagation.
+ * @param receiver     The label receiving the frame.
+ * @param stack        The stack state at the receiver.
+ * @param locals       The local variable state at the receiver.
+ * @param maxStackSize The maximum stack size encountered.
+ * @param maxLocalSize The maximum local variable size encountered.
  */
 public record FramePropagation(
         @NotNull
@@ -34,8 +34,7 @@ public record FramePropagation(
         LocalStackElement[] locals,
         int maxStackSize,
         int maxLocalSize
-)
-{
+) {
     /**
      * Checks equality with another object, comparing sender, receiver, stack, and locals.
      *
@@ -43,8 +42,7 @@ public record FramePropagation(
      * @return true if equal, false otherwise.
      */
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (!(o instanceof FramePropagation that))
             return false;
 
@@ -61,15 +59,13 @@ public record FramePropagation(
      * @return The string representation.
      */
     @Override
-    public @NotNull String toString()
-    {
+    public @NotNull String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("\n-- FramePropagation --\n");
         sb.append("Sender: ").append(this.sender.name()).append("\n");
         sb.append("Receiver: ").append(this.receiver.name()).append("\n");
         sb.append("Stacks: ");
-        for (int i = 0; i < this.stack.length; i++)
-        {
+        for (int i = 0; i < this.stack.length; i++) {
             StackElement element = this.stack[i];
             sb.append("[").append(i).append("]: ").append(element).append(", \n");
         }

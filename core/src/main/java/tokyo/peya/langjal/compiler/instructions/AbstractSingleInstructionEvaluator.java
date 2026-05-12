@@ -16,8 +16,7 @@ import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
  * @param <T> The type of parser rule context handled by this evaluator.
  */
 public abstract class AbstractSingleInstructionEvaluator<T extends ParserRuleContext>
-        extends AbstractInstructionEvaluator<T>
-{
+        extends AbstractInstructionEvaluator<T> {
     private final int opcode;
 
     /**
@@ -25,8 +24,7 @@ public abstract class AbstractSingleInstructionEvaluator<T extends ParserRuleCon
      *
      * @param opcode The opcode for the instruction.
      */
-    public AbstractSingleInstructionEvaluator(int opcode)
-    {
+    public AbstractSingleInstructionEvaluator(int opcode) {
         super(opcode);
         this.opcode = opcode;
     }
@@ -48,8 +46,7 @@ public abstract class AbstractSingleInstructionEvaluator<T extends ParserRuleCon
     public EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
-                                         @NotNull LocalVariablesHolder locals, @NotNull T instruction)
-    {
+                                         @NotNull LocalVariablesHolder locals, @NotNull T instruction) {
         return this.visitSingle(instruction, this.opcode);
     }
 }

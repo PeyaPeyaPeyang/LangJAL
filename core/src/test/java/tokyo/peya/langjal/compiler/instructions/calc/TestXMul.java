@@ -8,45 +8,33 @@ import tokyo.peya.langjal.compiler.instructions.calc.xmul.InstructionEvaluatorIM
 import tokyo.peya.langjal.compiler.instructions.calc.xmul.InstructionEvaluatorLMul;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 
-public class TestXMul
-{
+public class TestXMul {
     @Nested
-    class TestIMul extends AbstractMathInstructionTestCase<JALParser.JvmInsImulContext, InstructionEvaluatorIMul>
-    {
-        TestIMul()
-        {
+    class TestIMul extends AbstractMathInstructionTestCase<JALParser.JvmInsImulContext, InstructionEvaluatorIMul> {
+        TestIMul() {
             super(new InstructionEvaluatorIMul(), integerValue(), "imul", EOpcodes.IMUL);
         }
     }
 
     @Nested
-    class TestFMul extends AbstractMathInstructionTestCase<JALParser.JvmInsFmulContext, InstructionEvaluatorFMul>
-    {
-        TestFMul()
-        {
+    class TestFMul extends AbstractMathInstructionTestCase<JALParser.JvmInsFmulContext, InstructionEvaluatorFMul> {
+        TestFMul() {
             super(new InstructionEvaluatorFMul(), floatValue(), "fmul", EOpcodes.FMUL);
         }
     }
 
     @Nested
-    class TestDMul extends AbstractMathInstructionTestCase<JALParser.JvmInsDmulContext, InstructionEvaluatorDMul>
-    {
-        TestDMul()
-        {
+    class TestDMul extends AbstractMathInstructionTestCase<JALParser.JvmInsDmulContext, InstructionEvaluatorDMul> {
+        TestDMul() {
             super(new InstructionEvaluatorDMul(), doubleValue(), "dmul", EOpcodes.DMUL);
         }
     }
 
     @Nested
-    class TestLMul extends AbstractMathInstructionTestCase<JALParser.JvmInsLmulContext, InstructionEvaluatorLMul>
-    {
-        TestLMul()
-        {
+    class TestLMul extends AbstractMathInstructionTestCase<JALParser.JvmInsLmulContext, InstructionEvaluatorLMul> {
+        TestLMul() {
             super(new InstructionEvaluatorLMul(), longValue(), "lmul", EOpcodes.LMUL);
         }
     }

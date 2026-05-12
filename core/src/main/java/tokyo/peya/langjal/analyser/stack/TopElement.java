@@ -11,35 +11,34 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
  */
 public record TopElement(
         InstructionInfo producer
-) implements StackElement
-{
+) implements StackElement {
     /**
      * Gets the type of this stack element.
+     *
      * @return The stack element type.
      */
     @Override
-    public @NotNull StackElementType type()
-    {
+    public @NotNull StackElementType type() {
         return StackElementType.TOP;
     }
 
     /**
      * Converts this element to an ASM stack element.
+     *
      * @return The ASM representation for TOP.
      */
     @Override
-    public Object toASMStackElement()
-    {
+    public Object toASMStackElement() {
         return EOpcodes.TOP;
     }
 
     /**
      * Returns a string representation of this top element.
+     *
      * @return String representation.
      */
     @Override
-    public @NotNull String toString()
-    {
+    public @NotNull String toString() {
         return "Top type (by " + this.producer + ")";
     }
 }

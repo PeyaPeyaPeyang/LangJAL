@@ -3,18 +3,14 @@ package tokyo.peya.langjal.compiler.member;
 import lombok.Getter;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FrameNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.CompileSettings;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.compiler.JALParser;
+import org.objectweb.asm.tree.*;
 import tokyo.peya.langjal.analyser.MethodAnalyser;
 import tokyo.peya.langjal.analyser.MethodAnalysisResult;
 import tokyo.peya.langjal.analyser.StackFrameMapCreator;
 import tokyo.peya.langjal.analyser.StackFrameMapEntry;
+import tokyo.peya.langjal.compiler.CompileSettings;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalValueException;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
@@ -26,8 +22,7 @@ import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
  * Handles parsing, instruction evaluation, local variable management, and try-catch directives.
  */
 @Getter
-public class JALMethodCompiler
-{
+public class JALMethodCompiler {
     /**
      * Reporter for compilation messages and errors.
      */
@@ -71,8 +66,7 @@ public class JALMethodCompiler
      * @param compileFlags Compilation flags.
      */
     public JALMethodCompiler(@NotNull FileEvaluatingReporter reporter, @NotNull ClassNode cn,
-                             @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags)
-    {
+                             @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags) {
         this.context = reporter;
         this.clazz = cn;
         this.compileFlags = compileFlags;
@@ -84,13 +78,47 @@ public class JALMethodCompiler
         this.tryCatchDirectives = new TryCatchDirectivesHolder(this.context, this.labels);
     }
 
+    private static boolean shouldAppendReturnOnLast(InstructionInfo instruction) {
+        return switch (instruction.opcode()) {
+            case EOpcodes.IRETURN, EOpcodes.LRETURN, EOpcodes.FRETURN,
+                 EOpcodes.DRETURN, EOpcodes.ARETURN, EOpcodes.RETURN,
+                 EOpcodes.ATHROW, EOpcodes.GOTO -> false; // これらの命令はRETURNを追加しない
+            default -> true; // 他の命令が最後の場合はRETURNを追加する
+        };
+    }
+
+    private static int asAccess(JALParser.AccModMethodContext methodNode) {
+        int accessor = EvaluatorCommons.asAccessLevel(methodNode.accessLevel());
+        for (JALParser.AccAttrMethodContext ctxt : methodNode.accAttrMethod()) {
+            if (ctxt.KWD_ACC_ATTR_STATIC() != null)
+                accessor |= EOpcodes.ACC_STATIC;
+            else if (ctxt.KWD_ACC_ATTR_FINAL() != null)
+                accessor |= EOpcodes.ACC_FINAL;
+            else if (ctxt.KWD_ACC_ATTR_SYNCHRONIZED() != null)
+                accessor |= EOpcodes.ACC_SYNCHRONIZED;
+            else if (ctxt.KWD_ACC_ATTR_BRIDGE() != null)
+                accessor |= EOpcodes.ACC_BRIDGE;
+            else if (ctxt.KWD_ACC_ATTR_VARARGS() != null)
+                accessor |= EOpcodes.ACC_VARARGS;
+            else if (ctxt.KWD_ACC_ATTR_NATIVE() != null)
+                accessor |= EOpcodes.ACC_NATIVE;
+            else if (ctxt.KWD_ACC_ATTR_ABSTRACT() != null)
+                accessor |= EOpcodes.ACC_ABSTRACT;
+            else if (ctxt.KWD_ACC_ATTR_STRICTFP() != null)
+                accessor |= EOpcodes.ACC_STRICT;
+            else if (ctxt.KWD_ACC_ATTR_SYNTHETIC() != null)
+                accessor |= EOpcodes.ACC_SYNTHETIC;
+        }
+
+        return accessor;
+    }
+
     /**
      * Evaluates and compiles the given method definition context.
      *
      * @param method The method definition context.
      */
-    public void evaluateMethod(@NotNull JALParser.MethodDefinitionContext method)
-    {
+    public void evaluateMethod(@NotNull JALParser.MethodDefinitionContext method) {
         this.clazz.methods.add(this.method);
 
         this.evaluateMethodMetadata(method);
@@ -105,8 +133,7 @@ public class JALMethodCompiler
      *
      * @return The method analysis result.
      */
-    public MethodAnalysisResult analyseMethod()
-    {
+    public MethodAnalysisResult analyseMethod() {
         MethodAnalyser analyser = new MethodAnalyser(
                 this.context,
                 this.clazz,
@@ -118,8 +145,7 @@ public class JALMethodCompiler
         return analyser.analyse();
     }
 
-    private void addStackMapTable()
-    {
+    private void addStackMapTable() {
         // 各命令セットを解析して，スタックフレームを作成する。
         MethodAnalysisResult analysisResult = this.analyseMethod();
 
@@ -135,13 +161,11 @@ public class JALMethodCompiler
                 analysisResult.maxLocals()
         );
 
-        for (StackFrameMapEntry entry : mapEntries)
-        {
+        for (StackFrameMapEntry entry : mapEntries) {
             LabelInfo atLabel = entry.label();
             FrameNode frameNode = entry.toASMFrameNode();
             InstructionInfo instruction = this.instructions.getInstruction(atLabel.instructionIndex());
-            if (instruction == null)
-            {
+            if (instruction == null) {
                 this.context.postError("No instruction found for label: " + atLabel.name());
                 continue;
             }
@@ -151,8 +175,7 @@ public class JALMethodCompiler
         }
     }
 
-    private void evaluateMethodParameters(@NotNull JALParser.MethodDefinitionContext method)
-    {
+    private void evaluateMethodParameters(@NotNull JALParser.MethodDefinitionContext method) {
         JALParser.MethodDescriptorContext desc = method.methodDescriptor();
         MethodDescriptor descriptor = MethodDescriptor.parse(desc.getText());
         TypeDescriptor[] parameters = descriptor.getParameterTypes();
@@ -160,8 +183,7 @@ public class JALMethodCompiler
 
         int currentIndex = 0;
         boolean isInstanceMethod = (accessor & EOpcodes.ACC_STATIC) == 0;
-        if (isInstanceMethod)
-        {
+        if (isInstanceMethod) {
             // インスタンスメソッドの場合は，this パラメータを追加
             String thisParamName = "this";
             TypeDescriptor thisParamType = TypeDescriptor.className(this.clazz.name);
@@ -169,33 +191,26 @@ public class JALMethodCompiler
             this.locals.registerParameter(thisParamName, thisParamType, currentIndex++);
         }
 
-        for (int i = 0; i < parameters.length; i++)
-        {
+        for (int i = 0; i < parameters.length; i++) {
             TypeDescriptor paramType = parameters[i];
             String paramName = String.format("arg%05d", i);
             // パラメータをローカル変数として登録
-            if (paramType.getBaseType().getCategory() == 2)
-            {
+            if (paramType.getBaseType().getCategory() == 2) {
                 this.locals.registerParameter(paramName, paramType, currentIndex++);
                 currentIndex++; // カテゴリ２は ２スロット使うため，インデックスを進める
-            }
-            else
+            } else
                 this.locals.registerParameter(paramName, paramType, currentIndex++);
         }
     }
 
-
-    private void finaliseMethod()
-    {
+    private void finaliseMethod() {
         this.instructions.finaliseInstructions(this.compileFlags);
         this.tryCatchDirectives.finaliseTryCatchDirectives(this.method);
         this.labels.finalise(this.method);
         this.locals.evaluateLocals(this.method);
     }
 
-
-    private void evaluateMethodMetadata(@NotNull JALParser.MethodDefinitionContext method)
-    {
+    private void evaluateMethodMetadata(@NotNull JALParser.MethodDefinitionContext method) {
         String desc = method.methodDescriptor().getText();
         String name = method.methodName().getText();
         int access = asAccess(method.accModMethod());
@@ -205,19 +220,15 @@ public class JALMethodCompiler
         this.method.access = access;
     }
 
-    private void evaluateLabels(@NotNull JALParser.MethodBodyContext body)
-    {
+    private void evaluateLabels(@NotNull JALParser.MethodBodyContext body) {
         boolean globalStartUpdated = false;
         int instructionCount = 0;
-        for (JALParser.InstructionSetContext bodyItem : body.instructionSet())
-        {
-            if (bodyItem.label() != null)
-            {
+        for (JALParser.InstructionSetContext bodyItem : body.instructionSet()) {
+            if (bodyItem.label() != null) {
                 // ラベルを登録
                 LabelInfo label = this.labels.register(bodyItem.label().labelName(), instructionCount);
                 // グローバルスタートになり得る場合は，入れ替える。
-                if (instructionCount == 0 && !globalStartUpdated)
-                {
+                if (instructionCount == 0 && !globalStartUpdated) {
                     this.labels.setGlobalStart(label);
                     globalStartUpdated = true;
                 }
@@ -229,8 +240,7 @@ public class JALMethodCompiler
         this.labels.registerGlobalStart(this.method);
     }
 
-    private void evaluateMethodBody(@NotNull JALParser.MethodBodyContext body)
-    {
+    private void evaluateMethodBody(@NotNull JALParser.MethodBodyContext body) {
         this.context.postInfo("Evaluating method body for " + this.method.name + this.method.desc);
 
         this.method.visitCode();
@@ -241,10 +251,8 @@ public class JALMethodCompiler
         this.method.visitEnd();
     }
 
-    private void evaluateTryCatchDirectives(JALParser.MethodBodyContext body)
-    {
-        for (JALParser.InstructionSetContext bodyItem : body.instructionSet())
-        {
+    private void evaluateTryCatchDirectives(JALParser.MethodBodyContext body) {
+        for (JALParser.InstructionSetContext bodyItem : body.instructionSet()) {
             if (bodyItem.tryCatchDirective() == null)
                 continue;  // トライキャッチディレクティブがない場合はスキップ
 
@@ -267,8 +275,7 @@ public class JALMethodCompiler
 
     private void evaluateTryCatchDirective(@NotNull LabelInfo tryBlockStartLabel,
                                            @NotNull LabelInfo tryBlockEndLabel,
-                                           @NotNull JALParser.TryCatchDirectiveEntryContext entry)
-    {
+                                           @NotNull JALParser.TryCatchDirectiveEntryContext entry) {
         JALParser.CatchDirectiveContext catchDirective = entry.catchDirective();
         JALParser.FinallyDirectiveContext finallyDirective = entry.finallyDirective();
 
@@ -282,8 +289,7 @@ public class JALMethodCompiler
             finallyDirective = catchDirective.finallyDirective();
 
         TypeDescriptor exceptionType = null;
-        if (catchDirective != null)
-        {
+        if (catchDirective != null) {
             JALParser.FullQualifiedClassNameContext exceptionTypeName = catchDirective.fullQualifiedClassName();
             if (exceptionTypeName == null)
                 throw new IllegalValueException("Catch directive must have an exception type.", entry);
@@ -291,8 +297,8 @@ public class JALMethodCompiler
         }
 
         // 各ラベルを解決
-        JALParser.LabelNameContext catchLabel = catchDirective == null ? null: catchDirective.labelName();
-        JALParser.LabelNameContext finallyLabel = finallyDirective == null ? null: finallyDirective.labelName();
+        JALParser.LabelNameContext catchLabel = catchDirective == null ? null : catchDirective.labelName();
+        JALParser.LabelNameContext finallyLabel = finallyDirective == null ? null : finallyDirective.labelName();
         LabelInfo catchBlockLabel = null;
         LabelInfo finallyBlockLabel = null;
         if (catchLabel != null)
@@ -310,20 +316,17 @@ public class JALMethodCompiler
         );
     }
 
-    private void evaluateInstructions(@NotNull JALParser.MethodBodyContext body)
-    {
+    private void evaluateInstructions(@NotNull JALParser.MethodBodyContext body) {
         // 各命令を順に評価していく
         // 命令に割り当てるラベル。１命令のみが割り当てられる。
         LabelInfo labelAssignation = this.labels.getGlobalStart();
-        for (JALParser.InstructionSetContext bodyItem : body.instructionSet())
-        {
+        for (JALParser.InstructionSetContext bodyItem : body.instructionSet()) {
             if (bodyItem.label() != null)
                 this.labels.setCurrentLabel(
                         labelAssignation = this.labels.resolve(bodyItem.label().labelName())
                 );
 
-            for (JALParser.InstructionContext instruction : bodyItem.instruction())
-            {
+            for (JALParser.InstructionContext instruction : bodyItem.instruction()) {
                 // 命令を評価して，必要に応じてラベルを設定
                 EvaluatedInstruction evaluated = JALInstructionEvaluator.evaluateInstruction(
                         this,
@@ -337,49 +340,9 @@ public class JALMethodCompiler
             }
         }
 
-        if (this.instructions.isEmpty() || shouldAppendReturnOnLast(this.instructions.getLastInstruction()))
-        {
+        if (this.instructions.isEmpty() || shouldAppendReturnOnLast(this.instructions.getLastInstruction())) {
             // 最後にRETURNがない場合は、デフォルトでRETURNを追加
             this.instructions.importInstruction(new InsnNode(EOpcodes.RETURN), labelAssignation, -1);
         }
-    }
-
-    private static boolean shouldAppendReturnOnLast(InstructionInfo instruction)
-    {
-        return switch (instruction.opcode())
-        {
-            case EOpcodes.IRETURN, EOpcodes.LRETURN, EOpcodes.FRETURN,
-                 EOpcodes.DRETURN, EOpcodes.ARETURN, EOpcodes.RETURN,
-                 EOpcodes.ATHROW, EOpcodes.GOTO -> false; // これらの命令はRETURNを追加しない
-            default -> true; // 他の命令が最後の場合はRETURNを追加する
-        };
-    }
-
-    private static int asAccess(JALParser.AccModMethodContext methodNode)
-    {
-        int accessor = EvaluatorCommons.asAccessLevel(methodNode.accessLevel());
-        for (JALParser.AccAttrMethodContext ctxt : methodNode.accAttrMethod())
-        {
-            if (ctxt.KWD_ACC_ATTR_STATIC() != null)
-                accessor |= EOpcodes.ACC_STATIC;
-            else if (ctxt.KWD_ACC_ATTR_FINAL() != null)
-                accessor |= EOpcodes.ACC_FINAL;
-            else if (ctxt.KWD_ACC_ATTR_SYNCHRONIZED() != null)
-                accessor |= EOpcodes.ACC_SYNCHRONIZED;
-            else if (ctxt.KWD_ACC_ATTR_BRIDGE() != null)
-                accessor |= EOpcodes.ACC_BRIDGE;
-            else if (ctxt.KWD_ACC_ATTR_VARARGS() != null)
-                accessor |= EOpcodes.ACC_VARARGS;
-            else if (ctxt.KWD_ACC_ATTR_NATIVE() != null)
-                accessor |= EOpcodes.ACC_NATIVE;
-            else if (ctxt.KWD_ACC_ATTR_ABSTRACT() != null)
-                accessor |= EOpcodes.ACC_ABSTRACT;
-            else if (ctxt.KWD_ACC_ATTR_STRICTFP() != null)
-                accessor |= EOpcodes.ACC_STRICT;
-            else if (ctxt.KWD_ACC_ATTR_SYNTHETIC() != null)
-                accessor |= EOpcodes.ACC_SYNTHETIC;
-        }
-
-        return accessor;
     }
 }

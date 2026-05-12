@@ -8,12 +8,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("AccessAttributeSet")
 class AccessAttributeSetTest {
+
+    static Stream<AccessAttribute> specialClassAttributes() {
+        return Stream.of(
+                AccessAttribute.ABSTRACT,
+                AccessAttribute.INTERFACE,
+                AccessAttribute.ENUM,
+                AccessAttribute.ANNOTATION
+        );
+    }
 
     @Test
     void emptyConstantIsEmpty() {
@@ -37,13 +44,15 @@ class AccessAttributeSetTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "STATIC",
-            "FINAL",
-            "ABSTRACT",
-            "INTERFACE",
-            "NATIVE"
-    })
+    @CsvSource(
+            {
+                    "STATIC",
+                    "FINAL",
+                    "ABSTRACT",
+                    "INTERFACE",
+                    "NATIVE"
+            }
+    )
     void constructorFromStringNamesCreatesAttributes(String attributeName) {
         AccessAttributeSet set = new AccessAttributeSet(attributeName);
 
@@ -112,15 +121,6 @@ class AccessAttributeSetTest {
         AccessAttributeSet set = new AccessAttributeSet(attribute);
 
         assertFalse(set.isNormalClass());
-    }
-
-    static Stream<AccessAttribute> specialClassAttributes() {
-        return Stream.of(
-                AccessAttribute.ABSTRACT,
-                AccessAttribute.INTERFACE,
-                AccessAttribute.ENUM,
-                AccessAttribute.ANNOTATION
-        );
     }
 
     @Test

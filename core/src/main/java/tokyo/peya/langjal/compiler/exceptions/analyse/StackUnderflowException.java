@@ -9,8 +9,7 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
  * <p>
  * Indicates that an instruction tried to pop more elements than available on the operand stack.
  */
-public class StackUnderflowException extends ClassAnalyseException
-{
+public class StackUnderflowException extends ClassAnalyseException {
     /**
      * The instruction at which the stack underflow occurred.
      */
@@ -27,10 +26,9 @@ public class StackUnderflowException extends ClassAnalyseException
      * @param instruction     The instruction at which the stack underflow occurred.
      * @param expectedElement The stack element that was expected to be present.
      */
-    public StackUnderflowException(@NotNull InstructionInfo instruction, StackElement expectedElement)
-    {
+    public StackUnderflowException(@NotNull InstructionInfo instruction, StackElement expectedElement) {
         super("Stack underflow at instruction: " + instruction +
-                      " expected at least one element like " + expectedElement
+                " expected at least one element like " + expectedElement
         );
         this.instruction = instruction;
         this.expectedElement = expectedElement;

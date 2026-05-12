@@ -4,21 +4,14 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
-import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelInfo;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorJsrW extends AbstractInstructionEvaluator<JALParser.JvmInsJsrWContext>
-{
-    public InstructionEvaluatorJsrW()
-    {
+public class InstructionEvaluatorJsrW extends AbstractInstructionEvaluator<JALParser.JvmInsJsrWContext> {
+    public InstructionEvaluatorJsrW() {
         super(EOpcodes.JSR_W);
     }
 
@@ -28,8 +21,7 @@ public class InstructionEvaluatorJsrW extends AbstractInstructionEvaluator<JALPa
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsJsrWContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsJsrWContext instruction) {
         JALParser.LabelNameContext labelNameContext = instruction.labelName();
         LabelInfo label = labels.resolve(labelNameContext);
 
@@ -38,16 +30,14 @@ public class InstructionEvaluatorJsrW extends AbstractInstructionEvaluator<JALPa
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                                  .pushReturnAddress()
-                                  .build();
+                .pushReturnAddress()
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsJsrWContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsJsrWContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsJsrW();
     }
 }

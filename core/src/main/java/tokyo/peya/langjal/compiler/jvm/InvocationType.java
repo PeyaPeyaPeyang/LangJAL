@@ -8,8 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum InvocationType
-{
+public enum InvocationType {
     /**
      * Standard virtual method invocation.
      */
@@ -43,12 +42,12 @@ public enum InvocationType
 
     /**
      * Gets the InvocationType from the opcode.
+     *
      * @param opcode The opcode value.
      * @return The corresponding InvocationType.
      * @throws IllegalArgumentException if the opcode is unknown.
      */
-    public static InvocationType fromOpcode(int opcode)
-    {
+    public static InvocationType fromOpcode(int opcode) {
         for (InvocationType type : values())
             if (type.getOpcode() == opcode)
                 return type;
@@ -58,12 +57,12 @@ public enum InvocationType
 
     /**
      * Gets the InvocationType from its name.
+     *
      * @param name The name of the invocation type.
      * @return The corresponding InvocationType.
      * @throws IllegalArgumentException if the name is unknown.
      */
-    public static InvocationType fromName(String name)
-    {
+    public static InvocationType fromName(String name) {
         for (InvocationType type : values())
             if (type.getName().equals(name))
                 return type;

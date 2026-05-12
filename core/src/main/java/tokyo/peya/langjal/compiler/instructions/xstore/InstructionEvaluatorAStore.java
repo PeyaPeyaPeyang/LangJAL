@@ -4,23 +4,17 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorAStore extends AbstractInstructionEvaluator<JALParser.JvmInsAstoreContext>
-{
-    public InstructionEvaluatorAStore()
-    {
+public class InstructionEvaluatorAStore extends AbstractInstructionEvaluator<JALParser.JvmInsAstoreContext> {
+    public InstructionEvaluatorAStore() {
         super(EOpcodes.ASTORE);
     }
 
@@ -30,8 +24,7 @@ public class InstructionEvaluatorAStore extends AbstractInstructionEvaluator<JAL
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsAstoreContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsAstoreContext instruction) {
         return InstructionEvaluateHelperXStore.evaluate(
                 context,
                 labels,
@@ -47,20 +40,18 @@ public class InstructionEvaluatorAStore extends AbstractInstructionEvaluator<JAL
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         VarInsnNode varInsnNode = (VarInsnNode) instruction.insn();
 
         StackElementCapsule elementCapsule = new StackElementCapsule(instruction);
         return FrameDifferenceInfo.builder(instruction)
-                                  .popToCapsule(elementCapsule)
-                                  .addLocalFromCapsule(varInsnNode.var, elementCapsule)
-                                  .build();
+                .popToCapsule(elementCapsule)
+                .addLocalFromCapsule(varInsnNode.var, elementCapsule)
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsAstoreContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsAstoreContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsAstore();
     }
 }

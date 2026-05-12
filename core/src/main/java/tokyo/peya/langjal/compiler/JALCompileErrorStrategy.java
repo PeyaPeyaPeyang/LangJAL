@@ -18,8 +18,7 @@ import java.nio.file.Path;
  */
 @Getter
 @RequiredArgsConstructor
-        /* non-public */ class JALCompileErrorStrategy extends DefaultErrorStrategy
-{
+        /* non-public */ class JALCompileErrorStrategy extends DefaultErrorStrategy {
     /**
      * Reporter for error messages during parsing.
      */
@@ -41,8 +40,7 @@ import java.nio.file.Path;
      * @param recognizer The parser instance.
      */
     @Override
-    public void reset(Parser recognizer)
-    {
+    public void reset(Parser recognizer) {
         super.reset(recognizer);
         this.error = false;
     }
@@ -55,8 +53,7 @@ import java.nio.file.Path;
      * @throws RecognitionException If recovery fails.
      */
     @Override
-    public Token recoverInline(Parser recognizer) throws RecognitionException
-    {
+    public Token recoverInline(Parser recognizer) throws RecognitionException {
         return super.recoverInline(recognizer);
     }
 
@@ -68,8 +65,7 @@ import java.nio.file.Path;
      * @throws RecognitionException If recovery fails.
      */
     @Override
-    public void recover(Parser recognizer, RecognitionException e) throws RecognitionException
-    {
+    public void recover(Parser recognizer, RecognitionException e) throws RecognitionException {
         super.recover(recognizer, e);
     }
 
@@ -80,8 +76,7 @@ import java.nio.file.Path;
      * @throws RecognitionException If synchronization fails.
      */
     @Override
-    public void sync(Parser recognizer) throws RecognitionException
-    {
+    public void sync(Parser recognizer) throws RecognitionException {
         super.sync(recognizer);
     }
 
@@ -92,8 +87,7 @@ import java.nio.file.Path;
      * @return True if in error recovery mode, false otherwise.
      */
     @Override
-    public boolean inErrorRecoveryMode(Parser recognizer)
-    {
+    public boolean inErrorRecoveryMode(Parser recognizer) {
         return super.inErrorRecoveryMode(recognizer);
     }
 
@@ -103,8 +97,7 @@ import java.nio.file.Path;
      * @param recognizer The parser instance.
      */
     @Override
-    public void reportMatch(Parser recognizer)
-    {
+    public void reportMatch(Parser recognizer) {
         super.reportMatch(recognizer);
     }
 
@@ -115,11 +108,9 @@ import java.nio.file.Path;
      * @param e          The recognition exception.
      */
     @Override
-    public void reportError(Parser recognizer, RecognitionException e)
-    {
+    public void reportError(Parser recognizer, RecognitionException e) {
         Token offendingToken = e.getOffendingToken();
-        if (offendingToken == null)
-        {
+        if (offendingToken == null) {
             this.reporter.postError(
                     "Unexpected error in source " + this.sourcePath + ": " + e.getMessage(),
                     this.sourcePath

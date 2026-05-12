@@ -20,8 +20,7 @@ import java.util.List;
  * Manages local variables for a method, including registration, resolution, and scope checks.
  * Handles both parameters and regular local variables, and finalizes them for ASM.
  */
-public class LocalVariablesHolder
-{
+public class LocalVariablesHolder {
     /**
      * Reporter for compilation messages and errors.
      */
@@ -42,8 +41,7 @@ public class LocalVariablesHolder
      * @param reporter     The reporter for messages.
      * @param labelsHolder The labels holder.
      */
-    public LocalVariablesHolder(@NotNull FileEvaluatingReporter reporter, @NotNull LabelsHolder labelsHolder)
-    {
+    public LocalVariablesHolder(@NotNull FileEvaluatingReporter reporter, @NotNull LabelsHolder labelsHolder) {
         this.reporter = reporter;
         this.labelsHolder = labelsHolder;
 
@@ -59,8 +57,7 @@ public class LocalVariablesHolder
      */
     /* non-public */ void registerParameter(@NotNull String paramName,
                                             @NotNull TypeDescriptor type,
-                                            int index)
-    {
+                                            int index) {
         // パラメータをローカル変数として登録
         LocalVariableInfo localVar = new LocalVariableInfo(
                 paramName,
@@ -78,14 +75,12 @@ public class LocalVariablesHolder
      *
      * @param method The method node.
      */
-    public void evaluateLocals(@NotNull MethodNode method)
-    {
+    public void evaluateLocals(@NotNull MethodNode method) {
         if (this.locals.isEmpty())
             return;  // ローカル変数がない場合は何もしない
 
         this.reporter.postInfo("Finalising locals for method " + method.name + method.desc);
-        for (LocalVariableInfo local : this.locals)
-        {
+        for (LocalVariableInfo local : this.locals) {
             if (local.isParameter())
                 continue;  // パラメータはローカル変数として登録しない
 
@@ -112,8 +107,7 @@ public class LocalVariablesHolder
      * @return The LocalVariableInfo or null.
      */
     @Nullable
-    public LocalVariableInfo resolveSafe(int localIndex)
-    {
+    public LocalVariableInfo resolveSafe(int localIndex) {
         for (LocalVariableInfo foundLocal : this.locals)  // リストのサイズと index は無関係。
             if (foundLocal.index() == localIndex)
                 return foundLocal;
@@ -126,8 +120,7 @@ public class LocalVariablesHolder
      * @param local The local variable.
      * @return True if alive, false otherwise.
      */
-    public boolean isLocalLiving(@NotNull LocalVariableInfo local)
-    {
+    public boolean isLocalLiving(@NotNull LocalVariableInfo local) {
         LabelInfo startLabel = local.start();
         LabelInfo endLabel = local.end();
         return this.labelsHolder.isInScope(startLabel, endLabel);
@@ -136,12 +129,11 @@ public class LocalVariablesHolder
     /**
      * Checks if a local variable is alive at a specific label.
      *
-     * @param local    The local variable.
-     * @param atLabel  The label to check.
+     * @param local   The local variable.
+     * @param atLabel The label to check.
      * @return True if alive, false otherwise.
      */
-    public boolean isLocalLiving(@NotNull LocalVariableInfo local, @NotNull LabelInfo atLabel)
-    {
+    public boolean isLocalLiving(@NotNull LocalVariableInfo local, @NotNull LabelInfo atLabel) {
         LabelInfo startLabel = local.start();
         LabelInfo endLabel = local.end();
         return LabelsHolder.isInScope(startLabel, endLabel, atLabel);
@@ -154,8 +146,7 @@ public class LocalVariablesHolder
      * @return The LocalVariableInfo or null.
      */
     @Nullable
-    public LocalVariableInfo resolveSafe(@NotNull String localName)
-    {
+    public LocalVariableInfo resolveSafe(@NotNull String localName) {
         for (LocalVariableInfo localVar : this.locals)
             if (localName.equals(localVar.name()) && this.isLocalLiving(localVar))
                 return localVar;
@@ -173,12 +164,10 @@ public class LocalVariablesHolder
      */
     @NotNull
     public LocalVariableInfo resolve(@NotNull JALParser.JvmInsArgLocalRefContext localRef,
-                                     @NotNull String callerInsn)
-    {
+                                     @NotNull String callerInsn) {
         TerminalNode localID = localRef.ID();
         TerminalNode localNumber = localRef.NUMBER();
-        if (localID != null)
-        {
+        if (localID != null) {
             String localName = localID.getText();
             // ローカル変数名を参照
             LocalVariableInfo localVar = this.resolveSafe(localName);
@@ -190,9 +179,7 @@ public class LocalVariablesHolder
                     localName,
                     localRef
             );
-        }
-        else if (localNumber != null)
-        {
+        } else if (localNumber != null) {
             int localIndex = EvaluatorCommons.asInteger(localNumber);
             if (localIndex < 0)
                 throw new UnknownLocalVariableException(
@@ -203,8 +190,7 @@ public class LocalVariablesHolder
 
             // ローカル変数番号を参照
             LocalVariableInfo localVar = this.resolveSafe(localIndex);
-            if (localVar != null)
-            {
+            if (localVar != null) {
                 if (localIndex <= 3 && callerInsn.endsWith("load")) // xload 系のときに警告
                     this.warnLocalPerformance(localVar, callerInsn);
                 return localVar;
@@ -231,14 +217,12 @@ public class LocalVariablesHolder
      * @return The LocalVariableInfo or null.
      */
     @Nullable
-    public LocalVariableInfo resolveSafe(@NotNull JALParser.JvmInsArgLocalRefContext localRef)
-    {
+    public LocalVariableInfo resolveSafe(@NotNull JALParser.JvmInsArgLocalRefContext localRef) {
         TerminalNode localID = localRef.ID();
         TerminalNode localNumber = localRef.NUMBER();
         if (localID != null)
             return this.resolveSafe(localID.getText());
-        else if (localNumber != null)
-        {
+        else if (localNumber != null) {
             int localIndex = EvaluatorCommons.asInteger(localNumber);
             if (localIndex < 0)
                 return null;
@@ -250,26 +234,22 @@ public class LocalVariablesHolder
         return null;  // 無効な参照
     }
 
-    private int getNextLocalIndex()
-    {
+    private int getNextLocalIndex() {
         if (this.locals.isEmpty())
             return 0;  // 最初のローカル変数はインデックス 0 から始まる
 
         LocalVariableInfo maxLocalNum = this.locals.stream()
-                                                   .max(Comparator.comparingInt(LocalVariableInfo::index))
-                                                   .orElseThrow(
-                                                           () -> new IllegalStateException(
-                                                                   "No local variables registered yet.")
-                                                   );
+                .max(Comparator.comparingInt(LocalVariableInfo::index))
+                .orElseThrow(
+                        () -> new IllegalStateException(
+                                "No local variables registered yet.")
+                );
 
         TypeDescriptor lastType = maxLocalNum.type();
-        if (lastType.getBaseType().getCategory() == 2)
-        {
+        if (lastType.getBaseType().getCategory() == 2) {
             // カテゴリ２の型は２スロット使用するので、次のインデックスは +2
             return maxLocalNum.index() + 2;
-        }
-        else
-        {
+        } else {
             // カテゴリ１の型は１スロット使用するので、次のインデックスは +1
             return maxLocalNum.index() + 1;
         }
@@ -279,8 +259,7 @@ public class LocalVariablesHolder
     private LocalVariableInfo checkAlreadyRegistered(
             @NotNull JALParser.JvmInsArgLocalRefContext localRef,
             @Nullable TerminalNode localID
-    )
-    {
+    ) {
         LocalVariableInfo registeredLocal = this.resolveSafe(localRef);
         if (registeredLocal == null)
             return null;  // まだ登録されていない場合は null を返す
@@ -298,10 +277,10 @@ public class LocalVariablesHolder
     /**
      * Registers a new local variable by parser context and type.
      *
-     * @param localRef   The local reference context.
-     * @param type       The type descriptor.
-     * @param name       The variable name.
-     * @param endLabel   The end label.
+     * @param localRef The local reference context.
+     * @param type     The type descriptor.
+     * @param name     The variable name.
+     * @param endLabel The end label.
      * @return The registered LocalVariableInfo.
      */
     @NotNull
@@ -310,8 +289,7 @@ public class LocalVariablesHolder
             @NotNull TypeDescriptor type,
             @Nullable String name,
             @Nullable LabelInfo endLabel
-    )
-    {
+    ) {
         if (endLabel == null)
             endLabel = this.labelsHolder.getGlobalEnd();  // 終了ラベルが指定されていない場合はメソッドの終了ラベルを使用
 
@@ -331,8 +309,7 @@ public class LocalVariablesHolder
     public LocalVariableInfo register(int idx,
                                       @NotNull TypeDescriptor type,
                                       @Nullable String name,
-                                      @Nullable LabelInfo endLabel)
-    {
+                                      @Nullable LabelInfo endLabel) {
         if (endLabel == null)
             endLabel = this.labelsHolder.getGlobalEnd();  // 終了ラベルが指定されていない場合はメソッドの終了ラベルを使用
 
@@ -356,8 +333,7 @@ public class LocalVariablesHolder
             @Nullable String name,
             @NotNull LabelInfo startLabel,
             @NotNull LabelInfo endLabel
-    )
-    {
+    ) {
         // this.local.size() は index と無関係。
         TerminalNode localID = localRef.ID();
         TerminalNode localNumber = localRef.NUMBER();
@@ -368,13 +344,10 @@ public class LocalVariablesHolder
 
         String newLocalName;
         int newLocalIndex;
-        if (localID != null)
-        {
+        if (localID != null) {
             newLocalName = localID.getText();
             newLocalIndex = this.getNextLocalIndex();
-        }
-        else if (localNumber != null)
-        {
+        } else if (localNumber != null) {
             newLocalIndex = EvaluatorCommons.asInteger(localNumber);
             if (newLocalIndex < 0)
                 throw new UnknownLocalVariableException(
@@ -383,10 +356,9 @@ public class LocalVariablesHolder
                         localRef
                 );
 
-            newLocalName = name == null ? String.format("local%05d", newLocalIndex): name;
+            newLocalName = name == null ? String.format("local%05d", newLocalIndex) : name;
 
-        }
-        else
+        } else
             throw new UnknownLocalVariableException(
                     "Invalid local reference: " + localRef.getText(),
                     localRef.getText(),
@@ -422,8 +394,7 @@ public class LocalVariablesHolder
                                       @NotNull TypeDescriptor type,
                                       @Nullable String name,
                                       @NotNull LabelInfo startLabel,
-                                      @NotNull LabelInfo endLabel)
-    {
+                                      @NotNull LabelInfo endLabel) {
         if (idx < 0)
             throw new UnknownLocalVariableException(
                     "Local variable index cannot be negative: " + idx,
@@ -438,7 +409,7 @@ public class LocalVariablesHolder
                     String.valueOf(idx)
             );
 
-        String nameToUse = name == null ? String.format("local%05d", idx): name;
+        String nameToUse = name == null ? String.format("local%05d", idx) : name;
         // 新しいローカル変数を登録
         LocalVariableInfo newLocal = new LocalVariableInfo(
                 nameToUse,
@@ -453,13 +424,11 @@ public class LocalVariablesHolder
         return newLocal;
     }
 
-    public LocalVariableInfo register(int idx, @NotNull TypeDescriptor type, @Nullable String name)
-    {
+    public LocalVariableInfo register(int idx, @NotNull TypeDescriptor type, @Nullable String name) {
         return this.register(idx, type, name, this.labelsHolder.getCurrentLabel(), this.labelsHolder.getGlobalEnd());
     }
 
-    private void warnLocalPerformance(@NotNull LocalVariableInfo localVar, @NotNull String callerInsn)
-    {
+    private void warnLocalPerformance(@NotNull LocalVariableInfo localVar, @NotNull String callerInsn) {
         // xLOAD_<n> が定義されているので，代わりにそっちを使ったほうが効率が良い(e.g. iload_1)
         this.reporter.postWarning(String.format(
                 "Local variable %s is accessed in instruction '%s', " +
@@ -474,11 +443,10 @@ public class LocalVariablesHolder
      * @param globalStart The label to check.
      * @return Array of LocalVariableInfo.
      */
-    public LocalVariableInfo[] getAvailableLocalsAt(@NotNull LabelInfo globalStart)
-    {
+    public LocalVariableInfo[] getAvailableLocalsAt(@NotNull LabelInfo globalStart) {
         return this.locals.stream()
-                          .filter(local -> this.isLocalLiving(local, globalStart))
-                          .toArray(LocalVariableInfo[]::new);
+                .filter(local -> this.isLocalLiving(local, globalStart))
+                .toArray(LocalVariableInfo[]::new);
     }
 
     /**
@@ -487,16 +455,14 @@ public class LocalVariablesHolder
      * @return Array of LocalVariableInfo.
      */
     @NotNull
-    public LocalVariableInfo[] getParameters()
-    {
+    public LocalVariableInfo[] getParameters() {
         return this.locals.stream()
-                          .filter(LocalVariableInfo::isParameter)
-                          .sorted(Comparator.comparingInt(LocalVariableInfo::index))
-                          .toArray(LocalVariableInfo[]::new);
+                .filter(LocalVariableInfo::isParameter)
+                .sorted(Comparator.comparingInt(LocalVariableInfo::index))
+                .toArray(LocalVariableInfo[]::new);
     }
 
-    public void importLocalVariable(@NotNull LocalVariableNode node)
-    {
+    public void importLocalVariable(@NotNull LocalVariableNode node) {
         LabelNode startLabel = node.start;
         LabelNode endLabel = node.end;
 

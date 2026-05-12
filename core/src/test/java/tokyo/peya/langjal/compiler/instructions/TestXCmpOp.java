@@ -8,54 +8,64 @@ import tokyo.peya.langjal.compiler.instructions.xcmp_op.InstructionEvaluatorFCmp
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public class TestXCmpOp
-{
+public class TestXCmpOp {
     @Nested
-    class TestDCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsDcmpOPContext, InstructionEvaluatorDCmpOp>
-    {
-        TestDCmpOpCase()
-        {
+    class TestDCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsDcmpOPContext, InstructionEvaluatorDCmpOp> {
+        TestDCmpOpCase() {
             super(new InstructionEvaluatorDCmpOp(), EOpcodes.DCMPG, EOpcodes.DCMPL);
         }
 
         @Override
-        public InstructionCase[] getValidInstructionSyntaxes()
-        {
+        public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     of(create(doubleValue(), doubleValue()).expected(create(integerValue())), "dcmpg", EOpcodes.DCMPG),
-                    of(create(object(TypeDescriptor.className("java/lang/String")), doubleValue(), doubleValue())
-                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue())), "dcmpg", EOpcodes.DCMPG),
+                    of(
+                            create(object(TypeDescriptor.className("java/lang/String")), doubleValue(), doubleValue())
+                                    .expected(create(
+                                            object(TypeDescriptor.className("java/lang/String")),
+                                            integerValue()
+                                    )), "dcmpg", EOpcodes.DCMPG
+                    ),
                     of(create(doubleValue(), doubleValue()).expected(create(integerValue())), "dcmpl", EOpcodes.DCMPL),
-                    of(create(object(TypeDescriptor.className("java/lang/String")), doubleValue(), doubleValue())
-                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue())), "dcmpl", EOpcodes.DCMPL)
+                    of(
+                            create(object(TypeDescriptor.className("java/lang/String")), doubleValue(), doubleValue())
+                                    .expected(create(
+                                            object(TypeDescriptor.className("java/lang/String")),
+                                            integerValue()
+                                    )), "dcmpl", EOpcodes.DCMPL
+                    )
             );
         }
     }
 
     @Nested
-    class TestFCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsFcmpOPContext, InstructionEvaluatorFCmpOp>
-    {
-        TestFCmpOpCase()
-        {
+    class TestFCmpOpCase extends AbstractInstructionTestCase<JALParser.JvmInsFcmpOPContext, InstructionEvaluatorFCmpOp> {
+        TestFCmpOpCase() {
             super(new InstructionEvaluatorFCmpOp(), EOpcodes.FCMPG, EOpcodes.FCMPL);
         }
 
         @Override
-        public InstructionCase[] getValidInstructionSyntaxes()
-        {
+        public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     of(create(floatValue(), floatValue()).expected(create(integerValue())), "fcmpg", EOpcodes.FCMPG),
-                    of(create(object(TypeDescriptor.className("java/lang/String")), floatValue(), floatValue())
-                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue())), "fcmpg", EOpcodes.FCMPG),
+                    of(
+                            create(object(TypeDescriptor.className("java/lang/String")), floatValue(), floatValue())
+                                    .expected(create(
+                                            object(TypeDescriptor.className("java/lang/String")),
+                                            integerValue()
+                                    )), "fcmpg", EOpcodes.FCMPG
+                    ),
                     of(create(floatValue(), floatValue()).expected(create(integerValue())), "fcmpl", EOpcodes.FCMPL),
-                    of(create(object(TypeDescriptor.className("java/lang/String")), floatValue(), floatValue())
-                            .expected(create(object(TypeDescriptor.className("java/lang/String")), integerValue())), "fcmpl", EOpcodes.FCMPL)
+                    of(
+                            create(object(TypeDescriptor.className("java/lang/String")), floatValue(), floatValue())
+                                    .expected(create(
+                                            object(TypeDescriptor.className("java/lang/String")),
+                                            integerValue()
+                                    )), "fcmpl", EOpcodes.FCMPL
+                    )
             );
         }
     }

@@ -16,8 +16,7 @@ import java.nio.file.Path;
  * for further processing or analysis. This class acts as a bridge between raw class data
  * and the higher-level import logic, reporting progress and errors via a {@link FileEvaluatingReporter}.
  */
-public class ClassFileImporter
-{
+public class ClassFileImporter {
     private final FileEvaluatingReporter reporter;
     private final ClassImporter classImporter;
 
@@ -26,8 +25,7 @@ public class ClassFileImporter
      *
      * @param reporter The reporter used to post informational and error messages during import.
      */
-    public ClassFileImporter(@NotNull FileEvaluatingReporter reporter)
-    {
+    public ClassFileImporter(@NotNull FileEvaluatingReporter reporter) {
         this.reporter = reporter;
         this.classImporter = new ClassImporter(reporter);
     }
@@ -43,8 +41,7 @@ public class ClassFileImporter
      * @return The result of the class import, encapsulated in a {@link ClassImportResult}.
      */
     @NotNull
-    public ClassImportResult importClass(byte[] classBytes)
-    {
+    public ClassImportResult importClass(byte[] classBytes) {
         this.reporter.postInfo("Importing class from byte array");
 
         ClassReader classReader = new ClassReader(classBytes);
@@ -67,12 +64,10 @@ public class ClassFileImporter
      * @throws IllegalArgumentException If the class file cannot be read or imported.
      */
     @NotNull
-    public ClassImportResult importClass(@NotNull Path classFilePath)
-    {
+    public ClassImportResult importClass(@NotNull Path classFilePath) {
         this.reporter.postInfo("Importing class from file: " + classFilePath);
 
-        try
-        {
+        try {
             InputStream inputStream = Files.newInputStream(classFilePath);
             ClassReader classReader = new ClassReader(inputStream);
             ClassNode asmClass = new ClassNode();
@@ -80,9 +75,7 @@ public class ClassFileImporter
             inputStream.close();
 
             return this.classImporter.importClass(asmClass);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             this.reporter.postError("Failed to import class from file: " + classFilePath);
             throw new IllegalArgumentException("Failed to import class from file: " + classFilePath, e);
         }

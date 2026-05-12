@@ -15,17 +15,45 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("TryCatchDirectivesHolder")
-class TryCatchDirectivesHolderTest
-{
+class TryCatchDirectivesHolderTest {
+    private static TryCatchDirectivesHolder newHolder(RecordingCompileReporter reporter) {
+        return new TryCatchDirectivesHolder(
+                new FileEvaluatingReporter(reporter, Path.of("sample.jal")),
+                new LabelsHolder()
+        );
+    }
+
+    private static MethodNode newMethod(String name) {
+        MethodNode method = new MethodNode();
+        method.name = name;
+        method.desc = "()V";
+        method.tryCatchBlocks = new ArrayList<>();
+        return method;
+    }
+
+    private static LabelInfo label(String name, int instructionIndex) {
+        return new LabelInfo(name, new Label(), instructionIndex);
+    }
+
+    private static void assertTryCatchBlock(TryCatchBlockNode block,
+                                            LabelInfo expectedStart,
+                                            LabelInfo expectedEnd,
+                                            LabelInfo expectedHandler,
+                                            String expectedType) {
+        assertSame(expectedStart.node(), block.start);
+        assertSame(expectedEnd.node(), block.end);
+        if (expectedHandler == null)
+            assertNull(block.handler);
+        else
+            assertSame(expectedHandler.node(), block.handler);
+        assertEquals(expectedType, block.type);
+    }
+
     @Test
-    void finalisingWithoutDirectivesLeavesMethodUntouched()
-    {
+    void finalisingWithoutDirectivesLeavesMethodUntouched() {
         RecordingCompileReporter reporter = new RecordingCompileReporter();
         TryCatchDirectivesHolder holder = newHolder(reporter);
         MethodNode method = newMethod("emptyMethod");
@@ -37,8 +65,7 @@ class TryCatchDirectivesHolderTest
     }
 
     @Test
-    void finalisingCatchDirectiveAddsSingleTryCatchBlock()
-    {
+    void finalisingCatchDirectiveAddsSingleTryCatchBlock() {
         RecordingCompileReporter reporter = new RecordingCompileReporter();
         TryCatchDirectivesHolder holder = newHolder(reporter);
         MethodNode method = newMethod("catchMethod");
@@ -54,13 +81,15 @@ class TryCatchDirectivesHolderTest
         assertEquals(1, method.tryCatchBlocks.size());
         assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, catchLabel, exceptionType.toString());
         assertEquals(1, reporter.infoMessages().size());
-        assertEquals("Finalising try-catch directives for method catchMethod()V", reporter.infoMessages().get(0).message());
+        assertEquals(
+                "Finalising try-catch directives for method catchMethod()V",
+                reporter.infoMessages().get(0).message()
+        );
         assertEquals(Path.of("sample.jal"), reporter.infoMessages().get(0).sourcePath());
     }
 
     @Test
-    void finalisingFinallyOnlyDirectiveAddsFinallyBlockAfterPrimaryRange()
-    {
+    void finalisingFinallyOnlyDirectiveAddsFinallyBlockAfterPrimaryRange() {
         RecordingCompileReporter reporter = new RecordingCompileReporter();
         TryCatchDirectivesHolder holder = newHolder(reporter);
         MethodNode method = newMethod("finallyMethod");
@@ -80,8 +109,7 @@ class TryCatchDirectivesHolderTest
     }
 
     @Test
-    void finalisingMultipleDirectivesPreservesDeclarationOrder()
-    {
+    void finalisingMultipleDirectivesPreservesDeclarationOrder() {
         RecordingCompileReporter reporter = new RecordingCompileReporter();
         TryCatchDirectivesHolder holder = newHolder(reporter);
         MethodNode method = newMethod("multiMethod");
@@ -95,96 +123,69 @@ class TryCatchDirectivesHolderTest
         LabelInfo secondFinally = label("SECOND_FINALLY", 7);
 
         holder.addTryCatchDirective(firstStart, firstEnd, firstCatch, TypeDescriptor.INTEGER, null);
-        holder.addTryCatchDirective(secondStart, secondEnd, secondCatch, TypeDescriptor.className("Ljava/lang/RuntimeException;"), secondFinally);
+        holder.addTryCatchDirective(
+                secondStart,
+                secondEnd,
+                secondCatch,
+                TypeDescriptor.className("Ljava/lang/RuntimeException;"),
+                secondFinally
+        );
         holder.finaliseTryCatchDirectives(method);
 
         assertEquals(3, method.tryCatchBlocks.size());
-        assertTryCatchBlock(method.tryCatchBlocks.get(0), firstStart, firstEnd, firstCatch, TypeDescriptor.INTEGER.toString());
-        assertTryCatchBlock(method.tryCatchBlocks.get(1), secondStart, secondEnd, secondCatch, TypeDescriptor.className("Ljava/lang/RuntimeException;").toString());
+        assertTryCatchBlock(
+                method.tryCatchBlocks.get(0),
+                firstStart,
+                firstEnd,
+                firstCatch,
+                TypeDescriptor.INTEGER.toString()
+        );
+        assertTryCatchBlock(
+                method.tryCatchBlocks.get(1),
+                secondStart,
+                secondEnd,
+                secondCatch,
+                TypeDescriptor.className("Ljava/lang/RuntimeException;").toString()
+        );
         assertTryCatchBlock(method.tryCatchBlocks.get(2), secondStart, secondEnd, secondFinally, null);
         assertEquals(1, reporter.infoMessages().size());
     }
 
-    private static TryCatchDirectivesHolder newHolder(RecordingCompileReporter reporter)
-    {
-        return new TryCatchDirectivesHolder(
-                new FileEvaluatingReporter(reporter, Path.of("sample.jal")),
-                new LabelsHolder()
-        );
-    }
-
-    private static MethodNode newMethod(String name)
-    {
-        MethodNode method = new MethodNode();
-        method.name = name;
-        method.desc = "()V";
-        method.tryCatchBlocks = new ArrayList<>();
-        return method;
-    }
-
-    private static LabelInfo label(String name, int instructionIndex)
-    {
-        return new LabelInfo(name, new Label(), instructionIndex);
-    }
-
-    private static void assertTryCatchBlock(TryCatchBlockNode block,
-                                            LabelInfo expectedStart,
-                                            LabelInfo expectedEnd,
-                                            LabelInfo expectedHandler,
-                                            String expectedType)
-    {
-        assertSame(expectedStart.node(), block.start);
-        assertSame(expectedEnd.node(), block.end);
-        if (expectedHandler == null)
-            assertNull(block.handler);
-        else
-            assertSame(expectedHandler.node(), block.handler);
-        assertEquals(expectedType, block.type);
-    }
-
-    private static final class RecordingCompileReporter implements CompileReporter
-    {
+    private static final class RecordingCompileReporter implements CompileReporter {
         private final List<InfoMessage> infoMessages = new ArrayList<>();
 
-        List<InfoMessage> infoMessages()
-        {
+        List<InfoMessage> infoMessages() {
             return this.infoMessages;
         }
 
         @Override
-        public void postWarning(@NotNull String message, Path sourcePath)
-        {
+        public void postWarning(@NotNull String message, Path sourcePath) {
         }
 
         @Override
-        public void postInfo(@NotNull String message, Path sourcePath)
-        {
+        public void postInfo(@NotNull String message, Path sourcePath) {
             this.infoMessages.add(new InfoMessage(message, sourcePath));
         }
 
         @Override
-        public void postError(@NotNull String message, Path sourcePath)
-        {
+        public void postError(@NotNull String message, Path sourcePath) {
         }
 
         @Override
-        public void postError(@NotNull String message, @NotNull CompileErrorException cause, Path sourcePath)
-        {
+        public void postError(@NotNull String message, @NotNull CompileErrorException cause, Path sourcePath) {
         }
 
         @Override
-        public void postWarning(@NotNull String message, Path sourcePath, long line, long column, long length)
-        {
+        public void postWarning(@NotNull String message, Path sourcePath, long line, long column, long length) {
         }
 
         @Override
-        public void postWarning(@NotNull String message, @NotNull Path sourcePath, org.antlr.v4.runtime.@NotNull ParserRuleContext ctxt)
-        {
+        public void postWarning(@NotNull String message, @NotNull Path sourcePath,
+                                org.antlr.v4.runtime.@NotNull ParserRuleContext ctxt) {
         }
     }
 
-    private record InfoMessage(String message, Path sourcePath)
-    {
+    private record InfoMessage(String message, Path sourcePath) {
     }
 }
 

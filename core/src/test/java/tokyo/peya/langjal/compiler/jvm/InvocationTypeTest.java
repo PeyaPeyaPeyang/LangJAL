@@ -14,14 +14,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DisplayName("InvocationType")
 class InvocationTypeTest {
 
+    static Stream<InvocationType> allTypes() {
+        return Stream.of(InvocationType.values());
+    }
+
     @ParameterizedTest
-    @CsvSource({
-            "invokevirtual,182",
-            "invokespecial,183",
-            "invokestatic,184",
-            "invokeinterface,185",
-            "invokedynamic,186"
-    })
+    @CsvSource(
+            {
+                    "invokevirtual,182",
+                    "invokespecial,183",
+                    "invokestatic,184",
+                    "invokeinterface,185",
+                    "invokedynamic,186"
+            }
+    )
     void fromOpcodeRecognizesAllTypes(String expectedName, int opcode) {
         InvocationType type = InvocationType.fromOpcode(opcode);
         assertEquals(expectedName, type.getName());
@@ -38,13 +44,15 @@ class InvocationTypeTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "invokevirtual,invokevirtual",
-            "invokespecial,invokespecial",
-            "invokestatic,invokestatic",
-            "invokeinterface,invokeinterface",
-            "invokedynamic,invokedynamic"
-    })
+    @CsvSource(
+            {
+                    "invokevirtual,invokevirtual",
+                    "invokespecial,invokespecial",
+                    "invokestatic,invokestatic",
+                    "invokeinterface,invokeinterface",
+                    "invokedynamic,invokedynamic"
+            }
+    )
     void fromNameRecognizesAllTypes(String name, String expectedName) {
         InvocationType type = InvocationType.fromName(name);
         assertEquals(expectedName, type.getName());
@@ -70,10 +78,6 @@ class InvocationTypeTest {
     @MethodSource("allTypes")
     void allTypesHaveValidNames(InvocationType type) {
         assertEquals(type, InvocationType.fromName(type.getName()));
-    }
-
-    static Stream<InvocationType> allTypes() {
-        return Stream.of(InvocationType.values());
     }
 }
 

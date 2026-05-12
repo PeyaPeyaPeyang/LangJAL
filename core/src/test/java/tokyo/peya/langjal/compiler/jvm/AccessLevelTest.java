@@ -15,6 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DisplayName("AccessLevel")
 class AccessLevelTest {
 
+    static Stream<AccessLevel> allLevels() {
+        return Stream.of(AccessLevel.values());
+    }
+
     @Test
     void toStringReturnsName() {
         assertEquals("public", AccessLevel.PUBLIC.toString());
@@ -24,13 +28,15 @@ class AccessLevelTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "public,public",
-            "protected,protected",
-            "private,private",
-            "package-private,package-private",
-            "package,package-private"
-    })
+    @CsvSource(
+            {
+                    "public,public",
+                    "protected,protected",
+                    "private,private",
+                    "package-private,package-private",
+                    "package,package-private"
+            }
+    )
     void fromStringParsesValidNames(String input, String expectedName) {
         assertEquals(expectedName, AccessLevel.fromString(input).getName());
     }
@@ -76,10 +82,6 @@ class AccessLevelTest {
     @MethodSource("allLevels")
     void allLevelsHaveNames(AccessLevel level) {
         assertEquals(level.getName(), level.toString());
-    }
-
-    static Stream<AccessLevel> allLevels() {
-        return Stream.of(AccessLevel.values());
     }
 }
 

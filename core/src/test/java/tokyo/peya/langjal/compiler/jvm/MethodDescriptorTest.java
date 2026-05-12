@@ -5,24 +5,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("MethodDescriptor")
 class MethodDescriptorTest {
 
     @ParameterizedTest
-    @CsvSource({
-            "(I)V",
-            "(ID)I",
-            "()V",
-            "(Ljava/lang/String;)I",
-            "(LNoPackageClass;)LAnotherClass;",
-            "([[[[[[Ljava/lang/Object;BCDFIJZZZZLjava/lang/String;)[[[[[[Ljava/lang/Object;BCDFIJZZZZLjava/lang/String;",
-            "([[LB;LC;LD;LF;LZ;LJ;L[Ljava/lang/String;)[[LB;LC;LD;LF;LZ;LJ;L[Ljava/lang/String;"
-    })
+    @CsvSource(
+            {
+                    "(I)V",
+                    "(ID)I",
+                    "()V",
+                    "(Ljava/lang/String;)I",
+                    "(LNoPackageClass;)LAnotherClass;",
+                    "([[[[[[Ljava/lang/Object;BCDFIJZZZZLjava/lang/String;)[[[[[[Ljava/lang/Object;BCDFIJZZZZLjava/lang/String;",
+                    "([[LB;LC;LD;LF;LZ;LJ;L[Ljava/lang/String;)[[LB;LC;LD;LF;LZ;LJ;L[Ljava/lang/String;"
+            }
+    )
     void parseMethodDescriptors(String descriptor) {
         MethodDescriptor method = MethodDescriptor.parse(descriptor);
         assertEquals(descriptor, method.getDescriptorString());

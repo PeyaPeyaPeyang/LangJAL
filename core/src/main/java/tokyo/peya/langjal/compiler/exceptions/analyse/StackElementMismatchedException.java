@@ -11,8 +11,7 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
  * This is typically used for type or value mismatches in the operand stack.
  */
 @Getter
-public class StackElementMismatchedException extends ClassAnalyseException
-{
+public class StackElementMismatchedException extends ClassAnalyseException {
     /**
      * The instruction that produced the actual stack element.
      */
@@ -39,8 +38,7 @@ public class StackElementMismatchedException extends ClassAnalyseException
      * @param actual                The actual stack element found.
      */
     public StackElementMismatchedException(@NotNull InstructionInfo actualElementProducer,
-                                           @NotNull StackElement expected, @NotNull StackElement actual)
-    {
+                                           @NotNull StackElement expected, @NotNull StackElement actual) {
         super("Stack element mismatch: " + actualElementProducer + " expected " + expected + ", but got " + actual);
         this.actualElementProducer = actualElementProducer;
         this.expected = expected;
@@ -57,8 +55,7 @@ public class StackElementMismatchedException extends ClassAnalyseException
      */
     public StackElementMismatchedException(@NotNull InstructionInfo actualElementProducer,
                                            @NotNull StackElement expected, @NotNull StackElement actual,
-                                           @NotNull String message)
-    {
+                                           @NotNull String message) {
         super(message);
         this.actualElementProducer = actualElementProducer;
         this.expected = expected;

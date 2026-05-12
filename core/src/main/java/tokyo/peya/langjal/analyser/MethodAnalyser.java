@@ -4,28 +4,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.analyser.stack.LocalStackElement;
 import tokyo.peya.langjal.analyser.stack.StackElement;
 import tokyo.peya.langjal.analyser.stack.TopElement;
 import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNop;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelInfo;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Analyses a JVM method's instructions, stack frames, and control flow for bytecode verification.
@@ -40,8 +29,7 @@ import java.util.Map;
  * System.out.println("Max stack: " + result.maxStack());
  * }</pre>
  */
-public class MethodAnalyser
-{
+public class MethodAnalyser {
     private final FileEvaluatingReporter context;
     private final MethodNode method;
     private final InstructionsHolder instructions;
@@ -61,8 +49,7 @@ public class MethodAnalyser
                           @NotNull MethodNode method,
                           @NotNull InstructionsHolder instructions,
                           @NotNull LabelsHolder labels,
-                          @NotNull LocalVariablesHolder locals)
-    {
+                          @NotNull LocalVariablesHolder locals) {
         this.context = context;
         this.method = method;
         this.instructions = instructions;
@@ -83,17 +70,29 @@ public class MethodAnalyser
         this.confirmedAnalysisResults = new HashMap<>();
     }
 
+    @Nullable
+    private static InstructionSetAnalyser createAnalyser(
+            @NotNull FileEvaluatingReporter context,
+            @NotNull LabelsHolder labels,
+            @NotNull LabelInfo label,
+            @NotNull List<InstructionInfo> instructions) {
+        if (instructions.isEmpty()) {
+            return null;
+        }
+
+        return new InstructionSetAnalyser(context, labels, label, instructions);
+    }
+
     /**
      * Analyses the method and returns the analysis result, including frame propagations and max sizes.
+     *
      * @return The method analysis result.
      */
-    public MethodAnalysisResult analyse()
-    {
+    public MethodAnalysisResult analyse() {
         this.context.postInfo("Analysing method: " + this.method.name + " in class: " + this.method.desc);
         this.pendingPropagations.clear();
         this.createAnalysers();
-        if (this.analysers.isEmpty())
-        {
+        if (this.analysers.isEmpty()) {
             this.context.postInfo("There are no instruction sets to analyse in method: " + this.method.name);
             return MethodAnalysisResult.empty(this.method);  // インストラクションセットがない場合は空の結果を返す
         }
@@ -116,28 +115,24 @@ public class MethodAnalyser
         );
     }
 
-    private void analyseLoop()
-    {
+    private void analyseLoop() {
         long startTime = System.currentTimeMillis();
         long iterationCount = 0;
-        while (!this.pendingPropagations.isEmpty())
-        {
+        while (!this.pendingPropagations.isEmpty()) {
             iterationCount++;
-            if (iterationCount % 5 == 0)
-            {
+            if (iterationCount % 5 == 0) {
                 long elapsedTime = System.currentTimeMillis() - startTime;
                 this.context.postInfo("Processing propagation: " + iterationCount +
-                                              ", Pending: " + this.pendingPropagations.size() +
-                                              ", Elapsed: " + elapsedTime + "ms");
+                        ", Pending: " + this.pendingPropagations.size() +
+                        ", Elapsed: " + elapsedTime + "ms");
             }
 
             FramePropagation propagation = this.pendingPropagations.remove(0);
             LabelInfo receiver = propagation.receiver();
 
-            if (receiver == this.labels.getGlobalEnd())
-            {
+            if (receiver == this.labels.getGlobalEnd()) {
                 this.context.postInfo("Reached global end label, stopping analysis for branch: " + propagation.sender()
-                                                                                                              .name());
+                        .name());
                 continue;  // グローバル終了ラベルに到達した場合、分析を停止
             }
 
@@ -146,32 +141,28 @@ public class MethodAnalyser
 
         long elapsedTime = System.currentTimeMillis() - startTime;
         this.context.postInfo("Analysis completed for method: " + this.method.name +
-                                      ", Total iterations: " + iterationCount +
-                                      ", Max stack size: " + this.maxStackSize +
-                                      ", Max local size: " + this.maxLocalSize +
-                                      ", Elapsed time: " + elapsedTime + "ms");
+                ", Total iterations: " + iterationCount +
+                ", Max stack size: " + this.maxStackSize +
+                ", Max local size: " + this.maxLocalSize +
+                ", Elapsed time: " + elapsedTime + "ms");
     }
 
-    private void analysePropagation(@NotNull FramePropagation propagation)
-    {
+    private void analysePropagation(@NotNull FramePropagation propagation) {
         LabelInfo sender = propagation.sender();
         LabelInfo receiver = propagation.receiver();
         this.context.postInfo("Analysing propagation for jump " + sender.name() + " -> " + receiver.name() +
-                                      ", Stack size: " + propagation.stack().length +
-                                      ", Local size: " + propagation.locals().length);
+                ", Stack size: " + propagation.stack().length +
+                ", Local size: " + propagation.locals().length);
 
-        for (InstructionSetAnalyser analyser : this.analysers)
-        {
+        for (InstructionSetAnalyser analyser : this.analysers) {
             if (!analyser.getLabel().equals(receiver))  // 該当するインストラクション・セットを探す
                 continue;
 
             InstructionSetAnalysisResult analysisResult = analyser.analyse(propagation);
             this.confirmedAnalysisResults.put(propagation, analysisResult);  // 分析結果を確定
             this.updateMaxes(analysisResult);
-            for (FramePropagation nextPropagation : analysisResult.framePropagations())
-            {
-                if (this.checkConfirmedPropagation(nextPropagation))
-                {
+            for (FramePropagation nextPropagation : analysisResult.framePropagations()) {
+                if (this.checkConfirmedPropagation(nextPropagation)) {
                     this.context.postInfo("New propagation found: " + nextPropagation);
                     this.pendingPropagations.add(nextPropagation);  // 新しい伝播を追加
                 }
@@ -179,22 +170,17 @@ public class MethodAnalyser
         }
     }
 
-    private boolean checkConfirmedPropagation(@NotNull FramePropagation propagation)
-    {
+    private boolean checkConfirmedPropagation(@NotNull FramePropagation propagation) {
         Iterator<FramePropagation> iterator = this.confirmedAnalysisResults.keySet().iterator();
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             FramePropagation confirmed = iterator.next();
             if (confirmed.sender().equals(propagation.sender()) &&
-                    confirmed.receiver().equals(propagation.receiver()))
-            {
+                    confirmed.receiver().equals(propagation.receiver())) {
                 // 既に同じ送信元と受信先の伝播が存在する場合、スタックとローカル変数を比較
                 if (Arrays.equals(confirmed.stack(), propagation.stack()) &&
                         Arrays.equals(confirmed.locals(), propagation.locals()))
                     return false;  // 同じスタックとローカル変数の組み合わせが既に存在する
-                else
-
-                {
+                else {
                     this.context.postInfo("Found existing propagation with different stack/locals: " + confirmed);
                     // 既存の伝播と異なるスタックやローカル変数がある場合、更新する
                     iterator.remove();  // 古い伝播を削除
@@ -207,22 +193,19 @@ public class MethodAnalyser
         return true;
     }
 
-    private void printAnalyseTargets()
-    {
+    private void printAnalyseTargets() {
         this.context.postInfo("Analysing the following instruction sets in method: " + this.method.name);
         for (InstructionSetAnalyser analyser : this.analysers)
             this.context.postInfo(" - Name: " + analyser.getLabel().name() +
-                                          ", Instructions: " + analyser.getInstructions().size());
+                    ", Instructions: " + analyser.getInstructions().size());
     }
 
-    private void updateMaxes(@NotNull InstructionSetAnalysisResult analysisResult)
-    {
+    private void updateMaxes(@NotNull InstructionSetAnalysisResult analysisResult) {
         this.maxStackSize = Math.max(this.maxStackSize, analysisResult.maxStackSize());
         this.maxLocalSize = Math.max(this.maxLocalSize, analysisResult.maxLocalSize());
     }
 
-    private FramePropagation createFirstPropagation(@NotNull LabelInfo receiver)
-    {
+    private FramePropagation createFirstPropagation(@NotNull LabelInfo receiver) {
         LabelInfo sender = this.labels.getGlobalStart();
         StackElement[] stack = new StackElement[0];  // グローバル開始時点ではスタックは空
 
@@ -242,13 +225,12 @@ public class MethodAnalyser
         );
     }
 
-    private LocalStackElement[] createLocalStack(@NotNull LocalVariableInfo[] locals)
-    {
+    private LocalStackElement[] createLocalStack(@NotNull LocalVariableInfo[] locals) {
         // ローカル変数のスロットサイズはカテゴリ（1, 2）で変わる。
         int slotSize = Arrays.stream(locals)
-                             .mapToInt(localInfo -> localInfo.index() + localInfo.type().getBaseType().getCategory())
-                             .max()
-                             .orElse(0);
+                .mapToInt(localInfo -> localInfo.index() + localInfo.type().getBaseType().getCategory())
+                .max()
+                .orElse(0);
 
 
         // locals を index でソート
@@ -258,10 +240,8 @@ public class MethodAnalyser
         boolean isInitialiseMethod = this.method.name.equals("<init>");
         LocalStackElement[] localStack = new LocalStackElement[slotSize];
         TopElement top = new TopElement(this.nop);
-        for (int i = 0; i < slotSize; i++)
-        {
-            if (pendingLocals.isEmpty() || pendingLocals.get(0).index() > i)
-            {
+        for (int i = 0; i < slotSize; i++) {
+            if (pendingLocals.isEmpty() || pendingLocals.get(0).index() > i) {
                 localStack[i] = new LocalStackElement(this.nop, i, top);
                 continue;
             }
@@ -269,8 +249,7 @@ public class MethodAnalyser
             LocalVariableInfo local = pendingLocals.remove(0);
             TypeDescriptor type = local.type();
 
-            if (isInitialiseMethod && local.index() == 0)
-            {
+            if (isInitialiseMethod && local.index() == 0) {
                 // 初期化メソッドのthis参照はUninitializedThisElementで埋める
                 localStack[i] = new LocalStackElement(this.nop, 0, new UninitializedThisElement(this.nop));
                 continue;
@@ -280,8 +259,7 @@ public class MethodAnalyser
             localStack[i] = new LocalStackElement(this.nop, local.index(), elem);
 
             // 2スロット型の場合は次のスロットをTopElementで埋める
-            if (type.getBaseType().getCategory() == 2)
-            {
+            if (type.getBaseType().getCategory() == 2) {
                 i++;
                 if (i < slotSize)
                     localStack[i] = new LocalStackElement(this.nop, i, top);
@@ -291,8 +269,7 @@ public class MethodAnalyser
         return localStack;
     }
 
-    private void createAnalysers()
-    {
+    private void createAnalysers() {
         for (LabelInfo label : this.labels.getLabels())  // アナライザは，１インストラクションセット（ラベル区切り）で管理
         {
             if (label == this.labels.getGlobalEnd())
@@ -310,20 +287,5 @@ public class MethodAnalyser
 
             this.analysers.add(analyser);
         }
-    }
-
-    @Nullable
-    private static InstructionSetAnalyser createAnalyser(
-            @NotNull FileEvaluatingReporter context,
-            @NotNull LabelsHolder labels,
-            @NotNull LabelInfo label,
-            @NotNull List<InstructionInfo> instructions)
-    {
-        if (instructions.isEmpty())
-        {
-            return null;
-        }
-
-        return new InstructionSetAnalyser(context, labels, label, instructions);
     }
 }

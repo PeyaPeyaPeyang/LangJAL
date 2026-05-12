@@ -14,18 +14,36 @@ import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
 public class InstructionEvaluatorInvokeSpecial
-        extends AbstractInstructionEvaluator<JALParser.JvmInsInvokespecialContext>
-{
-    public InstructionEvaluatorInvokeSpecial()
-    {
+        extends AbstractInstructionEvaluator<JALParser.JvmInsInvokespecialContext> {
+    public InstructionEvaluatorInvokeSpecial() {
         super(EOpcodes.INVOKESPECIAL);
+    }
+
+    private static void opSpecialInvocation(@NotNull InstructionInfo instruction,
+                                            @NotNull FrameDifferenceInfo.Builder builder,
+                                            @NotNull MethodInsnNode method) {
+        StackElementCapsule uninitialisedRefCapsule = new StackElementCapsule(
+                instruction, actualElm -> {
+            // UninitializedThisElement の場合は，ObjectElement をローカル変数０に入れる
+            if (actualElm instanceof UninitializedThisElement)
+                return new ObjectElement(
+                        instruction,
+                        TypeDescriptor.className(method.owner)
+                );
+
+            return actualElm; // 通常の ObjectElement であればそのまま返す
+        }
+        );
+        if (method.name.equals("<init>"))
+            builder.popToCapsule(uninitialisedRefCapsule);
+        else
+            builder.popObjectRef();  // 通常のメソッド呼び出し
+
+        if (method.name.equals("<init>") && method.owner.equals(instruction.ownerClass().superName))
+            builder.addLocalFromCapsule(0, uninitialisedRefCapsule);
     }
 
     @Override
@@ -34,14 +52,13 @@ public class InstructionEvaluatorInvokeSpecial
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsInvokespecialContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsInvokespecialContext instruction) {
         JALParser.JvmInsArgMethodRefContext ref = instruction.jvmInsArgMethodRef();
         String methodName = ref.methodName().getText();
 
         // Owner が指定されていない場合は，命令を持つメソッドのクラスが所有者となる
         JALParser.FullQualifiedClassNameContext ownerType = ref.fullQualifiedClassName();
-        String ownerName = ownerType == null ? clazz.name: ownerType.getText();
+        String ownerName = ownerType == null ? clazz.name : ownerType.getText();
 
         return InstructionEvaluateHelperInvocation.evaluate(
                 this,
@@ -53,8 +70,7 @@ public class InstructionEvaluatorInvokeSpecial
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         MethodInsnNode method = (MethodInsnNode) instruction.insn();
         MethodDescriptor descriptor = MethodDescriptor.parse(method.desc);
         TypeDescriptor returnTypeDesc = descriptor.getReturnType();
@@ -78,33 +94,8 @@ public class InstructionEvaluatorInvokeSpecial
         return builder.build();
     }
 
-    private static void opSpecialInvocation(@NotNull InstructionInfo instruction, @NotNull FrameDifferenceInfo.Builder builder,
-                                     @NotNull MethodInsnNode method)
-    {
-        StackElementCapsule uninitialisedRefCapsule = new StackElementCapsule(
-                instruction, actualElm -> {
-            // UninitializedThisElement の場合は，ObjectElement をローカル変数０に入れる
-            if (actualElm instanceof UninitializedThisElement)
-                return new ObjectElement(
-                        instruction,
-                        TypeDescriptor.className(method.owner)
-                );
-
-            return actualElm; // 通常の ObjectElement であればそのまま返す
-        }
-        );
-        if (method.name.equals("<init>"))
-            builder.popToCapsule(uninitialisedRefCapsule);
-        else
-            builder.popObjectRef();  // 通常のメソッド呼び出し
-
-        if (method.name.equals("<init>") && method.owner.equals(instruction.ownerClass().superName))
-            builder.addLocalFromCapsule(0, uninitialisedRefCapsule);
-    }
-
     @Override
-    public JALParser.JvmInsInvokespecialContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsInvokespecialContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsInvokespecial();
     }
 }

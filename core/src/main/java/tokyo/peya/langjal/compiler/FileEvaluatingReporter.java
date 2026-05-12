@@ -12,8 +12,7 @@ import java.nio.file.Path;
  * associating them with a specific source file path.
  */
 @AllArgsConstructor
-public class FileEvaluatingReporter
-{
+public class FileEvaluatingReporter {
     /**
      * The underlying reporter to delegate to.
      */
@@ -28,8 +27,7 @@ public class FileEvaluatingReporter
      *
      * @param message The warning message.
      */
-    public void postWarning(@NotNull String message)
-    {
+    public void postWarning(@NotNull String message) {
         this.delegate.postWarning(message, this.sourcePath);
     }
 
@@ -38,8 +36,7 @@ public class FileEvaluatingReporter
      *
      * @param message The info message.
      */
-    public void postInfo(@NotNull String message)
-    {
+    public void postInfo(@NotNull String message) {
         this.delegate.postInfo(message, this.sourcePath);
     }
 
@@ -48,8 +45,7 @@ public class FileEvaluatingReporter
      *
      * @param message The error message.
      */
-    public void postError(@NotNull String message)
-    {
+    public void postError(@NotNull String message) {
         this.delegate.postError(message, this.sourcePath);
     }
 
@@ -58,8 +54,7 @@ public class FileEvaluatingReporter
      *
      * @param cause The compile error exception.
      */
-    public void postError(@NotNull CompileErrorException cause)
-    {
+    public void postError(@NotNull CompileErrorException cause) {
         this.delegate.postError(cause.getMessage(), cause, this.sourcePath);
     }
 
@@ -69,8 +64,7 @@ public class FileEvaluatingReporter
      * @param message The error message.
      * @param cause   The compile error exception.
      */
-    public void postError(@NotNull String message, @NotNull CompileErrorException cause)
-    {
+    public void postError(@NotNull String message, @NotNull CompileErrorException cause) {
         this.delegate.postError(message, cause, this.sourcePath);
     }
 
@@ -82,8 +76,7 @@ public class FileEvaluatingReporter
      * @param column  The column number.
      * @param length  The length of the affected region.
      */
-    public void postWarning(@NotNull String message, long line, long column, long length)
-    {
+    public void postWarning(@NotNull String message, long line, long column, long length) {
         this.delegate.postWarning(message, this.sourcePath, line, column, length);
     }
 
@@ -93,8 +86,7 @@ public class FileEvaluatingReporter
      * @param message The warning message.
      * @param ctxt    The parser rule context.
      */
-    public void postWarning(@NotNull String message, @NotNull ParserRuleContext ctxt)
-    {
+    public void postWarning(@NotNull String message, @NotNull ParserRuleContext ctxt) {
         this.delegate.postWarning(message, this.sourcePath, ctxt);
     }
 }

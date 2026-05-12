@@ -9,22 +9,17 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
 
-public class TestXAnd
-{
+public class TestXAnd {
     @Nested
-    class TestIAnd extends AbstractMathInstructionTestCase<JALParser.JvmInsIandContext, InstructionEvaluatorIAnd>
-    {
-        TestIAnd()
-        {
+    class TestIAnd extends AbstractMathInstructionTestCase<JALParser.JvmInsIandContext, InstructionEvaluatorIAnd> {
+        TestIAnd() {
             super(new InstructionEvaluatorIAnd(), integerValue(), "iand", EOpcodes.IAND);
         }
     }
 
     @Nested
-    class TestLAnd extends AbstractMathInstructionTestCase<JALParser.JvmInsLandContext, InstructionEvaluatorLAnd>
-    {
-        TestLAnd()
-        {
+    class TestLAnd extends AbstractMathInstructionTestCase<JALParser.JvmInsLandContext, InstructionEvaluatorLAnd> {
+        TestLAnd() {
             super(new InstructionEvaluatorLAnd(), longValue(), "land", EOpcodes.LAND);
         }
     }

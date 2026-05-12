@@ -29,6 +29,5 @@ public record InstructionSetFrame(
         StackElement[] stack,
         @NotNull
         LocalStackElement[] locals
-)
-{
+) {
 }

@@ -3,21 +3,15 @@ package tokyo.peya.langjal.compiler.instructions.invokex;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
-import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorInvokeStatic extends AbstractInstructionEvaluator<JALParser.JvmInsInvokestaticContext>
-{
-    public InstructionEvaluatorInvokeStatic()
-    {
+public class InstructionEvaluatorInvokeStatic extends AbstractInstructionEvaluator<JALParser.JvmInsInvokestaticContext> {
+    public InstructionEvaluatorInvokeStatic() {
         super(EOpcodes.INVOKESTATIC);
     }
 
@@ -27,8 +21,7 @@ public class InstructionEvaluatorInvokeStatic extends AbstractInstructionEvaluat
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsInvokestaticContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsInvokestaticContext instruction) {
         return InstructionEvaluateHelperInvocation.evaluate(
                 this,
                 clazz,
@@ -38,14 +31,12 @@ public class InstructionEvaluatorInvokeStatic extends AbstractInstructionEvaluat
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return InstructionEvaluateHelperInvocation.getFrameNormalDifferenceInfo(instruction);
     }
 
     @Override
-    public JALParser.JvmInsInvokestaticContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsInvokestaticContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsInvokestatic();
     }
 }

@@ -9,22 +9,17 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
 
-public class TestXUShr
-{
+public class TestXUShr {
     @Nested
-    class TestIUShr extends AbstractMathInstructionTestCase<JALParser.JvmInsIushrContext, InstructionEvaluatorIUShr>
-    {
-        TestIUShr()
-        {
+    class TestIUShr extends AbstractMathInstructionTestCase<JALParser.JvmInsIushrContext, InstructionEvaluatorIUShr> {
+        TestIUShr() {
             super(new InstructionEvaluatorIUShr(), integerValue(), "iushr", EOpcodes.IUSHR);
         }
     }
 
     @Nested
-    class TestLUShr extends AbstractMathInstructionTestCase<JALParser.JvmInsLushrContext, InstructionEvaluatorLUShr>
-    {
-        TestLUShr()
-        {
+    class TestLUShr extends AbstractMathInstructionTestCase<JALParser.JvmInsLushrContext, InstructionEvaluatorLUShr> {
+        TestLUShr() {
             super(new InstructionEvaluatorLUShr(), longValue(), "lushr", EOpcodes.LUSHR);
         }
     }

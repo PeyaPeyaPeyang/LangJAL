@@ -13,8 +13,7 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
  * </p>
  */
 @Getter
-public class UnknownJumpException extends ClassAnalyseException
-{
+public class UnknownJumpException extends ClassAnalyseException {
     /**
      * The instruction that attempted the jump.
      */
@@ -33,10 +32,9 @@ public class UnknownJumpException extends ClassAnalyseException
      * @param toLabel     The label that was the target of the jump, or null if unknown.
      * @param instruction The instruction that attempted the jump.
      */
-    public UnknownJumpException(@Nullable LabelInfo toLabel, @NotNull InstructionInfo instruction)
-    {
-        super("Unknown jump target: " + (toLabel != null ? toLabel.name(): "<unknown label>") +
-                      " at instruction: " + instruction);
+    public UnknownJumpException(@Nullable LabelInfo toLabel, @NotNull InstructionInfo instruction) {
+        super("Unknown jump target: " + (toLabel != null ? toLabel.name() : "<unknown label>") +
+                " at instruction: " + instruction);
         this.instruction = instruction;
         this.toLabel = toLabel;
     }
@@ -47,8 +45,7 @@ public class UnknownJumpException extends ClassAnalyseException
      * @param message     The detail message.
      * @param instruction The instruction that attempted the jump.
      */
-    public UnknownJumpException(@NotNull String message, @NotNull InstructionInfo instruction)
-    {
+    public UnknownJumpException(@NotNull String message, @NotNull InstructionInfo instruction) {
         super(message);
         this.instruction = instruction;
         this.toLabel = null;

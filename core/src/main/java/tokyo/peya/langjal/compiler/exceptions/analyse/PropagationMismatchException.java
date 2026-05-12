@@ -12,8 +12,7 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
  * </p>
  */
 @Getter
-public class PropagationMismatchException extends ClassAnalyseException
-{
+public class PropagationMismatchException extends ClassAnalyseException {
     /**
      * The frame propagation that caused the mismatch.
      */
@@ -32,8 +31,7 @@ public class PropagationMismatchException extends ClassAnalyseException
      * @param propagation The frame propagation that caused the mismatch.
      * @param receiver    The label that was expected to receive the propagation.
      */
-    public PropagationMismatchException(@NotNull FramePropagation propagation, @NotNull LabelInfo receiver)
-    {
+    public PropagationMismatchException(@NotNull FramePropagation propagation, @NotNull LabelInfo receiver) {
         super("CANNOT ANALYSE FRAME PROPAGATION: " + propagation + " -> " + receiver);
         this.propagation = propagation;
         this.receiver = receiver;
@@ -47,8 +45,7 @@ public class PropagationMismatchException extends ClassAnalyseException
      * @param message     The detail message.
      */
     public PropagationMismatchException(@NotNull FramePropagation propagation, @NotNull LabelInfo receiver,
-                                        @NotNull String message)
-    {
+                                        @NotNull String message) {
         super(message);
         this.propagation = propagation;
         this.receiver = receiver;

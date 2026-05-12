@@ -7,15 +7,13 @@ import java.io.IOException;
 /**
  * Exception thrown when an error occurs while writing a class file to disk.
  */
-public class ClassWritingException extends CompileErrorException
-{
+public class ClassWritingException extends CompileErrorException {
     /**
      * Constructs a new ClassWritingException with the specified IOException as the cause.
      *
      * @param ioe The IOException that occurred during class file writing.
      */
-    public ClassWritingException(@NotNull IOException ioe)
-    {
+    public ClassWritingException(@NotNull IOException ioe) {
         super(
                 "Exception while writing class file",
                 ioe,
@@ -29,8 +27,7 @@ public class ClassWritingException extends CompileErrorException
      * @return The IOException that caused this exception.
      */
     @Override
-    public synchronized IOException getCause()
-    {
+    public synchronized IOException getCause() {
         return (IOException) super.getCause();
     }
 }

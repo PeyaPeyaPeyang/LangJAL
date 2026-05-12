@@ -9,8 +9,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum AccessAttribute
-{
+public enum AccessAttribute {
     /**
      * Indicates the static modifier.
      */
@@ -93,10 +92,8 @@ public enum AccessAttribute
      * @return The matching AccessAttribute.
      * @throws IllegalArgumentException if the name does not match any attribute.
      */
-    public static AccessAttribute fromString(String name)
-    {
-        return switch (name.trim().toLowerCase())
-        {
+    public static AccessAttribute fromString(String name) {
+        return switch (name.trim().toLowerCase()) {
             case "static" -> STATIC;
             case "final" -> FINAL;
             case "super" -> SUPER;

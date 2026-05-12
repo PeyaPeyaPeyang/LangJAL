@@ -8,43 +8,48 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("PrimitiveTypes")
 class PrimitiveTypesTest {
 
+    static Stream<PrimitiveTypes> allPrimitiveTypes() {
+        return Stream.of(PrimitiveTypes.values());
+    }
+
     @ParameterizedTest
-    @CsvSource({
-            "byte,B",
-            "short,S",
-            "int,I",
-            "long,J",
-            "float,F",
-            "double,D",
-            "boolean,Z",
-            "char,C",
-            "void,V"
-    })
+    @CsvSource(
+            {
+                    "byte,B",
+                    "short,S",
+                    "int,I",
+                    "long,J",
+                    "float,F",
+                    "double,D",
+                    "boolean,Z",
+                    "char,C",
+                    "void,V"
+            }
+    )
     void getDescriptorReturnsCorrectCharacters(String typeName, String expectedDescriptor) {
         PrimitiveTypes type = PrimitiveTypes.valueOf(typeName.toUpperCase());
         assertEquals(expectedDescriptor, type.getDescriptor());
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "B,BYTE",
-            "S,SHORT",
-            "I,INT",
-            "J,LONG",
-            "F,FLOAT",
-            "D,DOUBLE",
-            "Z,BOOLEAN",
-            "C,CHAR",
-            "V,VOID"
-    })
+    @CsvSource(
+            {
+                    "B,BYTE",
+                    "S,SHORT",
+                    "I,INT",
+                    "J,LONG",
+                    "F,FLOAT",
+                    "D,DOUBLE",
+                    "Z,BOOLEAN",
+                    "C,CHAR",
+                    "V,VOID"
+            }
+    )
     void fromDescriptorRecognizesAllTypes(char descriptor, String expectedType) {
         PrimitiveTypes type = PrimitiveTypes.fromDescriptor(descriptor);
         assertNotNull(type);
@@ -77,17 +82,19 @@ class PrimitiveTypesTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "BYTE,B",
-            "SHORT,S",
-            "INT,I",
-            "LONG,J",
-            "FLOAT,F",
-            "DOUBLE,D",
-            "BOOLEAN,Z",
-            "CHAR,C",
-            "VOID,V"
-    })
+    @CsvSource(
+            {
+                    "BYTE,B",
+                    "SHORT,S",
+                    "INT,I",
+                    "LONG,J",
+                    "FLOAT,F",
+                    "DOUBLE,D",
+                    "BOOLEAN,Z",
+                    "CHAR,C",
+                    "VOID,V"
+            }
+    )
     void toStringReturnsDescriptor(String typeName, String expectedOutput) {
         PrimitiveTypes type = PrimitiveTypes.valueOf(typeName);
         assertEquals(expectedOutput, type.toString());
@@ -101,17 +108,19 @@ class PrimitiveTypesTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "BYTE,8",
-            "SHORT,9",
-            "INT,10",
-            "LONG,11",
-            "FLOAT,6",
-            "DOUBLE,7",
-            "BOOLEAN,4",
-            "CHAR,5",
-            "VOID,-1"
-    })
+    @CsvSource(
+            {
+                    "BYTE,8",
+                    "SHORT,9",
+                    "INT,10",
+                    "LONG,11",
+                    "FLOAT,6",
+                    "DOUBLE,7",
+                    "BOOLEAN,4",
+                    "CHAR,5",
+                    "VOID,-1"
+            }
+    )
     void fromASMTypeRecognizesAllTypes(String typeName, int asmType) {
         PrimitiveTypes type = PrimitiveTypes.valueOf(typeName);
         assertEquals(type, PrimitiveTypes.fromASMType(asmType));
@@ -121,10 +130,6 @@ class PrimitiveTypesTest {
     void fromASMTypeReturnsNullForInvalid() {
         assertNull(PrimitiveTypes.fromASMType(999));
         assertNull(PrimitiveTypes.fromASMType(-999));
-    }
-
-    static Stream<PrimitiveTypes> allPrimitiveTypes() {
-        return Stream.of(PrimitiveTypes.values());
     }
 }
 

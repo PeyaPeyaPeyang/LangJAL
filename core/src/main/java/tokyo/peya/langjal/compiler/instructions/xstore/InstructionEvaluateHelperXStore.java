@@ -10,17 +10,12 @@ import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.LabelInfo;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
 import java.util.Objects;
 
 @UtilityClass
-public class InstructionEvaluateHelperXStore
-{
+public class InstructionEvaluateHelperXStore {
     public static @NotNull EvaluatedInstruction evaluate(@NotNull FileEvaluatingReporter context,
                                                          @NotNull LabelsHolder labels,
                                                          @NotNull LocalVariablesHolder locals,
@@ -30,8 +25,7 @@ public class InstructionEvaluateHelperXStore
                                                          @NotNull JALParser.LocalDeclarationContext instigation,
                                                          @NotNull String type,
                                                          @NotNull String callerInsn,
-                                                         @Nullable TerminalNode wide)
-    {
+                                                         @Nullable TerminalNode wide) {
         LocalVariableInfo registeredLocal = locals.resolveSafe(localRef);
         if (registeredLocal == null)
             registeredLocal = registerNewLocal(context, labels, locals, localRef, type, instigation);
@@ -41,12 +35,12 @@ public class InstructionEvaluateHelperXStore
         if (idx >= 0xFF && !isWide)
             throw new IllegalInstructionException(
                     String.format(
-                    "Local variable index %d is too large for %s instruction. Use wide variant with.",
-                    idx, callerInsn
+                            "Local variable index %d is too large for %s instruction. Use wide variant with.",
+                            idx, callerInsn
                     ), localRef
             );
 
-        int size = isWide ? 4: 2;
+        int size = isWide ? 4 : 2;
         VarInsnNode insn = new VarInsnNode(opcode, idx);
         return EvaluatedInstruction.of(evaluator, insn, size);
     }
@@ -57,8 +51,7 @@ public class InstructionEvaluateHelperXStore
                                                           @NotNull AbstractInstructionEvaluator<?> evaluator,
                                                           int opcode, int idx,
                                                           @NotNull String defaultType,
-                                                          @Nullable JALParser.LocalDeclarationContext instigation)
-    {
+                                                          @Nullable JALParser.LocalDeclarationContext instigation) {
         LocalVariableInfo registeredLocal = locals.resolveSafe(idx);
         if (registeredLocal == null)
             registeredLocal = registerNewLocal(context, labels, locals, idx, defaultType, instigation);
@@ -73,10 +66,9 @@ public class InstructionEvaluateHelperXStore
                                                       @NotNull LocalVariablesHolder locals,
                                                       int idx,
                                                       @NotNull String defaultType,
-                                                      @Nullable JALParser.LocalDeclarationContext instigation)
-    {
+                                                      @Nullable JALParser.LocalDeclarationContext instigation) {
         String localName = pickLocalName(context, null, idx, instigation);
-        LabelInfo endLabel = resolveEndLabel(labels,  instigation);
+        LabelInfo endLabel = resolveEndLabel(labels, instigation);
         TypeDescriptor localType = getType(defaultType, instigation);
         return locals.register(idx, localType, localName, endLabel);
     }
@@ -86,8 +78,7 @@ public class InstructionEvaluateHelperXStore
                                                       @NotNull LocalVariablesHolder locals,
                                                       @NotNull JALParser.JvmInsArgLocalRefContext localRef,
                                                       @NotNull String defaultType,
-                                                      @Nullable JALParser.LocalDeclarationContext instigation)
-    {
+                                                      @Nullable JALParser.LocalDeclarationContext instigation) {
         String localName = pickLocalName(context, localRef, 0, instigation);
         LabelInfo endLabel = resolveEndLabel(labels, instigation);
         TypeDescriptor localType = getType(defaultType, instigation);
@@ -95,15 +86,12 @@ public class InstructionEvaluateHelperXStore
         return locals.register(localRef, localType, localName, endLabel);
     }
 
-
-    private static TypeDescriptor getType(@NotNull String defaultType, @Nullable JALParser.LocalDeclarationContext inst)
-    {
+    private static TypeDescriptor getType(@NotNull String defaultType, @Nullable JALParser.LocalDeclarationContext inst) {
         if (inst == null)
             return TypeDescriptor.parse(defaultType);
 
         JALParser.TypeDescriptorContext typeNode = inst.typeDescriptor();
-        if (typeNode != null)
-        {
+        if (typeNode != null) {
             String typeText = typeNode.getText();
             return TypeDescriptor.parse(typeText);
         }
@@ -113,8 +101,7 @@ public class InstructionEvaluateHelperXStore
     }
 
     private static LabelInfo resolveEndLabel(@NotNull LabelsHolder labels,
-                                             @Nullable JALParser.LocalDeclarationContext instigation)
-    {
+                                             @Nullable JALParser.LocalDeclarationContext instigation) {
         if (instigation == null)
             return null;
 
@@ -130,19 +117,16 @@ public class InstructionEvaluateHelperXStore
             @Nullable JALParser.JvmInsArgLocalRefContext localRef,
             int idx,
             @Nullable JALParser.LocalDeclarationContext instigation
-    )
-    {
+    ) {
         String instigationName = null;
-        if (instigation != null)
-        {
+        if (instigation != null) {
             TerminalNode localNameNode = instigation.ID();
             if (localNameNode != null)
                 instigationName = localNameNode.getText();
         }
 
         String preferredName = Objects.requireNonNullElseGet(instigationName, () -> String.format("local_%d", idx));
-        if (!(localRef == null || localRef.ID() == null))
-        {
+        if (!(localRef == null || localRef.ID() == null)) {
             String localName = localRef.ID().getText();
             if (localName.equals(preferredName))
                 return localName;

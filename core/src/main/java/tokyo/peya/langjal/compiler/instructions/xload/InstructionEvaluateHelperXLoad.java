@@ -9,19 +9,16 @@ import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.JALMethodCompiler;
 import tokyo.peya.langjal.compiler.member.LocalVariableInfo;
 import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 
-public class InstructionEvaluateHelperXLoad
-{
+public class InstructionEvaluateHelperXLoad {
     public static @NotNull EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                          @NotNull LocalVariablesHolder locals,
                                                          @NotNull JALParser.JvmInsArgLocalRefContext ref,
                                                          int opcode,
                                                          @NotNull String callerInsn,
-                                                         @Nullable TerminalNode wide)
-    {
+                                                         @Nullable TerminalNode wide) {
         LocalVariableInfo local = locals.resolve(ref, callerInsn);
 
         int idx = local.index();
@@ -29,20 +26,19 @@ public class InstructionEvaluateHelperXLoad
         if (idx >= 0xFF && !isWide)
             throw new IllegalInstructionException(
                     String.format(
-                    "Local variable index %d is too large for %s instruction. Use wide variant with.",
-                    idx, callerInsn
+                            "Local variable index %d is too large for %s instruction. Use wide variant with.",
+                            idx, callerInsn
                     ), ref
             );
 
-        int size = isWide ? 4: 2;
+        int size = isWide ? 4 : 2;
         VarInsnNode insn = new VarInsnNode(opcode, idx);
         return EvaluatedInstruction.of(evaluator, insn, size);
     }
 
     public static @NotNull EvaluatedInstruction evaluateN(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                           @NotNull ParserRuleContext caller,
-                                                          @NotNull LocalVariablesHolder locals, int opcode, int idx)
-    {
+                                                          @NotNull LocalVariablesHolder locals, int opcode, int idx) {
         LocalVariableInfo local = locals.resolveSafe(idx);
         if (local == null)
             throw new IllegalInstructionException(

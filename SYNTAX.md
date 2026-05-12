@@ -18,9 +18,12 @@
 
 ## Overview
 
-JAL (Java Assembly Language) is a domain-specific language that enables developers to write Java Virtual Machine (JVM) bytecode in a human-readable, assembly-like syntax. It provides a direct mapping to Java class files while maintaining readability through high-level constructs like labels, field references, and method calls.
+JAL (Java Assembly Language) is a domain-specific language that enables developers to write Java Virtual Machine (JVM)
+bytecode in a human-readable, assembly-like syntax. It provides a direct mapping to Java class files while maintaining
+readability through high-level constructs like labels, field references, and method calls.
 
-Unlike raw bytecode, JAL abstracts away the complexity of constant pools and bytecode offsets, allowing programmers to focus on algorithm logic at the bytecode level.
+Unlike raw bytecode, JAL abstracts away the complexity of constant pools and bytecode offsets, allowing programmers to
+focus on algorithm logic at the bytecode level.
 
 ---
 
@@ -56,15 +59,18 @@ public class HelloWorld (
 ### Keywords
 
 #### Class Declaration
+
 - `class` - Declares a class
 - `interface` - Declares an interface
 
 #### Access Modifiers
+
 - `public` - Accessible from any location
 - `private` - Accessible only within the class
 - `protected` - Accessible within the package and subclasses
 
 #### Class-level Attributes
+
 - `static` - Belongs to the class, not instances
 - `final` - Cannot be extended or overridden
 - `abstract` - Must be implemented by subclasses
@@ -75,28 +81,33 @@ public class HelloWorld (
 - `strictfp` - Floating-point arithmetic follows IEEE 754 exactly
 
 #### Method Attributes
+
 - `synchronized` - Thread-safe execution
 - `bridge` - Generated bridge method
 - `varargs` - Accepts variable number of arguments
 - `native` - Implemented in native code
 
 #### Field Attributes
+
 - `volatile` - Value may change unexpectedly
 - `transient` - Not included in serialization
 
 #### Class Properties (in metadata)
+
 - `major_version` - Java version (e.g., 55 = Java 11, 52 = Java 8)
 - `minor_version` - Class file version minor number
 - `super_class` - The parent class
 - `interfaces` - Implemented interfaces
 
 #### Special Method Names
+
 - `<init>` - Constructor
 - `<clinit>` - Static initializer
 
 ### Literals
 
 #### Numbers
+
 ```jal
 42              // Decimal integer
 -123            // Negative integer
@@ -107,12 +118,14 @@ public class HelloWorld (
 ```
 
 #### Booleans
+
 ```jal
 true
 false
 ```
 
 #### Strings
+
 ```jal
 "Hello, World!"
 'Single quotes work too'
@@ -120,7 +133,9 @@ false
 ```
 
 #### Identifiers
-Identifiers must start with a letter, dollar sign (`$`), or underscore (`_`), followed by zero or more letters, digits, dollar signs, or underscores:
+
+Identifiers must start with a letter, dollar sign (`$`), or underscore (`_`), followed by zero or more letters, digits,
+dollar signs, or underscores:
 
 ```jal
 myVariable
@@ -142,18 +157,18 @@ method1Name
 
 ### Operators and Symbols
 
-| Symbol | Name | Usage |
-|--------|------|-------|
-| `->` | Reference operator | `class -> field:Type`, `method -> name(...)` |
-| `~` | Label marker | Used in exception directives `[~ label]` |
-| `:` | Colon | Label definition, type separator |
-| `=` | Assignment | Field initialization, metadata assignment |
-| `;` | Semicolon | Optional instruction terminator |
-| `(` `)` | Parentheses | Method descriptors, metadata grouping |
-| `{` `}` | Braces | Class/method body, switch cases |
-| `[` `]` | Brackets | Array types, local variable info |
-| `,` | Comma | Separator for lists |
-| `/` | Slash | Package/class separator in names |
+| Symbol  | Name               | Usage                                        |
+|---------|--------------------|----------------------------------------------|
+| `->`    | Reference operator | `class -> field:Type`, `method -> name(...)` |
+| `~`     | Label marker       | Used in exception directives `[~ label]`     |
+| `:`     | Colon              | Label definition, type separator             |
+| `=`     | Assignment         | Field initialization, metadata assignment    |
+| `;`     | Semicolon          | Optional instruction terminator              |
+| `(` `)` | Parentheses        | Method descriptors, metadata grouping        |
+| `{` `}` | Braces             | Class/method body, switch cases              |
+| `[` `]` | Brackets           | Array types, local variable info             |
+| `,`     | Comma              | Separator for lists                          |
+| `/`     | Slash              | Package/class separator in names             |
 
 ---
 
@@ -205,11 +220,11 @@ Specifies the JVM class file version:
 
 | Version | Java Release |
 |---------|--------------|
-| 52 | Java 8 |
-| 53 | Java 9 |
-| 54 | Java 10 |
-| 55 | Java 11 |
-| 61 | Java 17 |
+| 52      | Java 8       |
+| 53      | Java 9       |
+| 54      | Java 10      |
+| 55      | Java 11      |
+| 61      | Java 17      |
 
 ```jal
 public class MyClass (major_version=55) {
@@ -324,6 +339,7 @@ public add (II)I {
 ```
 
 This method:
+
 - Takes two integers as parameters
 - Returns an integer
 - Loads first param, loads second param, adds them, returns result
@@ -389,17 +405,17 @@ Type descriptors represent Java types in JVM format:
 
 ### Primitive Types
 
-| Descriptor | Type | Range/Size |
-|-----------|------|-----------|
-| `V` | void | N/A |
-| `Z` | boolean | true/false |
-| `B` | byte | -128 to 127 |
-| `C` | char | 0 to 65535 |
-| `S` | short | -32768 to 32767 |
-| `I` | int | -2³¹ to 2³¹-1 |
-| `J` | long | -2⁶³ to 2⁶³-1 |
-| `F` | float | IEEE 754 single precision |
-| `D` | double | IEEE 754 double precision |
+| Descriptor | Type    | Range/Size                |
+|------------|---------|---------------------------|
+| `V`        | void    | N/A                       |
+| `Z`        | boolean | true/false                |
+| `B`        | byte    | -128 to 127               |
+| `C`        | char    | 0 to 65535                |
+| `S`        | short   | -32768 to 32767           |
+| `I`        | int     | -2³¹ to 2³¹-1             |
+| `J`        | long    | -2⁶³ to 2⁶³-1             |
+| `F`        | float   | IEEE 754 single precision |
+| `D`        | double  | IEEE 754 double precision |
 
 ### Object Types
 
@@ -471,6 +487,7 @@ ldc_w 65535                 // Push wide constant
 ```
 
 **Example:**
+
 ```jal
 public getZero ()I {
   iconst_0
@@ -496,6 +513,7 @@ aload 10                   // Load object from local 10
 ```
 
 **Example:**
+
 ```jal
 public addTwo (II)I {
   iload_0          // Load first int parameter
@@ -518,6 +536,7 @@ astore 10                   // Store object to local 10
 ```
 
 **Example with Local Variable Info:**
+
 ```jal
 public setCounter (I)V {
   iload_1 [->counter]     // Load parameter with variable name hint
@@ -541,6 +560,7 @@ pop2             // Remove two top stack items
 ```
 
 **Example:**
+
 ```jal
 public printTwice ()V {
   ldc "Message"
@@ -575,6 +595,7 @@ land, lor, lxor                    // (for long)
 ```
 
 **Example:**
+
 ```jal
 public factorial (I)I {
   iconst_1        // result = 1
@@ -611,6 +632,7 @@ i2b, i2c, i2s              // int to byte, char, short
 ```
 
 **Example:**
+
 ```jal
 public doubleToInt (D)I {
   dload_0        // Load double parameter
@@ -645,6 +667,7 @@ arraylength            // Get array length
 ```
 
 **Example: BubbleSort (from examples)**
+
 ```jal
 public static main([Ljava/lang/String;)V {
   // int[] arr = {5, 3, 8, 4, 2};
@@ -733,6 +756,7 @@ return              // Return void
 ```
 
 **Examples:**
+
 ```jal
 public getAge ()I {
   bipush 25
@@ -833,6 +857,7 @@ iinc index value    // Increment local variable by value
 ```
 
 **Examples:**
+
 ```jal
 iinc 0 1            // i++
 iinc 1 -1           // j--
@@ -997,6 +1022,7 @@ labelName:
 ```
 
 Used with:
+
 - `goto`
 - Conditional branches (`ifeq`, `if_icmpge`, etc.)
 - Switch statements
@@ -1010,11 +1036,13 @@ istore_1 [I -> varName]
 ```
 
 Components:
+
 - Type descriptor (optional): Documents the expected type
 - Label range (optional): Scope of validity
 - Variable name: For debugging and readability
 
 **Syntax:**
+
 ```jal
 [TypeDescriptor? (~ labelName)? -> VariableName]
 ```
@@ -1057,6 +1085,7 @@ public class HelloWorld (
 ```
 
 **What this does:**
+
 1. Load static field `System.out` (PrintStream)
 2. Push string constant "Hello, World!"
 3. Call `println()` method
@@ -1136,6 +1165,7 @@ public class FizzBuzz (
 ```
 
 **Key patterns:**
+
 - Local variable use: `istore_1`, `iload_1`
 - Arithmetic: `irem` (modulo)
 - Conditional branching: `ifne` (if not equal to zero)
@@ -1259,6 +1289,7 @@ public class BubbleSort (
 ```
 
 **Key patterns:**
+
 - Array creation: `newarray I`
 - Array element access: `aaload`, `aastore`, `iaload`, `iastore`
 - Array length: `arraylength`
@@ -1344,6 +1375,7 @@ public class SwitchExample (
 ```
 
 **Key patterns:**
+
 - `tableswitch`: For contiguous cases (efficient)
 - `lookupswitch`: For sparse cases (flexible)
 - Both require fall-through prevention with `goto`
@@ -1396,5 +1428,6 @@ JAL provides a complete, human-readable syntax for expressing JVM bytecode. Key 
 - **Exception handling**: Try-catch-finally constructs
 - **Debug support**: Local variable information and labels
 
-By combining these elements, JAL enables developers to write performant, low-level JVM code while maintaining readability and structure.
+By combining these elements, JAL enables developers to write performant, low-level JVM code while maintaining
+readability and structure.
 

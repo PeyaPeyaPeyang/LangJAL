@@ -13,26 +13,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DisplayName("ClassProperty")
 class ClassPropertyTest {
 
+    static Stream<ClassProperty> allProperties() {
+        return Stream.of(ClassProperty.values());
+    }
+
     @ParameterizedTest
-    @CsvSource({
-            "major_version,MAJOR_VERSION",
-            "minor_version,MINOR_VERSION",
-            "super_class,SUPER_CLASS",
-            "interfaces,INTERFACES",
-            "unknown,UNKNOWN"
-    })
+    @CsvSource(
+            {
+                    "major_version,MAJOR_VERSION",
+                    "minor_version,MINOR_VERSION",
+                    "super_class,SUPER_CLASS",
+                    "interfaces,INTERFACES",
+                    "unknown,UNKNOWN"
+            }
+    )
     void fromStringRecognizesPropertiesCase(String input, String expectedType) {
         assertEquals(ClassProperty.valueOf(expectedType), ClassProperty.fromString(input));
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "MAJOR_VERSION,major_version",
-            "MINOR_VERSION,minor_version",
-            "SUPER_CLASS,super_class",
-            "INTERFACES,interfaces",
-            "UNKNOWN,unknown"
-    })
+    @CsvSource(
+            {
+                    "MAJOR_VERSION,major_version",
+                    "MINOR_VERSION,minor_version",
+                    "SUPER_CLASS,super_class",
+                    "INTERFACES,interfaces",
+                    "UNKNOWN,unknown"
+            }
+    )
     void fromStringIsCaseInsensitive(String uppercase, String expected) {
         assertEquals(expected, ClassProperty.fromString(uppercase.toLowerCase()).getName());
     }
@@ -47,10 +55,6 @@ class ClassPropertyTest {
     @MethodSource("allProperties")
     void allPropertiesAreRecognizable(ClassProperty property) {
         assertEquals(property, ClassProperty.fromString(property.getName()));
-    }
-
-    static Stream<ClassProperty> allProperties() {
-        return Stream.of(ClassProperty.values());
     }
 }
 

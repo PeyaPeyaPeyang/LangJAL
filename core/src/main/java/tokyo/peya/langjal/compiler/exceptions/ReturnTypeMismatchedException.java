@@ -14,8 +14,7 @@ import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
  * </p>
  */
 @Getter
-public class ReturnTypeMismatchedException extends CompileErrorException
-{
+public class ReturnTypeMismatchedException extends CompileErrorException {
     /**
      * The expected return type as declared in the method signature.
      */
@@ -36,8 +35,7 @@ public class ReturnTypeMismatchedException extends CompileErrorException
      */
     public ReturnTypeMismatchedException(@NotNull MethodNode method,
                                          @NotNull ParserRuleContext node, TypeDescriptor expectedType,
-                                         @NotNull TypeDescriptor actualType)
-    {
+                                         @NotNull TypeDescriptor actualType) {
         super(
                 String.format(
                         "Return type mismatch in method '%s%s': expected '%s', but got '%s'.",

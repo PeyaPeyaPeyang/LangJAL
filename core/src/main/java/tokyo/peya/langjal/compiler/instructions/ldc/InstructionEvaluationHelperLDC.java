@@ -5,9 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.LdcInsnNode;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.exceptions.InternalCompileErrorException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
@@ -16,25 +16,21 @@ import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
-public class InstructionEvaluationHelperLDC
-{
+public class InstructionEvaluationHelperLDC {
     public static final int LDC = 0;
     public static final int LDC_W = 1;
     public static final int LDC2_W = 2;
 
     public static @NotNull EvaluatedInstruction evaluate(@NotNull AbstractInstructionEvaluator<?> evaluator,
                                                          JALParser.@NotNull JvmInsArgScalarTypeContext scalar,
-                                                         int ldcType)
-
-    {
+                                                         int ldcType) {
         if (ldcType < LDC || ldcType > LDC2_W)
             throw new InternalCompileErrorException("Invalid LDC type: " + ldcType, scalar);
 
         LdcInsnNode ldcInsnNode;
         TerminalNode number = scalar.NUMBER();
         TerminalNode string = scalar.STRING();
-        if (string != null)
-        {
+        if (string != null) {
             if (ldcType == LDC2_W || ldcType == LDC_W)
                 throw new IllegalInstructionException(
                         "ldc2_w cannot be used with string literals, please use ldc or ldc_w instead.",
@@ -45,8 +41,7 @@ public class InstructionEvaluationHelperLDC
             value = value.substring(1, value.length() - 1); // Remove quotes
             ldcInsnNode = new LdcInsnNode(value);
             return EvaluatedInstruction.of(evaluator, ldcInsnNode);
-        }
-        else if (number == null)
+        } else if (number == null)
             throw new IllegalInstructionException(
                     "ldc instruction requires a number or string literal, but found: " + scalar.getText(),
                     scalar
@@ -70,13 +65,12 @@ public class InstructionEvaluationHelperLDC
                     number
             );
 
-        int instructionSize = ldcType == LDC ? 1: (ldcType == LDC_W ? 2: 3);
+        int instructionSize = ldcType == LDC ? 1 : (ldcType == LDC_W ? 2 : 3);
         ldcInsnNode = new LdcInsnNode(numberValue);
         return EvaluatedInstruction.of(evaluator, ldcInsnNode, instructionSize);
     }
 
-    public static FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public static FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         LdcInsnNode ldcInsn = (LdcInsnNode) instruction.insn();
         Object value = ldcInsn.cst;
 
@@ -92,10 +86,8 @@ public class InstructionEvaluationHelperLDC
             builder.pushPrimitive(StackElementType.FLOAT);
         else if (value instanceof Double)
             builder.pushPrimitive(StackElementType.DOUBLE);
-        else if (value instanceof Type type)
-        {
-            switch (type.getSort())
-            {
+        else if (value instanceof Type type) {
+            switch (type.getSort()) {
                 case Type.OBJECT:
                 case Type.ARRAY:
                     // → java.lang.Class インスタンスを push
@@ -108,8 +100,7 @@ public class InstructionEvaluationHelperLDC
                 default:
                     throw new IllegalArgumentException("Unexpected Type sort in ldc: " + type.getSort());
             }
-        }
-        else if (value instanceof Handle handle)
+        } else if (value instanceof Handle handle)
             builder.pushObjectRef(TypeDescriptor.className("java/lang/invoke/MethodHandle"));
         else
             throw new InternalCompileErrorException(

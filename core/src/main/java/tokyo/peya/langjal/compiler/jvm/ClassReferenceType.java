@@ -9,8 +9,7 @@ import java.util.Objects;
  * Represents a reference type for a class in the JVM type system.
  * Stores package and class name information and provides utility methods for descriptors and names.
  */
-public final class ClassReferenceType implements Type
-{
+public final class ClassReferenceType implements Type {
     /**
      * Reference to the java/lang/Object type.
      */
@@ -27,74 +26,9 @@ public final class ClassReferenceType implements Type
      * @param packageName the package name (slash-separated)
      * @param className   the class name
      */
-    private ClassReferenceType(@NotNull String packageName, @NotNull String className)
-    {
+    private ClassReferenceType(@NotNull String packageName, @NotNull String className) {
         this.packageName = packageName;
         this.className = className;
-    }
-
-    /**
-     * Returns false, as class reference types are not primitive.
-     *
-     * @return false
-     */
-    @Override
-    public boolean isPrimitive()
-    {
-        return false;
-    }
-
-    /**
-     * Returns the category for this type (always 1 for reference types).
-     *
-     * @return 1
-     */
-    @Override
-    public int getCategory()
-    {
-        return 1; // Reference types are always category 1
-    }
-
-    /**
-     * Returns the stack element type for this class reference (OBJECT).
-     *
-     * @return StackElementType.OBJECT
-     */
-    @Override
-    public StackElementType getStackElementType()
-    {
-        return StackElementType.OBJECT;
-    }
-
-    /**
-     * Returns the JVM descriptor string for this class reference.
-     *
-     * @return the descriptor string
-     */
-    @Override
-    public String getDescriptor()
-    {
-        return "L" + (this.packageName.isEmpty() ? "" : this.packageName + "/") + this.className + ";";
-    }
-
-    /**
-     * Returns the internal JVM name for this class (slash-separated).
-     *
-     * @return the internal name
-     */
-    public String getInternalName()
-    {
-        return this.packageName.isEmpty() ? this.className: this.packageName + "/" + this.className;
-    }
-
-    /**
-     * Returns the dotted name for this class (dot-separated).
-     *
-     * @return the dotted name
-     */
-    public String getDottedName()
-    {
-        return this.getInternalName().replace('/', '.');
     }
 
     /**
@@ -103,8 +37,7 @@ public final class ClassReferenceType implements Type
      * @param typeName the type name to parse
      * @return the ClassReferenceType instance
      */
-    public static ClassReferenceType parse(@NotNull String typeName)
-    {
+    public static ClassReferenceType parse(@NotNull String typeName) {
         // 構文糖衣
         if (typeName.startsWith("L"))
             typeName = typeName.substring(1);
@@ -116,8 +49,7 @@ public final class ClassReferenceType implements Type
         String[] parts = typeName.split("/");
         if (parts.length == 1)
             return new ClassReferenceType("", parts[0]);
-        else
-        {
+        else {
             String[] packageParts = new String[parts.length - 1];
             System.arraycopy(parts, 0, packageParts, 0, parts.length - 1);
             String packageName = String.join("/", packageParts);
@@ -127,22 +59,78 @@ public final class ClassReferenceType implements Type
     }
 
     /**
+     * Returns false, as class reference types are not primitive.
+     *
+     * @return false
+     */
+    @Override
+    public boolean isPrimitive() {
+        return false;
+    }
+
+    /**
+     * Returns the category for this type (always 1 for reference types).
+     *
+     * @return 1
+     */
+    @Override
+    public int getCategory() {
+        return 1; // Reference types are always category 1
+    }
+
+    /**
+     * Returns the stack element type for this class reference (OBJECT).
+     *
+     * @return StackElementType.OBJECT
+     */
+    @Override
+    public StackElementType getStackElementType() {
+        return StackElementType.OBJECT;
+    }
+
+    /**
+     * Returns the JVM descriptor string for this class reference.
+     *
+     * @return the descriptor string
+     */
+    @Override
+    public String getDescriptor() {
+        return "L" + (this.packageName.isEmpty() ? "" : this.packageName + "/") + this.className + ";";
+    }
+
+    /**
+     * Returns the internal JVM name for this class (slash-separated).
+     *
+     * @return the internal name
+     */
+    public String getInternalName() {
+        return this.packageName.isEmpty() ? this.className : this.packageName + "/" + this.className;
+    }
+
+    /**
+     * Returns the dotted name for this class (dot-separated).
+     *
+     * @return the dotted name
+     */
+    public String getDottedName() {
+        return this.getInternalName().replace('/', '.');
+    }
+
+    /**
      * Checks equality with another object.
      *
      * @param o the object to compare
      * @return true if equal, false otherwise
      */
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (!(o instanceof ClassReferenceType that))
             return false;
         return Objects.equals(this.packageName, that.packageName)
                 && Objects.equals(this.className, that.className);
     }
 
-    public TypeDescriptor asTypeDescriptor()
-    {
+    public TypeDescriptor asTypeDescriptor() {
         return new TypeDescriptor(this);
     }
 
@@ -152,14 +140,12 @@ public final class ClassReferenceType implements Type
      * @return the hash code
      */
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return Objects.hash(this.packageName, this.className);
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "L" + (this.packageName.isEmpty() ? "" : this.packageName + "/") + this.className + ";";
     }
 }

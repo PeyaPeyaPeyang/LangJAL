@@ -55,26 +55,25 @@ public record MethodImportResult(
         ClassNode ownerClass,
         @NotNull
         MethodNode method
-)
-{
-        /**
-         * Creates a new {@link MethodAnalyser} instance for this method import result.
-         * <p>
-         *     This method initializes the analyser with the necessary context,
-         *     including the owner class, method node, instructions, labels, and local variables.
-         *     To perform the analysis, you should call {@link MethodAnalyser#analyse()} on the returned instance.
-         * @param reporter The reporter used to post informational and error messages during analysis.
-         * @return A new {@link MethodAnalyser} instance configured for this method.
-         */
-        public MethodAnalyser createAnalyser(@NotNull FileEvaluatingReporter reporter)
-        {
-                return new MethodAnalyser(
-                        reporter,
-                        this.ownerClass,
-                        this.method,
-                        this.instructions,
-                        this.labels,
-                        this.locals
-                );
-        }
+) {
+    /**
+     * Creates a new {@link MethodAnalyser} instance for this method import result.
+     * <p>
+     * This method initializes the analyser with the necessary context,
+     * including the owner class, method node, instructions, labels, and local variables.
+     * To perform the analysis, you should call {@link MethodAnalyser#analyse()} on the returned instance.
+     *
+     * @param reporter The reporter used to post informational and error messages during analysis.
+     * @return A new {@link MethodAnalyser} instance configured for this method.
+     */
+    public MethodAnalyser createAnalyser(@NotNull FileEvaluatingReporter reporter) {
+        return new MethodAnalyser(
+                reporter,
+                this.ownerClass,
+                this.method,
+                this.instructions,
+                this.labels,
+                this.locals
+        );
+    }
 }

@@ -42,37 +42,18 @@ public record StackFrameMapEntry(
         StackElement[] changedStack,
         @NotNull
         StackElement[] changedLocals
-)
-{
-    /**
-     * Converts this entry to an ASM FrameNode.
-     * @return The FrameNode for ASM.
-     */
-    public FrameNode toASMFrameNode()
-    {
-        Object[] locals = toASMStackElements(this.changedLocals);
-        Object[] stack = toASMStackElements(this.changedStack);
-
-        return new FrameNode(
-                this.type.getOpcode(),
-                locals.length,
-                locals,
-                stack.length,
-                stack
-        );
-    }
-
+) {
     /**
      * Creates a SAME frame entry (no changes).
+     *
      * @param previousFrame The previous frame.
-     * @param nextFrame The next frame.
+     * @param nextFrame     The next frame.
      * @return The SAME frame entry.
      */
     public static StackFrameMapEntry same(
             @NotNull InstructionSetFrame previousFrame,
             @NotNull InstructionSetFrame nextFrame
-    )
-    {
+    ) {
         return new StackFrameMapEntry(
                 FrameType.SAME,
                 nextFrame.label(),
@@ -84,15 +65,15 @@ public record StackFrameMapEntry(
 
     /**
      * Creates a SAME_LOCALS_1_STACK_ITEM frame entry.
-     * @param previous The previous frame.
-     * @param next The next frame.
+     *
+     * @param previous  The previous frame.
+     * @param next      The next frame.
      * @param stackItem The stack item.
      * @return The frame entry.
      */
     public static StackFrameMapEntry sameLocals1StackItem(@NotNull InstructionSetFrame previous,
                                                           @NotNull InstructionSetFrame next,
-                                                          @NotNull StackElement stackItem)
-    {
+                                                          @NotNull StackElement stackItem) {
         return new StackFrameMapEntry(
                 FrameType.SAME_LOCALS_1_STACK_ITEM,
                 next.label(),
@@ -104,16 +85,16 @@ public record StackFrameMapEntry(
 
     /**
      * Creates a CHOP frame entry (removes locals).
-     * @param previous The previous frame.
-     * @param next The next frame.
+     *
+     * @param previous     The previous frame.
+     * @param next         The next frame.
      * @param choppedStack The chopped locals.
      * @return The frame entry.
      * @throws IllegalArgumentException if choppedStack.length > 4
      */
     public static StackFrameMapEntry chop(@NotNull InstructionSetFrame previous,
                                           @NotNull InstructionSetFrame next,
-                                          @NotNull LocalStackElement[] choppedStack)
-    {
+                                          @NotNull LocalStackElement[] choppedStack) {
         if (choppedStack.length > 4)
             throw new IllegalArgumentException("Chopped stack cannot have more than 4 elements, got: " + choppedStack.length);
 
@@ -128,16 +109,16 @@ public record StackFrameMapEntry(
 
     /**
      * Creates an APPEND frame entry (adds locals).
-     * @param previous The previous frame.
-     * @param next The next frame.
+     *
+     * @param previous       The previous frame.
+     * @param next           The next frame.
      * @param appendedLocals The appended locals.
      * @return The frame entry.
      * @throws IllegalArgumentException if appendedLocals.length > 4
      */
     public static StackFrameMapEntry append(@NotNull InstructionSetFrame previous,
                                             @NotNull InstructionSetFrame next,
-                                            @NotNull LocalStackElement[] appendedLocals)
-    {
+                                            @NotNull LocalStackElement[] appendedLocals) {
         if (appendedLocals.length > 4)
             throw new IllegalArgumentException("Appended locals cannot have more than 4 elements, got: " + appendedLocals.length);
 
@@ -152,17 +133,17 @@ public record StackFrameMapEntry(
 
     /**
      * Creates a FULL frame entry (full stack and locals).
-     * @param previous The previous frame.
-     * @param next The next frame.
-     * @param nextStack The stack for the next frame.
+     *
+     * @param previous   The previous frame.
+     * @param next       The next frame.
+     * @param nextStack  The stack for the next frame.
      * @param nextLocals The locals for the next frame.
      * @return The frame entry.
      */
     public static StackFrameMapEntry full(@NotNull InstructionSetFrame previous,
                                           @NotNull InstructionSetFrame next,
                                           @NotNull StackElement[] nextStack,
-                                          @NotNull LocalStackElement[] nextLocals)
-    {
+                                          @NotNull LocalStackElement[] nextLocals) {
         return new StackFrameMapEntry(
                 FrameType.FULL_FRAME,
                 next.label(),
@@ -172,12 +153,10 @@ public record StackFrameMapEntry(
         );
     }
 
-    private static Object[] toASMStackElements(@NotNull StackElement[] elements)
-    {
+    private static Object[] toASMStackElements(@NotNull StackElement[] elements) {
         List<Object> asmElements = new ArrayList<>(elements.length);
         StackElementType prevType = null;
-        for (StackElement element : elements)
-        {
+        for (StackElement element : elements) {
             StackElementType type = element.type();
             if ((prevType == StackElementType.DOUBLE || prevType == StackElementType.LONG)
                     && type == StackElementType.TOP)
@@ -190,10 +169,27 @@ public record StackFrameMapEntry(
         return asmElements.toArray(new Object[0]);
     }
 
+    /**
+     * Converts this entry to an ASM FrameNode.
+     *
+     * @return The FrameNode for ASM.
+     */
+    public FrameNode toASMFrameNode() {
+        Object[] locals = toASMStackElements(this.changedLocals);
+        Object[] stack = toASMStackElements(this.changedStack);
+
+        return new FrameNode(
+                this.type.getOpcode(),
+                locals.length,
+                locals,
+                stack.length,
+                stack
+        );
+    }
+
     @Getter
     @AllArgsConstructor
-    public enum FrameType
-    {
+    public enum FrameType {
         SAME(EOpcodes.F_SAME),
         SAME_LOCALS_1_STACK_ITEM(EOpcodes.F_SAME1),
         // SAME_LOCALS_1_STACK_ITEM_EXTENDED(EOpcodes.F_SAME1),

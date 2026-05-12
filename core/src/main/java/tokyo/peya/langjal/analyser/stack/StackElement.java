@@ -8,10 +8,10 @@ import tokyo.peya.langjal.compiler.member.InstructionInfo;
  */
 public sealed interface StackElement
         permits ObjectElement, PrimitiveElement, UninitializedElement,
-        UninitializedThisElement, NullElement, LocalStackElement, StackElementCapsule, TopElement
-{
+        UninitializedThisElement, NullElement, LocalStackElement, StackElementCapsule, TopElement {
     /**
      * Returns the instruction that produced this stack element.
+     *
      * @return The producer instruction.
      */
     @NotNull
@@ -19,6 +19,7 @@ public sealed interface StackElement
 
     /**
      * Gets the type of this stack element.
+     *
      * @return The stack element type.
      */
     @NotNull
@@ -27,6 +28,7 @@ public sealed interface StackElement
 
     /**
      * Converts this element to an ASM stack element.
+     *
      * @return The ASM representation.
      */
     Object toASMStackElement();

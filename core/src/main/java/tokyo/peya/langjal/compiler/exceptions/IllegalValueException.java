@@ -7,16 +7,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Exception thrown when an illegal value is encountered during compilation.
  */
-public class IllegalValueException extends CompileErrorException
-{
+public class IllegalValueException extends CompileErrorException {
     /**
      * Constructs an IllegalValueException with a message and terminal node.
      *
      * @param detailedMessage The error message.
      * @param node            The terminal node where the error occurred.
      */
-    public IllegalValueException(@NotNull String detailedMessage, @NotNull TerminalNode node)
-    {
+    public IllegalValueException(@NotNull String detailedMessage, @NotNull TerminalNode node) {
         super(detailedMessage, node);
     }
 
@@ -26,8 +24,7 @@ public class IllegalValueException extends CompileErrorException
      * @param detailedMessage The error message.
      * @param node            The parser rule context where the error occurred.
      */
-    public IllegalValueException(@NotNull String detailedMessage, @NotNull ParserRuleContext node)
-    {
+    public IllegalValueException(@NotNull String detailedMessage, @NotNull ParserRuleContext node) {
         super(
                 detailedMessage,
                 node.getStart().getLine(),

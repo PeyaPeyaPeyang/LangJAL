@@ -16,8 +16,7 @@ import java.util.Locale;
  *
  * @see Opcodes
  */
-public interface EOpcodes extends Opcodes
-{
+public interface EOpcodes extends Opcodes {
     String[] INSTRUCTION_NAMES = {
             // <editor-fold desc="Instruction Names">
             "nop",                  // 0: 0x0
@@ -292,8 +291,7 @@ public interface EOpcodes extends Opcodes
      * @param opcodeName The name of the opcode.
      * @return The opcode value, or -1 if not found.
      */
-    static int findOpcode(@NotNull String opcodeName)
-    {
+    static int findOpcode(@NotNull String opcodeName) {
         opcodeName = opcodeName.toLowerCase(Locale.ENGLISH);
         for (int i = 0; i < INSTRUCTION_NAMES.length; i++)
             if (INSTRUCTION_NAMES[i].equals(opcodeName))
@@ -309,8 +307,7 @@ public interface EOpcodes extends Opcodes
      * @return The opcode name in lower case.
      * @throws IllegalArgumentException if the opcode is unknown.
      */
-    static String getName(int opcode)
-    {
+    static String getName(int opcode) {
         if (opcode < 0 || opcode >= INSTRUCTION_NAMES.length)
             throw new IllegalArgumentException("Opcode out of range: " + opcode);
 
@@ -325,10 +322,8 @@ public interface EOpcodes extends Opcodes
      * @return The size of the instruction in bytes.
      * @throws IllegalArgumentException if the instruction size cannot be determined.
      */
-    static byte getOpcodeSize(int opcode)
-    {
-        return switch (opcode)
-        {
+    static byte getOpcodeSize(int opcode) {
+        return switch (opcode) {
             case NOP, ACONST_NULL, ICONST_M1, ICONST_0,
                  ICONST_1, ICONST_2, ICONST_3, ICONST_4,
                  ICONST_5, LCONST_0, LCONST_1, FCONST_0,

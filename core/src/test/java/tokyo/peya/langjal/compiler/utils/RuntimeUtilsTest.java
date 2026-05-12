@@ -7,24 +7,21 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("RuntimeUtils")
-class RuntimeUtilsTest
-{
+class RuntimeUtilsTest {
     @ParameterizedTest
-    @CsvSource({
-            "1.8, 52",
-            "11, 55",
-            "21, 65"
-    })
-    void classFileMajorVersionSupportsLegacyAndModernJavaVersionStrings(String javaVersion, int expectedMajorVersion)
-    {
+    @CsvSource(
+            {
+                    "1.8, 52",
+                    "11, 55",
+                    "21, 65"
+            }
+    )
+    void classFileMajorVersionSupportsLegacyAndModernJavaVersionStrings(String javaVersion, int expectedMajorVersion) {
         String original = System.getProperty("java.specification.version");
-        try
-        {
+        try {
             System.setProperty("java.specification.version", javaVersion);
             assertEquals(expectedMajorVersion, RuntimeUtils.getClassFileMajorVersion());
-        }
-        finally
-        {
+        } finally {
             if (original == null)
                 System.clearProperty("java.specification.version");
             else

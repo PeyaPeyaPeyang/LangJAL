@@ -8,8 +8,7 @@ import java.nio.file.Path;
 /**
  * Exception thrown when an error occurs while reading a file.
  */
-public class FileReadingException extends CompileErrorException
-{
+public class FileReadingException extends CompileErrorException {
     /**
      * The file that caused the exception.
      */
@@ -22,8 +21,7 @@ public class FileReadingException extends CompileErrorException
      * @param cause The IOException that occurred.
      * @param file  The file that caused the exception.
      */
-    public FileReadingException(@NotNull IOException cause, @NotNull Path file)
-    {
+    public FileReadingException(@NotNull IOException cause, @NotNull Path file) {
         super(
                 "Exception while reading file",
                 cause,

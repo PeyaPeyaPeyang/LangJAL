@@ -10,20 +10,16 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("LabelsHolder")
-class LabelsHolderTest
-{
+class LabelsHolderTest {
+    private static LabelInfo label(String name, int instructionIndex) {
+        return new LabelInfo(name, new Label(), instructionIndex);
+    }
+
     @Test
-    void startsWithDefaultGlobalLabels()
-    {
+    void startsWithDefaultGlobalLabels() {
         LabelsHolder holder = new LabelsHolder();
 
         assertEquals("MBEGIN", holder.getGlobalStart().name());
@@ -33,8 +29,7 @@ class LabelsHolderTest
     }
 
     @Test
-    void globalStartCanBeReplacedOnlyOnce()
-    {
+    void globalStartCanBeReplacedOnlyOnce() {
         LabelsHolder holder = new LabelsHolder();
         LabelInfo start = label("START", 0);
 
@@ -46,8 +41,7 @@ class LabelsHolderTest
     }
 
     @Test
-    void importAsmLabelRegistersSortedLabelsAndResolvesByNode()
-    {
+    void importAsmLabelRegistersSortedLabelsAndResolvesByNode() {
         LabelsHolder holder = new LabelsHolder();
         LabelNode later = new LabelNode(new Label());
         LabelNode earlier = new LabelNode(new Label());
@@ -62,8 +56,7 @@ class LabelsHolderTest
     }
 
     @Test
-    void importingSameAsmLabelTwiceIsRejected()
-    {
+    void importingSameAsmLabelTwiceIsRejected() {
         LabelsHolder holder = new LabelsHolder();
         LabelNode labelNode = new LabelNode(new Label());
 
@@ -73,8 +66,7 @@ class LabelsHolderTest
     }
 
     @Test
-    void finaliseAndRegisterGlobalStartAppendLabelsToMethod()
-    {
+    void finaliseAndRegisterGlobalStartAppendLabelsToMethod() {
         LabelsHolder holder = new LabelsHolder();
         MethodNode method = new MethodNode();
 
@@ -89,8 +81,7 @@ class LabelsHolderTest
     }
 
     @Test
-    void scopeChecksAreInclusiveAndNextBlockUsesInstructionIndex()
-    {
+    void scopeChecksAreInclusiveAndNextBlockUsesInstructionIndex() {
         LabelsHolder holder = new LabelsHolder();
         LabelInfo start = holder.importASMLabel(new LabelNode(new Label()), 10);
         LabelInfo middle = holder.importASMLabel(new LabelNode(new Label()), 20);
@@ -109,15 +100,16 @@ class LabelsHolderTest
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "9, false",
-            "10, true",
-            "20, true",
-            "30, true",
-            "31, false"
-    })
-    void staticScopeCheckIsInclusive(int currentIndex, boolean expected)
-    {
+    @CsvSource(
+            {
+                    "9, false",
+                    "10, true",
+                    "20, true",
+                    "30, true",
+                    "31, false"
+            }
+    )
+    void staticScopeCheckIsInclusive(int currentIndex, boolean expected) {
         LabelInfo start = label("START", 10);
         LabelInfo end = label("END", 30);
         LabelInfo current = label("CURRENT", currentIndex);
@@ -126,16 +118,10 @@ class LabelsHolderTest
     }
 
     @Test
-    void labelsListIsUnmodifiable()
-    {
+    void labelsListIsUnmodifiable() {
         LabelsHolder holder = new LabelsHolder();
 
         assertNotNull(holder.getLabels());
         assertThrows(UnsupportedOperationException.class, () -> holder.getLabels().add(label("X", 1)));
-    }
-
-    private static LabelInfo label(String name, int instructionIndex)
-    {
-        return new LabelInfo(name, new Label(), instructionIndex);
     }
 }

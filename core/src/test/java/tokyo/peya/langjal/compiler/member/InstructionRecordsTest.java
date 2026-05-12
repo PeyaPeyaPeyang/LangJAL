@@ -11,17 +11,16 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("member records")
-class InstructionRecordsTest
-{
+class InstructionRecordsTest {
+    private static AbstractInstructionEvaluator<?> evaluator(int opcode) {
+        return JALInstructionEvaluator.getEvaluatorByOpcode(opcode);
+    }
+
     @Test
-    void labelInfoCreatesNodeForSameAsmLabelAndReadableString()
-    {
+    void labelInfoCreatesNodeForSameAsmLabelAndReadableString() {
         Label label = new Label();
         LabelInfo info = new LabelInfo("ENTRY", label, 3);
 
@@ -31,48 +30,73 @@ class InstructionRecordsTest
     }
 
     @Test
-    void evaluatedInstructionUsesOpcodeSizeUnlessCustomSizeIsProvided()
-    {
+    void evaluatedInstructionUsesOpcodeSizeUnlessCustomSizeIsProvided() {
         AbstractInstructionEvaluator<?> evaluator = evaluator(EOpcodes.NOP);
 
-        assertEquals(EOpcodes.getOpcodeSize(EOpcodes.NOP),
-                     EvaluatedInstruction.of(evaluator, new InsnNode(EOpcodes.NOP)).getInstructionSize());
+        assertEquals(
+                EOpcodes.getOpcodeSize(EOpcodes.NOP),
+                EvaluatedInstruction.of(evaluator, new InsnNode(EOpcodes.NOP)).getInstructionSize()
+        );
         assertEquals(9, EvaluatedInstruction.of(evaluator, new InsnNode(EOpcodes.NOP), 9).getInstructionSize());
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {
-            EOpcodes.TABLESWITCH,
-            EOpcodes.LOOKUPSWITCH,
-            EOpcodes.WIDE,
-            EOpcodes.INVOKEDYNAMIC
-    })
-    void evaluatedInstructionRequiresCustomSizeForVariableLengthOpcodes(int opcode)
-    {
+    @ValueSource(
+            ints = {
+                    EOpcodes.TABLESWITCH,
+                    EOpcodes.LOOKUPSWITCH,
+                    EOpcodes.WIDE,
+                    EOpcodes.INVOKEDYNAMIC
+            }
+    )
+    void evaluatedInstructionRequiresCustomSizeForVariableLengthOpcodes(int opcode) {
         AbstractInstructionEvaluator<?> evaluator = evaluator(EOpcodes.NOP);
 
-        assertThrows(IllegalArgumentException.class,
-                     () -> EvaluatedInstruction.of(evaluator, new InsnNode(opcode), 0));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> EvaluatedInstruction.of(evaluator, new InsnNode(opcode), 0)
+        );
     }
 
     @Test
-    void instructionInfoExposesOpcodeStringAndEqualityIgnoresOwnerAndSourceLine()
-    {
+    void instructionInfoExposesOpcodeStringAndEqualityIgnoresOwnerAndSourceLine() {
         AbstractInstructionEvaluator<?> evaluator = evaluator(EOpcodes.NOP);
         LabelInfo label = new LabelInfo("L0", new Label(), 0);
         InsnNode insn = new InsnNode(EOpcodes.NOP);
-        InstructionInfo first = new InstructionInfo(0, insn, new ClassNode(), new MethodNode(), evaluator, label, 1, 10);
-        InstructionInfo sameInstruction = new InstructionInfo(0, insn, new ClassNode(), new MethodNode(), evaluator, label, 1, 99);
-        InstructionInfo differentOffset = new InstructionInfo(1, insn, new ClassNode(), new MethodNode(), evaluator, label, 1, 10);
+        InstructionInfo first = new InstructionInfo(
+                0,
+                insn,
+                new ClassNode(),
+                new MethodNode(),
+                evaluator,
+                label,
+                1,
+                10
+        );
+        InstructionInfo sameInstruction = new InstructionInfo(
+                0,
+                insn,
+                new ClassNode(),
+                new MethodNode(),
+                evaluator,
+                label,
+                1,
+                99
+        );
+        InstructionInfo differentOffset = new InstructionInfo(
+                1,
+                insn,
+                new ClassNode(),
+                new MethodNode(),
+                evaluator,
+                label,
+                1,
+                10
+        );
 
         assertEquals(EOpcodes.NOP, first.opcode());
         assertEquals("nop at 0 with label L0 (idx: 0)", first.toString());
         assertEquals(first, sameInstruction);
         assertNotEquals(first, differentOffset);
-    }
-
-    private static AbstractInstructionEvaluator<?> evaluator(int opcode)
-    {
-        return JALInstructionEvaluator.getEvaluatorByOpcode(opcode);
     }
 }

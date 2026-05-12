@@ -16,11 +16,28 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class JALMethodCompilerImplicitReturnTest
-{
+class JALMethodCompilerImplicitReturnTest {
+    private static MethodNode compileSingleMethod(String source) throws CompileErrorException {
+        ClassNode clazz = JALFileCompiler.compileOnly(
+                source,
+                new TestCompileReporter(),
+                CompileSettings.REQUIRED_ONLY
+        ).getCompiledClass();
+
+        assertEquals(1, clazz.methods.size());
+        return clazz.methods.getFirst();
+    }
+
+    private static int[] opcodesOf(MethodNode method) {
+        return Arrays.stream(method.instructions.toArray())
+                .filter(Objects::nonNull)
+                .mapToInt(AbstractInsnNode::getOpcode)
+                .filter(opcode -> opcode >= 0)
+                .toArray();
+    }
+
     @Test
-    void appendsVoidReturnWhenMethodEndsWithoutExplicitReturn() throws CompileErrorException
-    {
+    void appendsVoidReturnWhenMethodEndsWithoutExplicitReturn() throws CompileErrorException {
         MethodNode method = compileSingleMethod("""
                 public class Test {
                     public demo()V {
@@ -29,12 +46,11 @@ class JALMethodCompilerImplicitReturnTest
                 }
                 """);
 
-        assertArrayEquals(new int[] {EOpcodes.NOP, EOpcodes.RETURN}, opcodesOf(method));
+        assertArrayEquals(new int[]{EOpcodes.NOP, EOpcodes.RETURN}, opcodesOf(method));
     }
 
     @Test
-    void doesNotAppendExtraReturnWhenMethodContainsOnlyReturn() throws CompileErrorException
-    {
+    void doesNotAppendExtraReturnWhenMethodContainsOnlyReturn() throws CompileErrorException {
         MethodNode method = compileSingleMethod("""
                 public class Test {
                     public demo()V {
@@ -43,12 +59,11 @@ class JALMethodCompilerImplicitReturnTest
                 }
                 """);
 
-        assertArrayEquals(new int[] {EOpcodes.RETURN}, opcodesOf(method));
+        assertArrayEquals(new int[]{EOpcodes.RETURN}, opcodesOf(method));
     }
 
     @Test
-    void doesNotAppendExtraReturnAfterExplicitReturn() throws CompileErrorException
-    {
+    void doesNotAppendExtraReturnAfterExplicitReturn() throws CompileErrorException {
         MethodNode method = compileSingleMethod("""
                 public class Test {
                     public demo()V {
@@ -58,12 +73,11 @@ class JALMethodCompilerImplicitReturnTest
                 }
                 """);
 
-        assertArrayEquals(new int[] {EOpcodes.NOP, EOpcodes.RETURN}, opcodesOf(method));
+        assertArrayEquals(new int[]{EOpcodes.NOP, EOpcodes.RETURN}, opcodesOf(method));
     }
 
     @Test
-    void appendsVoidReturnAfterStackProducingInstructionsAreConsumed() throws CompileErrorException
-    {
+    void appendsVoidReturnAfterStackProducingInstructionsAreConsumed() throws CompileErrorException {
         MethodNode method = compileSingleMethod("""
                 public class Test {
                     public demo()V {
@@ -73,12 +87,11 @@ class JALMethodCompilerImplicitReturnTest
                 }
                 """);
 
-        assertArrayEquals(new int[] {EOpcodes.ICONST_1, EOpcodes.POP, EOpcodes.RETURN}, opcodesOf(method));
+        assertArrayEquals(new int[]{EOpcodes.ICONST_1, EOpcodes.POP, EOpcodes.RETURN}, opcodesOf(method));
     }
 
     @Test
-    void appendsVoidReturnAtTrailingBranchLabelWithoutInstructions() throws CompileErrorException
-    {
+    void appendsVoidReturnAtTrailingBranchLabelWithoutInstructions() throws CompileErrorException {
         MethodNode method = compileSingleMethod("""
                 public class Test {
                     public demo()V {
@@ -95,14 +108,16 @@ class JALMethodCompilerImplicitReturnTest
                 """);
 
         assertArrayEquals(
-                new int[] {EOpcodes.ICONST_0, EOpcodes.IFEQ, EOpcodes.NOP, EOpcodes.GOTO, EOpcodes.NOP, EOpcodes.NOP, EOpcodes.RETURN},
+                new int[]{
+                        EOpcodes.ICONST_0, EOpcodes.IFEQ, EOpcodes.NOP, EOpcodes.GOTO, EOpcodes.NOP, EOpcodes.NOP,
+                        EOpcodes.RETURN
+                },
                 opcodesOf(method)
         );
     }
 
     @Test
-    void doesNotAppendExtraReturnWhenComplexBranchesAlreadyReturn() throws CompileErrorException
-    {
+    void doesNotAppendExtraReturnWhenComplexBranchesAlreadyReturn() throws CompileErrorException {
         MethodNode method = compileSingleMethod("""
                 public class Test {
                     public demo()V {
@@ -118,29 +133,10 @@ class JALMethodCompilerImplicitReturnTest
                 """);
 
         assertArrayEquals(
-                new int[] {EOpcodes.ICONST_0, EOpcodes.IFEQ, EOpcodes.NOP, EOpcodes.RETURN, EOpcodes.NOP, EOpcodes.RETURN},
+                new int[]{
+                        EOpcodes.ICONST_0, EOpcodes.IFEQ, EOpcodes.NOP, EOpcodes.RETURN, EOpcodes.NOP, EOpcodes.RETURN
+                },
                 opcodesOf(method)
         );
-    }
-
-    private static MethodNode compileSingleMethod(String source) throws CompileErrorException
-    {
-        ClassNode clazz = JALFileCompiler.compileOnly(
-                source,
-                new TestCompileReporter(),
-                CompileSettings.REQUIRED_ONLY
-        ).getCompiledClass();
-
-        assertEquals(1, clazz.methods.size());
-        return clazz.methods.getFirst();
-    }
-
-    private static int[] opcodesOf(MethodNode method)
-    {
-        return Arrays.stream(method.instructions.toArray())
-                     .filter(Objects::nonNull)
-                     .mapToInt(AbstractInsnNode::getOpcode)
-                     .filter(opcode -> opcode >= 0)
-                     .toArray();
     }
 }

@@ -4,21 +4,15 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorDLoad extends AbstractInstructionEvaluator<JALParser.JvmInsDloadContext>
-{
-    public InstructionEvaluatorDLoad()
-    {
+public class InstructionEvaluatorDLoad extends AbstractInstructionEvaluator<JALParser.JvmInsDloadContext> {
+    public InstructionEvaluatorDLoad() {
         super(Opcodes.DLOAD);
     }
 
@@ -28,8 +22,7 @@ public class InstructionEvaluatorDLoad extends AbstractInstructionEvaluator<JALP
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsDloadContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsDloadContext instruction) {
         return InstructionEvaluateHelperXLoad.evaluate(
                 this,
                 locals,
@@ -41,16 +34,14 @@ public class InstructionEvaluatorDLoad extends AbstractInstructionEvaluator<JALP
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                                  .pushPrimitive(StackElementType.DOUBLE)
-                                  .build();
+                .pushPrimitive(StackElementType.DOUBLE)
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsDloadContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsDloadContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsDload();
     }
 }

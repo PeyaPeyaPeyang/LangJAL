@@ -34,19 +34,18 @@ public record InstructionInfo(
         @Nullable LabelInfo assignedLabel,
         int instructionSize,
         int sourceLine
-)
-{
+) {
     /**
      * Constructs an InstructionInfo from an opcode integer.
      *
-     * @param evaluator      The instruction evaluator.
-     * @param ownerClass     The owning class.
-     * @param owner          The owning method.
-     * @param insn           The opcode integer.
-     * @param bytecodeOffset The bytecode offset.
-     * @param assignedLabel  The assigned label, if any.
+     * @param evaluator       The instruction evaluator.
+     * @param ownerClass      The owning class.
+     * @param owner           The owning method.
+     * @param insn            The opcode integer.
+     * @param bytecodeOffset  The bytecode offset.
+     * @param assignedLabel   The assigned label, if any.
      * @param instructionSize The instruction size in bytes.
-     * @param sourceLine     The source line number.
+     * @param sourceLine      The source line number.
      */
     public InstructionInfo(@NotNull AbstractInstructionEvaluator<?> evaluator,
                            @NotNull ClassNode ownerClass,
@@ -55,8 +54,7 @@ public record InstructionInfo(
                            int bytecodeOffset,
                            @Nullable LabelInfo assignedLabel,
                            int instructionSize,
-                           int sourceLine)
-    {
+                           int sourceLine) {
         this(
                 bytecodeOffset, new InsnNode(insn), ownerClass, owner, evaluator,
                 assignedLabel,
@@ -70,8 +68,7 @@ public record InstructionInfo(
      *
      * @return The opcode integer.
      */
-    public int opcode()
-    {
+    public int opcode() {
         return this.insn.getOpcode();
     }
 
@@ -82,8 +79,7 @@ public record InstructionInfo(
      * @return True if equal, false otherwise.
      */
     @Override
-    public boolean equals(Object obj)
-    {
+    public boolean equals(Object obj) {
         if (!(obj instanceof InstructionInfo that))
             return false;
 
@@ -100,10 +96,9 @@ public record InstructionInfo(
      * @return String representation.
      */
     @Override
-    public @NotNull String toString()
-    {
+    public @NotNull String toString() {
         return EOpcodes.getName(this.opcode()) +
                 " at " + this.bytecodeOffset +
-                (this.assignedLabel != null ? " with label " + this.assignedLabel: "");
+                (this.assignedLabel != null ? " with label " + this.assignedLabel : "");
     }
 }

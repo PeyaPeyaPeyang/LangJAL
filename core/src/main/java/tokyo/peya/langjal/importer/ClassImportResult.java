@@ -15,15 +15,15 @@ import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
  * extracted during the import process.
  * </p>
  *
- * @param majorVersion      The major version of the class file format.
- * @param minorVersion      The minor version of the class file format.
- * @param superType         The type reference of the superclass.
- * @param interfaces        The array of type references for implemented interfaces.
- * @param access            The access level of the class (e.g., public, private).
- * @param accessAttributes  The set of access attributes (e.g., static, final).
- * @param name              The internal name of the class.
- * @param methods           The array of imported methods for the class.
- * @param asmClassNode      The original ASM {@link ClassNode} representing the class.
+ * @param majorVersion     The major version of the class file format.
+ * @param minorVersion     The minor version of the class file format.
+ * @param superType        The type reference of the superclass.
+ * @param interfaces       The array of type references for implemented interfaces.
+ * @param access           The access level of the class (e.g., public, private).
+ * @param accessAttributes The set of access attributes (e.g., static, final).
+ * @param name             The internal name of the class.
+ * @param methods          The array of imported methods for the class.
+ * @param asmClassNode     The original ASM {@link ClassNode} representing the class.
  */
 public record ClassImportResult(
         int majorVersion,
@@ -44,6 +44,5 @@ public record ClassImportResult(
 
         @NotNull
         ClassNode asmClassNode
-)
-{
+) {
 }

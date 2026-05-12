@@ -12,14 +12,12 @@ import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackV
  * of the same stack type produce one value of the same type (e.g. iadd, dmul).
  */
 public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContext, T extends AbstractSingleInstructionEvaluator<P>>
-        extends AbstractInstructionTestCase<P, T>
-{
+        extends AbstractInstructionTestCase<P, T> {
     private final StackMachine.StackValue value;
     private final String syntax;
     private final int opcode;
 
-    protected AbstractMathInstructionTestCase(T evaluator, int... expectedOpCodes)
-    {
+    protected AbstractMathInstructionTestCase(T evaluator, int... expectedOpCodes) {
         super(evaluator, expectedOpCodes);
         this.value = null;
         this.syntax = null;
@@ -30,13 +28,13 @@ public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContex
      * Convenience constructor for the common case where a single test (two same-type -> one same-type)
      * is desired and the concrete test class doesn't need to override getValidInstructionSyntaxes().
      */
-    protected AbstractMathInstructionTestCase(T evaluator, StackMachine.StackValue value, String syntax, int opcode)
-    {
+    protected AbstractMathInstructionTestCase(T evaluator, StackMachine.StackValue value, String syntax, int opcode) {
         super(evaluator, opcode);
         this.value = value;
         this.syntax = syntax;
         this.opcode = opcode;
     }
+
     /**
      * Create a single test case: two same-type stack values -> one same-type result.
      *
@@ -45,8 +43,7 @@ public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContex
      * @param opcode expected opcode constant (EOpcodes.*)
      * @return array containing one InstructionCase
      */
-    protected InstructionCase[] single(StackMachine.StackValue value, String syntax, int opcode)
-    {
+    protected InstructionCase[] single(StackMachine.StackValue value, String syntax, int opcode) {
         return set(
                 of(
                         StackMachine.create(value, value).expected(StackMachine.create(value)),
@@ -54,7 +51,8 @@ public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContex
                         opcode
                 ),
                 of(
-                        StackMachine.create(integerValue(), value, value).expected(StackMachine.create(integerValue(), value)),
+                        StackMachine.create(integerValue(), value, value)
+                                .expected(StackMachine.create(integerValue(), value)),
                         syntax,
                         opcode
                 )
@@ -62,10 +60,8 @@ public abstract class AbstractMathInstructionTestCase<P extends ParserRuleContex
     }
 
     @Override
-    public InstructionCase[] getValidInstructionSyntaxes()
-    {
-        if (!(this.value == null || this.syntax == null || this.opcode == -1))
-        {
+    public InstructionCase[] getValidInstructionSyntaxes() {
+        if (!(this.value == null || this.syntax == null || this.opcode == -1)) {
             return single(this.value, this.syntax, this.opcode);
         }
 

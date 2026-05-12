@@ -4,23 +4,19 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
-import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public class TestIInc extends AbstractInstructionTestCase<JALParser.JvmInsIincContext, InstructionEvaluatorIInc>
-{
-    public TestIInc()
-    {
+public class TestIInc extends AbstractInstructionTestCase<JALParser.JvmInsIincContext, InstructionEvaluatorIInc> {
+    public TestIInc() {
         super(new InstructionEvaluatorIInc(), EOpcodes.IINC);
     }
 
     @Override
-    public InstructionCase[] getValidInstructionSyntaxes()
-    {
+    public InstructionCase[] getValidInstructionSyntaxes() {
         return set(
                 of(
                         create().set(1, integerValue())
@@ -36,7 +32,8 @@ public class TestIInc extends AbstractInstructionTestCase<JALParser.JvmInsIincCo
                 ),
                 of(
                         create(integerValue()).set(2, integerValue()).set(10, integerValue())
-                                .expected(create(integerValue()).set(2, integerValue()).set(10, integerValue())),
+                                .expected(create(integerValue()).set(2, integerValue())
+                                        .set(10, integerValue())),
                         "iinc 2 -5",
                         new IincInsnNode(2, -5)
                 ),
@@ -50,8 +47,7 @@ public class TestIInc extends AbstractInstructionTestCase<JALParser.JvmInsIincCo
     }
 
     @Override
-    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual)
-    {
+    protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual) {
         super.assertInstructionEquals(expected, actual);
 
         IincInsnNode expectedIinc = (IincInsnNode) expected;

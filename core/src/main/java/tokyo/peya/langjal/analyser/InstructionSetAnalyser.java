@@ -6,13 +6,8 @@ import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
+import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
-import tokyo.peya.langjal.analyser.stack.LocalStackElement;
-import tokyo.peya.langjal.analyser.stack.StackElement;
-import tokyo.peya.langjal.analyser.stack.StackElementCapsule;
-import tokyo.peya.langjal.analyser.stack.StackElementType;
-import tokyo.peya.langjal.analyser.stack.StackOperation;
-import tokyo.peya.langjal.analyser.stack.TopElement;
 import tokyo.peya.langjal.compiler.exceptions.analyse.PropagationMismatchException;
 import tokyo.peya.langjal.compiler.exceptions.analyse.StackUnderflowException;
 import tokyo.peya.langjal.compiler.exceptions.analyse.UnknownJumpException;
@@ -57,8 +52,7 @@ import java.util.Stack;
  * System.out.println("Max local size: " + result.maxLocalSize());
  * }</pre>
  */
-public class InstructionSetAnalyser
-{
+public class InstructionSetAnalyser {
     @NotNull
     private final FileEvaluatingReporter context;
     @NotNull
@@ -91,16 +85,16 @@ public class InstructionSetAnalyser
 
     /**
      * Constructs an analyser for a set of instructions belonging to a label (basic block).
-     * @param context The reporting context.
+     *
+     * @param context      The reporting context.
      * @param methodLabels The holder for all labels in the method.
-     * @param label The label (basic block) to analyse.
+     * @param label        The label (basic block) to analyse.
      * @param instructions The instructions in this block.
      */
     public InstructionSetAnalyser(@NotNull FileEvaluatingReporter context,
                                   @NotNull LabelsHolder methodLabels,
                                   @NotNull LabelInfo label,
-                                  @NotNull List<InstructionInfo> instructions)
-    {
+                                  @NotNull List<InstructionInfo> instructions) {
         this.context = context;
         this.methodLabels = methodLabels;
 
@@ -115,16 +109,31 @@ public class InstructionSetAnalyser
         this.jumpTargets = new ArrayList<>();
     }
 
+    private static boolean isCriticalJump(@NotNull InstructionInfo instruction) {
+        int opcode = instruction.insn().getOpcode();
+        return opcode == EOpcodes.GOTO
+                || opcode == EOpcodes.GOTO_W
+                || opcode == EOpcodes.RETURN
+                || opcode == EOpcodes.ARETURN
+                || opcode == EOpcodes.IRETURN
+                || opcode == EOpcodes.FRETURN
+                || opcode == EOpcodes.LRETURN
+                || opcode == EOpcodes.DRETURN
+                || opcode == EOpcodes.ATHROW
+                || opcode == EOpcodes.TABLESWITCH
+                || opcode == EOpcodes.LOOKUPSWITCH;
+    }
+
     /**
      * Analyses the instruction set with the given frame propagation.
      * Simulates stack and local variable changes, computes frame differences,
      * and determines control flow propagations.
+     *
      * @param propagation The incoming frame propagation (stack/locals state).
      * @return The analysis result, including analysed instructions, propagations, stack/locals state, and max sizes.
      */
     @NotNull
-    public InstructionSetAnalysisResult analyse(@NotNull FramePropagation propagation)
-    {
+    public InstructionSetAnalysisResult analyse(@NotNull FramePropagation propagation) {
         this.context.postInfo("Analysing instructions set named '%s' with %d instructions, propagation: %s".formatted(
                 this.label.name(), this.instructions.size(), propagation
         ));
@@ -135,12 +144,10 @@ public class InstructionSetAnalyser
         // スタックとローカル変数の動きをシミュレーションして，
         // 各命令のフレーム差分を計算する
         FramePropagation[] propagations = this.analyseInstructionFrames();
-        if (!this.doesContainCriticalJump)
-        {
+        if (!this.doesContainCriticalJump) {
             // 完全なジャンプ先がない場合は，現在のスタックとローカル変数をそのまま返す
             LabelInfo nextBlockLabel = this.methodLabels.getNextBlock(this.label);
-            if (nextBlockLabel != null)
-            {
+            if (nextBlockLabel != null) {
                 // 次のブロックがある場合は，そのブロックに対する伝搬情報を末尾に作る
                 FramePropagation[] newPropagations = new FramePropagation[propagations.length + 1];
                 System.arraycopy(propagations, 0, newPropagations, 0, propagations.length);
@@ -159,16 +166,14 @@ public class InstructionSetAnalyser
         );
     }
 
-    private void applyPropagation(@NotNull FramePropagation propagation)
-    {
+    private void applyPropagation(@NotNull FramePropagation propagation) {
         if (!propagation.receiver().equals(this.label))
             throw new PropagationMismatchException(propagation, this.label);
 
         StackElement[] stack = propagation.stack();
         LocalStackElement[] locals = propagation.locals();
 
-        if (!this.isOnceAnalysed)
-        {
+        if (!this.isOnceAnalysed) {
             // 初回の解析時は，メソッド本体から貰った Propagation のスタックとローカルをそのまま適用する
             // この時点ではまだスタックやローカル変数は空なので，そのまま追加する
             this.propagatedStack.addAll(List.of(stack));
@@ -193,8 +198,7 @@ public class InstructionSetAnalyser
         this.initialiseCurrentFrameInfo();  // 現在のフレーム情報を初期化
     }
 
-    private void initialiseCurrentFrameInfo()
-    {
+    private void initialiseCurrentFrameInfo() {
         this.locals.clear();
         this.stack.clear();
 
@@ -202,15 +206,13 @@ public class InstructionSetAnalyser
         this.stack.addAll(this.propagatedStack);
     }
 
-    private void analyseJumpTarget(@NotNull InstructionInfo instructionInfo, @NotNull JumpInsnNode jumpNode)
-    {
+    private void analyseJumpTarget(@NotNull InstructionInfo instructionInfo, @NotNull JumpInsnNode jumpNode) {
         LabelNode targetNode = jumpNode.label;
         if (targetNode == null)
             throw new UnknownJumpException("Jump instruction has no target label: " + instructionInfo, instructionInfo);
 
         LabelInfo targetLabel = this.methodLabels.getLabelByNode(targetNode);
-        if (targetLabel == null)
-        {
+        if (targetLabel == null) {
             // ターゲットラベルが見つからない場合は，エラーを投げる
             throw new UnknownJumpException(
                     "Unknown jump target specified by instruction: " + instructionInfo,
@@ -223,8 +225,7 @@ public class InstructionSetAnalyser
             this.jumpTargets.add(targetLabel);
     }
 
-    private FramePropagation createPropagations(@NotNull LabelInfo toLabel)
-    {
+    private FramePropagation createPropagations(@NotNull LabelInfo toLabel) {
         // 各ジャンプ先のために，伝搬情報を作る
         StackElement[] stackCopy = this.stack.toArray(new StackElement[0]);
         LocalStackElement[] localsCopy = this.locals.toArray(new LocalStackElement[0]);
@@ -239,11 +240,9 @@ public class InstructionSetAnalyser
         );
     }
 
-    private FramePropagation[] analyseInstructionFrames()
-    {
+    private FramePropagation[] analyseInstructionFrames() {
         List<FramePropagation> propagations = new ArrayList<>();
-        for (InstructionInfo instruction : this.instructions)
-        {
+        for (InstructionInfo instruction : this.instructions) {
             AbstractInstructionEvaluator<?> instructionProducer = instruction.producer();
             FrameDifferenceInfo frameDifference = instructionProducer.getFrameDifferenceInfo(instruction);
 
@@ -270,25 +269,19 @@ public class InstructionSetAnalyser
         return propagations.toArray(new FramePropagation[0]);
     }
 
-    private List<FramePropagation> checkJump(@NotNull InstructionInfo info)
-    {
+    private List<FramePropagation> checkJump(@NotNull InstructionInfo info) {
         List<FramePropagation> propagations = new ArrayList<>();
-        if (info.insn() instanceof JumpInsnNode jumpNode)
-        {
+        if (info.insn() instanceof JumpInsnNode jumpNode) {
             this.analyseJumpTarget(info, jumpNode);
             propagations.add(this.createPropagations(jumpNode.label, info));
-        }
-        else if (info.insn() instanceof TableSwitchInsnNode tableSwitchNode)
-        {
+        } else if (info.insn() instanceof TableSwitchInsnNode tableSwitchNode) {
             // テーブルスイッチの場合は，すべてのターゲットラベルを登録
             for (LabelNode label : tableSwitchNode.labels)
                 propagations.add(this.createPropagations(label, info));
             // デフォルトラベルも登録
             LabelNode defaultLabelNode = tableSwitchNode.dflt;
             propagations.add(this.createPropagations(defaultLabelNode, info));
-        }
-        else if (info.insn() instanceof LookupSwitchInsnNode lookupSwitchNode)
-        {
+        } else if (info.insn() instanceof LookupSwitchInsnNode lookupSwitchNode) {
             // ルックアップスイッチの場合は，すべてのターゲットラベルを登録
             for (LabelNode label : lookupSwitchNode.labels)
                 propagations.add(this.createPropagations(label, info));
@@ -300,8 +293,7 @@ public class InstructionSetAnalyser
         return propagations;
     }
 
-    private FramePropagation createPropagations(@NotNull LabelNode label, @NotNull InstructionInfo info)
-    {
+    private FramePropagation createPropagations(@NotNull LabelNode label, @NotNull InstructionInfo info) {
         LabelInfo targetLabel = this.methodLabels.getLabelByNode(label);
         if (targetLabel == null)
             throw new UnknownJumpException(
@@ -312,22 +304,18 @@ public class InstructionSetAnalyser
         return this.createPropagations(targetLabel);
     }
 
-    private void updateMaxes()
-    {
+    private void updateMaxes() {
         this.maxStackSize = Math.max(this.maxStackSize, this.stack.size());
         this.maxLocalSize = Math.max(this.maxLocalSize, this.locals.size());
     }
 
     private void processStackLocalDifference(@NotNull InstructionInfo instruction,
-                                             @NotNull StackOperation[] stackLocalOperations)
-    {
-        for (StackOperation stackOperation : stackLocalOperations)
-        {
+                                             @NotNull StackOperation[] stackLocalOperations) {
+        for (StackOperation stackOperation : stackLocalOperations) {
             StackOperation.StackOperationType type = stackOperation.type();
             StackElement element = stackOperation.element();
             // 変数のようなものなので，参照/保持する必要がある
-            switch (type)
-            {
+            switch (type) {
                 case PUSH:
                     if (element instanceof StackElementCapsule capsule)
                         this.pushStackElement(capsule.getElement());  // 一次退避した値を入れる
@@ -348,19 +336,16 @@ public class InstructionSetAnalyser
         }
     }
 
-    private void pushStackElement(@NotNull StackElement element)
-    {
+    private void pushStackElement(@NotNull StackElement element) {
         this.stack.push(element);
     }
 
-    private StackElement popStackElement(@NotNull InstructionInfo instruction, @NotNull StackElement expectedElement)
-    {
+    private StackElement popStackElement(@NotNull InstructionInfo instruction, @NotNull StackElement expectedElement) {
         if (this.stack.isEmpty())
             throw new StackUnderflowException(instruction, expectedElement);
 
         StackElement poppedElement = this.stack.pop();
-        if (expectedElement instanceof StackElementCapsule capsule)
-        {
+        if (expectedElement instanceof StackElementCapsule capsule) {
             capsule.setElement(poppedElement);  // Capsule の場合は，その中の要素を使う
             return expectedElement;  // Capsule の場合は，その中の要素を使うだけなので，後のチェックは省く。
         }
@@ -371,8 +356,7 @@ public class InstructionSetAnalyser
         return poppedElement;  // マージ結果は使わないが，型チェックのために必要
     }
 
-    private void addLocalElement(@NotNull LocalStackElement localElement)
-    {
+    private void addLocalElement(@NotNull LocalStackElement localElement) {
         int index = localElement.index();
 
         // Capsuleの処理
@@ -387,7 +371,7 @@ public class InstructionSetAnalyser
         TopElement top = new TopElement(localElement.producer());
 
         // 使用するスロット数を決定
-        int requiredSlots = (type == StackElementType.LONG || type == StackElementType.DOUBLE) ? 2: 1;
+        int requiredSlots = (type == StackElementType.LONG || type == StackElementType.DOUBLE) ? 2 : 1;
 
         // スロット数が足りない場合は，必要なスロット数だけローカル変数を追加
         while (this.locals.size() < index + requiredSlots)  // リストのインデックス = ローカル変数のスロット番号
@@ -402,15 +386,13 @@ public class InstructionSetAnalyser
         }
     }
 
-    private StackElement consumeLocalElement(@NotNull LocalStackElement element)
-    {
+    private StackElement consumeLocalElement(@NotNull LocalStackElement element) {
         int index = element.index();
         if (index < 0 || index >= this.locals.size())
             throw new IllegalArgumentException("Local variable index out of bounds: " + index);
 
         StackElement existing = this.locals.get(index).stackElement();
-        if (element.stackElement() instanceof StackElementCapsule capsule)
-        {
+        if (element.stackElement() instanceof StackElementCapsule capsule) {
             capsule.setElement(existing);  // Capsule の場合は，その中の要素を使う
             return existing;  // Capsule の場合は，その中の要素を使うだけなので，後のチェックは省く。
         }
@@ -422,26 +404,10 @@ public class InstructionSetAnalyser
 
     /**
      * Returns an unmodifiable list of instructions in this block.
+     *
      * @return The instructions.
      */
-    public List<InstructionInfo> getInstructions()
-    {
+    public List<InstructionInfo> getInstructions() {
         return Collections.unmodifiableList(this.instructions);
-    }
-
-    private static boolean isCriticalJump(@NotNull InstructionInfo instruction)
-    {
-        int opcode = instruction.insn().getOpcode();
-        return opcode == EOpcodes.GOTO
-                || opcode == EOpcodes.GOTO_W
-                || opcode == EOpcodes.RETURN
-                || opcode == EOpcodes.ARETURN
-                || opcode == EOpcodes.IRETURN
-                || opcode == EOpcodes.FRETURN
-                || opcode == EOpcodes.LRETURN
-                || opcode == EOpcodes.DRETURN
-                || opcode == EOpcodes.ATHROW
-                || opcode == EOpcodes.TABLESWITCH
-                || opcode == EOpcodes.LOOKUPSWITCH;
     }
 }

@@ -12,8 +12,7 @@ import tokyo.peya.langjal.compiler.JALParser;
  * </p>
  */
 @Getter
-public class UnknownLabelException extends CompileErrorException
-{
+public class UnknownLabelException extends CompileErrorException {
     /**
      * The name of the label that could not be resolved.
      */
@@ -28,8 +27,7 @@ public class UnknownLabelException extends CompileErrorException
      */
     public UnknownLabelException(@NotNull String message,
                                  @NotNull String name,
-                                 @NotNull JALParser.LabelNameContext ref)
-    {
+                                 @NotNull JALParser.LabelNameContext ref) {
         super(message, ref);
         this.name = name;
     }

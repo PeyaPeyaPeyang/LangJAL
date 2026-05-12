@@ -10,11 +10,7 @@ import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.InternalCompileErrorException;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
 /**
  * Abstract base class for instruction evaluators.
@@ -23,8 +19,7 @@ import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
  *
  * @param <T> The type of parser rule context handled by this evaluator.
  */
-public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
-{
+public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext> {
     private final int[] evaluatableOpcodes;
 
     /**
@@ -32,17 +27,26 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
      *
      * @param evaluatableOpcodes The opcodes for the instruction.
      */
-    public AbstractInstructionEvaluator(int... evaluatableOpcodes)
-    {
+    public AbstractInstructionEvaluator(int... evaluatableOpcodes) {
         this.evaluatableOpcodes = evaluatableOpcodes;
     }
 
     /**
+     * Checks if the given context object is not null.
+     *
+     * @param context The context object.
+     * @return true if not null, false otherwise.
+     */
+    protected static boolean has(@Nullable Object context) {
+        return context != null;
+    }
+
+    /**
      * Returns the opcodes that this evaluator can handle.
+     *
      * @return An array of opcodes that this evaluator can handle.
      */
-    public int[] getEvaluatableOpcodes()
-    {
+    public int[] getEvaluatableOpcodes() {
         return this.evaluatableOpcodes;
     }
 
@@ -83,7 +87,6 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
     @Nullable
     public abstract T map(@NotNull JALParser.InstructionContext instruction);
 
-
     /**
      * Evaluates the instruction using the given compiler and instruction context.
      * Throws an exception if the instruction is not applicable or mapping fails.
@@ -95,8 +98,7 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions,
                                          @NotNull LabelsHolder labels, @NotNull LocalVariablesHolder locals,
-                                         @NotNull JALParser.InstructionContext instruction)
-    {
+                                         @NotNull JALParser.InstructionContext instruction) {
         if (!isApplicable(instruction))
             throw new InternalCompileErrorException(
                     "Instruction is not applicable: " + instruction.getText(),
@@ -119,8 +121,7 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
      * @param instruction The instruction context.
      * @return true if applicable, false otherwise.
      */
-    public boolean isApplicable(@NotNull JALParser.InstructionContext instruction)
-    {
+    public boolean isApplicable(@NotNull JALParser.InstructionContext instruction) {
         return map(instruction) != null;
     }
 
@@ -132,8 +133,7 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
      * @param opCode The opcode.
      * @return The evaluated instruction.
      */
-    public EvaluatedInstruction visitSingle(ParserRuleContext ctxt, int opCode)
-    {
+    public EvaluatedInstruction visitSingle(ParserRuleContext ctxt, int opCode) {
         EvaluatedInstruction inst = EvaluatedInstruction.of(this, new InsnNode(opCode));
         if (inst.getInstructionSize() != 1)
             throw new InternalCompileErrorException(
@@ -141,16 +141,5 @@ public abstract class AbstractInstructionEvaluator<T extends ParserRuleContext>
                     ctxt
             );
         return inst;
-    }
-
-    /**
-     * Checks if the given context object is not null.
-     *
-     * @param context The context object.
-     * @return true if not null, false otherwise.
-     */
-    protected static boolean has(@Nullable Object context)
-    {
-        return context != null;
     }
 }

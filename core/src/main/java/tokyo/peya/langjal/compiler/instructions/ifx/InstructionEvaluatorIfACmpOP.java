@@ -4,24 +4,26 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
-import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
-import tokyo.peya.langjal.compiler.member.EvaluatedInstruction;
-import tokyo.peya.langjal.compiler.member.InstructionInfo;
-import tokyo.peya.langjal.compiler.member.InstructionsHolder;
-import tokyo.peya.langjal.compiler.member.LabelInfo;
-import tokyo.peya.langjal.compiler.member.LabelsHolder;
-import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+import tokyo.peya.langjal.compiler.member.*;
 
-public class InstructionEvaluatorIfACmpOP extends AbstractInstructionEvaluator<JALParser.JvmInsIfAcmpOPContext>
-{
-    public InstructionEvaluatorIfACmpOP()
-    {
+public class InstructionEvaluatorIfACmpOP extends AbstractInstructionEvaluator<JALParser.JvmInsIfAcmpOPContext> {
+    public InstructionEvaluatorIfACmpOP() {
         super(EOpcodes.IF_ACMPEQ, EOpcodes.IF_ACMPNE);
+    }
+
+    private static int getOpcode(JALParser.JvmInsIfAcmpOPContext ctxt) {
+        if (ctxt.INSN_IF_ACMPEQ() != null)
+            return EOpcodes.IF_ACMPEQ;
+        if (ctxt.INSN_IF_ACMPNE() != null)
+            return EOpcodes.IF_ACMPNE;
+
+        throw new IllegalInstructionException("Unknown IF_ICMP opcode", ctxt);
     }
 
     @Override
@@ -30,8 +32,7 @@ public class InstructionEvaluatorIfACmpOP extends AbstractInstructionEvaluator<J
                                          @NotNull ClassNode clazz, @NotNull MethodNode method,
                                          @NotNull InstructionsHolder instructions, @NotNull LabelsHolder labels,
                                          @NotNull LocalVariablesHolder locals,
-                                         JALParser.@NotNull JvmInsIfAcmpOPContext instruction)
-    {
+                                         JALParser.@NotNull JvmInsIfAcmpOPContext instruction) {
         int opcode = getOpcode(instruction);
         JALParser.LabelNameContext labelNameContext = instruction.labelName();
         LabelInfo label = labels.resolve(labelNameContext);
@@ -41,27 +42,15 @@ public class InstructionEvaluatorIfACmpOP extends AbstractInstructionEvaluator<J
     }
 
     @Override
-    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction)
-    {
+    public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                                  .popObjectRef()
-                                  .popObjectRef()
-                                  .build();
+                .popObjectRef()
+                .popObjectRef()
+                .build();
     }
 
     @Override
-    public JALParser.JvmInsIfAcmpOPContext map(JALParser.@NotNull InstructionContext instruction)
-    {
+    public JALParser.JvmInsIfAcmpOPContext map(JALParser.@NotNull InstructionContext instruction) {
         return instruction.jvmInsIfAcmpOP();
-    }
-
-    private static int getOpcode(JALParser.JvmInsIfAcmpOPContext ctxt)
-    {
-        if (ctxt.INSN_IF_ACMPEQ() != null)
-            return EOpcodes.IF_ACMPEQ;
-        if (ctxt.INSN_IF_ACMPNE() != null)
-            return EOpcodes.IF_ACMPNE;
-
-        throw new IllegalInstructionException("Unknown IF_ICMP opcode", ctxt);
     }
 }

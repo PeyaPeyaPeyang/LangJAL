@@ -22,8 +22,7 @@ import java.util.List;
  * This class is responsible for transforming the JAL AST into JVM bytecode structures,
  * handling class information, fields, and methods.
  */
-public class JALClassCompiler
-{
+public class JALClassCompiler {
     /**
      * Reporter used during compilation for error and info messages.
      */
@@ -53,8 +52,7 @@ public class JALClassCompiler
      * @param compileFlags Compilation flags.
      */
     public JALClassCompiler(@NotNull FileEvaluatingReporter reporter, @Nullable String fileName,
-                            @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags)
-    {
+                            @MagicConstant(valuesFromClass = CompileSettings.class) int compileFlags) {
         this.reporter = reporter;
         this.fileName = fileName;
         this.compileFlags = compileFlags;
@@ -63,53 +61,8 @@ public class JALClassCompiler
         this.methodCompilers = new ArrayList<>();
     }
 
-    /**
-     * Compiles the given class AST context into a ClassNode.
-     *
-     * @param clazz The parsed class definition context.
-     * @return The compiled ASM ClassNode.
-     * @throws CompileErrorException If a compilation error occurs.
-     */
-    public ClassNode compileClassAST(@NotNull JALParser.ClassDefinitionContext clazz) throws CompileErrorException
-    {
-        this.visitClassInformation(this.compiledClass, clazz);
-        this.visitClassBody(this.compiledClass, clazz.classBody());
-
-        return this.compiledClass;
-    }
-
-    /**
-     * Returns an unmodifiable list of method compilers for the compiled class.
-     *
-     * @return List of JALMethodCompiler instances.
-     */
-    public List<JALMethodCompiler> getMethodCompilers()
-    {
-        return Collections.unmodifiableList(this.methodCompilers);
-    }
-
-    private void visitClassBody(@NotNull ClassNode classNode, @Nullable JALParser.ClassBodyContext body)
-    {
-        if (body == null)
-            return;
-
-        List<JALParser.ClassBodyItemContext> items = body.classBodyItem();
-        for (JALParser.ClassBodyItemContext item : items)
-        {
-            if (item.methodDefinition() != null)
-            {
-                JALMethodCompiler evaluator = new JALMethodCompiler(this.reporter, classNode, this.compileFlags);
-                evaluator.evaluateMethod(item.methodDefinition());
-                this.methodCompilers.add(evaluator);
-            }
-            if (item.fieldDefinition() != null)
-                visitField(classNode, item.fieldDefinition());
-        }
-    }
-
     private static void visitField(@NotNull ClassNode classNode,
-                                   @NotNull JALParser.FieldDefinitionContext fieldDefinition)
-    {
+                                   @NotNull JALParser.FieldDefinitionContext fieldDefinition) {
         JALParser.AccModFieldContext accessModifier = fieldDefinition.accModField();
         String fieldName = fieldDefinition.fieldName().getText();
         String fieldType = fieldDefinition.typeDescriptor().getText();
@@ -129,10 +82,96 @@ public class JALClassCompiler
         classNode.fields.add(fieldNode);
     }
 
+    private static int visitClassAccessModifier(@NotNull JALParser.AccModClassContext accessModifier) {
+        JALParser.AccessLevelContext accessLevel = accessModifier.accessLevel();
+        List<JALParser.AccAttrClassContext> attributes = accessModifier.accAttrClass();
+
+        int modifier = EvaluatorCommons.asAccessLevel(accessLevel);
+        for (JALParser.AccAttrClassContext attr : attributes) {
+            if (attr.KWD_ACC_ATTR_FINAL() != null)
+                modifier |= EOpcodes.ACC_FINAL;
+            else if (attr.KWD_ACC_ATTR_SUPER() != null)
+                modifier |= EOpcodes.ACC_SUPER;
+            else if (attr.KWD_INTERFACE() != null)
+                modifier |= EOpcodes.ACC_INTERFACE;
+            else if (attr.KWD_ACC_ATTR_ABSTRACT() != null)
+                modifier |= EOpcodes.ACC_ABSTRACT;
+            else if (attr.KWD_ACC_ATTR_SYNTHETIC() != null)
+                modifier |= EOpcodes.ACC_SYNTHETIC;
+            else if (attr.KWD_ACC_ATTR_ANNOTATION() != null)
+                modifier |= EOpcodes.ACC_ANNOTATION;
+            else if (attr.KWD_ACC_ATTR_ENUM() != null)
+                modifier |= EOpcodes.ACC_ENUM;
+        }
+
+        return modifier;
+    }
+
+    private static int visitFieldAccessModifier(@NotNull JALParser.AccModFieldContext accessModifier) {
+        JALParser.AccessLevelContext accessLevel = accessModifier.accessLevel();
+        List<JALParser.AccAttrFieldContext> attributes = accessModifier.accAttrField();
+
+        int modifier = EvaluatorCommons.asAccessLevel(accessLevel);
+        for (JALParser.AccAttrFieldContext attr : attributes) {
+            if (attr.KWD_ACC_ATTR_FINAL() != null)
+                modifier |= EOpcodes.ACC_FINAL;
+            else if (attr.KWD_ACC_ATTR_STATIC() != null)
+                modifier |= EOpcodes.ACC_STATIC;
+            else if (attr.KWD_ACC_ATTR_VOLATILE() != null)
+                modifier |= EOpcodes.ACC_VOLATILE;
+            else if (attr.KWD_ACC_ATTR_TRANSIENT() != null)
+                modifier |= EOpcodes.ACC_TRANSIENT;
+            else if (attr.KWD_ACC_ATTR_SYNTHETIC() != null)
+                modifier |= EOpcodes.ACC_SYNTHETIC;
+            else if (attr.KWD_ACC_ATTR_ENUM() != null)
+                modifier |= EOpcodes.ACC_ENUM;
+        }
+
+        return modifier;
+    }
+
+    /**
+     * Compiles the given class AST context into a ClassNode.
+     *
+     * @param clazz The parsed class definition context.
+     * @return The compiled ASM ClassNode.
+     * @throws CompileErrorException If a compilation error occurs.
+     */
+    public ClassNode compileClassAST(@NotNull JALParser.ClassDefinitionContext clazz) throws CompileErrorException {
+        this.visitClassInformation(this.compiledClass, clazz);
+        this.visitClassBody(this.compiledClass, clazz.classBody());
+
+        return this.compiledClass;
+    }
+
+    /**
+     * Returns an unmodifiable list of method compilers for the compiled class.
+     *
+     * @return List of JALMethodCompiler instances.
+     */
+    public List<JALMethodCompiler> getMethodCompilers() {
+        return Collections.unmodifiableList(this.methodCompilers);
+    }
+
+    private void visitClassBody(@NotNull ClassNode classNode, @Nullable JALParser.ClassBodyContext body) {
+        if (body == null)
+            return;
+
+        List<JALParser.ClassBodyItemContext> items = body.classBodyItem();
+        for (JALParser.ClassBodyItemContext item : items) {
+            if (item.methodDefinition() != null) {
+                JALMethodCompiler evaluator = new JALMethodCompiler(this.reporter, classNode, this.compileFlags);
+                evaluator.evaluateMethod(item.methodDefinition());
+                this.methodCompilers.add(evaluator);
+            }
+            if (item.fieldDefinition() != null)
+                visitField(classNode, item.fieldDefinition());
+        }
+    }
+
     private void visitClassInformation(@NotNull ClassNode classNode,
                                        @NotNull JALParser.ClassDefinitionContext definitionContext)
-            throws CompileErrorException
-    {
+            throws CompileErrorException {
         int major = -1;
         int minor = -1;
         int modifier = visitClassAccessModifier(definitionContext.accModClass());
@@ -141,11 +180,9 @@ public class JALClassCompiler
         List<String> interfaceName = Collections.emptyList();
 
         JALParser.ClassMetaContext meta = definitionContext.classMeta();
-        if (meta != null)
-        {
+        if (meta != null) {
             List<JALParser.ClassMetaItemContext> metaItems = meta.classMetaItem();
-            for (JALParser.ClassMetaItemContext item : metaItems)
-            {
+            for (JALParser.ClassMetaItemContext item : metaItems) {
                 if (item.classPropMajor() != null)
                     major = EvaluatorCommons.asInteger(item.classPropMajor().NUMBER());
                 else if (item.classPropMinor() != null)
@@ -154,16 +191,15 @@ public class JALClassCompiler
                     superClassName = item.classPropSuperClass().className().getText();
                 else if (item.classPropInterfaces() != null)
                     interfaceName = item.classPropInterfaces().className()
-                                        .stream()
-                                        .map(JALParser.ClassNameContext::getText)
-                                        .filter(name -> name != null && !name.isEmpty())
-                                        .toList();
+                            .stream()
+                            .map(JALParser.ClassNameContext::getText)
+                            .filter(name -> name != null && !name.isEmpty())
+                            .toList();
             }
         }
 
         // フォールバック
-        if (major <= 0 || minor < 0)
-        {
+        if (major <= 0 || minor < 0) {
             // デフォルトのバージョンを使用
             major = RuntimeUtils.getClassFileMajorVersion();
             minor = 0;
@@ -184,57 +220,5 @@ public class JALClassCompiler
 
         if (this.fileName != null)
             classNode.visitSource(this.fileName, null); // ソースファイル名を設定
-    }
-
-    private static int visitClassAccessModifier(@NotNull JALParser.AccModClassContext accessModifier)
-    {
-        JALParser.AccessLevelContext accessLevel = accessModifier.accessLevel();
-        List<JALParser.AccAttrClassContext> attributes = accessModifier.accAttrClass();
-
-        int modifier = EvaluatorCommons.asAccessLevel(accessLevel);
-        for (JALParser.AccAttrClassContext attr : attributes)
-        {
-            if (attr.KWD_ACC_ATTR_FINAL() != null)
-                modifier |= EOpcodes.ACC_FINAL;
-            else if (attr.KWD_ACC_ATTR_SUPER() != null)
-                modifier |= EOpcodes.ACC_SUPER;
-            else if (attr.KWD_INTERFACE() != null)
-                modifier |= EOpcodes.ACC_INTERFACE;
-            else if (attr.KWD_ACC_ATTR_ABSTRACT() != null)
-                modifier |= EOpcodes.ACC_ABSTRACT;
-            else if (attr.KWD_ACC_ATTR_SYNTHETIC() != null)
-                modifier |= EOpcodes.ACC_SYNTHETIC;
-            else if (attr.KWD_ACC_ATTR_ANNOTATION() != null)
-                modifier |= EOpcodes.ACC_ANNOTATION;
-            else if (attr.KWD_ACC_ATTR_ENUM() != null)
-                modifier |= EOpcodes.ACC_ENUM;
-        }
-
-        return modifier;
-    }
-
-    private static int visitFieldAccessModifier(@NotNull JALParser.AccModFieldContext accessModifier)
-    {
-        JALParser.AccessLevelContext accessLevel = accessModifier.accessLevel();
-        List<JALParser.AccAttrFieldContext> attributes = accessModifier.accAttrField();
-
-        int modifier = EvaluatorCommons.asAccessLevel(accessLevel);
-        for (JALParser.AccAttrFieldContext attr : attributes)
-        {
-            if (attr.KWD_ACC_ATTR_FINAL() != null)
-                modifier |= EOpcodes.ACC_FINAL;
-            else if (attr.KWD_ACC_ATTR_STATIC() != null)
-                modifier |= EOpcodes.ACC_STATIC;
-            else if (attr.KWD_ACC_ATTR_VOLATILE() != null)
-                modifier |= EOpcodes.ACC_VOLATILE;
-            else if (attr.KWD_ACC_ATTR_TRANSIENT() != null)
-                modifier |= EOpcodes.ACC_TRANSIENT;
-            else if (attr.KWD_ACC_ATTR_SYNTHETIC() != null)
-                modifier |= EOpcodes.ACC_SYNTHETIC;
-            else if (attr.KWD_ACC_ATTR_ENUM() != null)
-                modifier |= EOpcodes.ACC_ENUM;
-        }
-
-        return modifier;
     }
 }

@@ -22,8 +22,7 @@ import java.nio.file.Path;
  * <p>
  * Handles reading input, invoking the parser and class compiler, and writing output class files.
  */
-public class JALFileCompiler
-{
+public class JALFileCompiler {
     /**
      * Reporter for compilation messages and errors.
      */
@@ -47,8 +46,7 @@ public class JALFileCompiler
      * @throws IOException If the output directory cannot be created.
      */
     public JALFileCompiler(@NotNull CompileReporter reporter, @NotNull Path outputDir,
-                           @MagicConstant(valuesFromClass = CompileSettings.class) int settings) throws IOException
-    {
+                           @MagicConstant(valuesFromClass = CompileSettings.class) int settings) throws IOException {
 
         this.reporter = reporter;
         this.outputDir = outputDir;
@@ -60,20 +58,72 @@ public class JALFileCompiler
     }
 
     /**
+     * Compiles the given source code string and returns the class compiler instance.
+     * Does not write any files to disk.
+     *
+     * @param sourceCode The source code to compile.
+     * @param reporter   The reporter for compilation messages.
+     * @param settings   Compilation settings flags.
+     * @return The JALClassCompiler instance for the compiled class.
+     * @throws CompileErrorException If a compilation error occurs.
+     */
+    @NotNull
+    public static JALClassCompiler compileOnly(@NotNull String sourceCode, @NotNull CompileReporter reporter,
+                                               @MagicConstant(valuesFromClass = CompileSettings.class) int settings
+    ) throws CompileErrorException {
+        CharStream charStream = CharStreams.fromString(sourceCode);
+        return compile(reporter, charStream, settings, null);
+    }
+
+    @NotNull
+    private static JALClassCompiler compile(@NotNull CompileReporter reporter,
+                                            @NotNull CharStream charStream,
+                                            @MagicConstant(valuesFromClass = CompileSettings.class) int settings,
+                                            @Nullable Path sourcePath) throws CompileErrorException {
+        JALLexer lexer = new JALLexer(charStream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        JALParser parser = new JALParser(tokenStream);
+        JALCompileErrorStrategy errorStrategy = new JALCompileErrorStrategy(reporter, sourcePath);
+        parser.setErrorHandler(errorStrategy);
+
+        FileEvaluatingReporter fileReporter = new FileEvaluatingReporter(reporter, sourcePath);
+        fileReporter.postInfo("Compiling JAL source code");
+
+        JALParser.RootContext tree = parser.root();
+        if (errorStrategy.isError())
+            throw new CompileErrorException("Failed to parse JAL source code", 0, 0, 0);
+
+        JALParser.ClassDefinitionContext classDefinition = tree.classDefinition();
+        if (classDefinition == null)
+            throw new CompileErrorException("No class definition found in JAL source code", 0, 0, 0);
+
+        String fileName = sourcePath == null ? null : sourcePath.getFileName().toString();
+        JALClassCompiler classCompiler = new JALClassCompiler(fileReporter, fileName, settings);
+
+        classCompiler.compileClassAST(classDefinition);
+        return classCompiler;
+    }
+
+    private static String toClassName(@NotNull String fullQualifiedName) {
+        // a/b/c -> c
+        int lastSlashIndex = fullQualifiedName.lastIndexOf('/');
+        if (lastSlashIndex == -1)
+            return fullQualifiedName;
+        else
+            return fullQualifiedName.substring(lastSlashIndex + 1);
+    }
+
+    /**
      * Compiles the specified input file and writes the resulting class file to the output directory.
      *
      * @param inputFile The path to the input source file.
      * @throws CompileErrorException If a compilation error occurs.
      */
-    public void compile(@NotNull Path inputFile) throws CompileErrorException
-    {
+    public void compile(@NotNull Path inputFile) throws CompileErrorException {
         CharStream charStream;
-        try
-        {
+        try {
             charStream = CharStreams.fromPath(inputFile);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             this.reporter.postError(
                     "Failed to read input file: " + inputFile.toAbsolutePath(),
                     new FileReadingException(e, inputFile),
@@ -95,96 +145,29 @@ public class JALFileCompiler
      * @throws CompileErrorException If a compilation error occurs.
      */
     @NotNull
-    public ClassNode compile(@NotNull String sourceCode) throws CompileErrorException
-    {
+    public ClassNode compile(@NotNull String sourceCode) throws CompileErrorException {
         CharStream charStream = CharStreams.fromString(sourceCode);
         ClassNode compiled = compile(this.reporter, charStream, this.settings, null).getCompiledClass();
         this.writeClass(compiled);
         return compiled;
     }
 
-    /**
-     * Compiles the given source code string and returns the class compiler instance.
-     * Does not write any files to disk.
-     *
-     * @param sourceCode The source code to compile.
-     * @param reporter   The reporter for compilation messages.
-     * @param settings   Compilation settings flags.
-     * @return The JALClassCompiler instance for the compiled class.
-     * @throws CompileErrorException If a compilation error occurs.
-     */
-    @NotNull
-    public static JALClassCompiler compileOnly(@NotNull String sourceCode, @NotNull CompileReporter reporter,
-                                        @MagicConstant(valuesFromClass = CompileSettings.class) int settings
-    ) throws CompileErrorException
-    {
-        CharStream charStream = CharStreams.fromString(sourceCode);
-        return compile(reporter, charStream, settings, null);
-    }
-
-    private void writeClass(@NotNull ClassNode classNode) throws CompileErrorException
-    {
+    private void writeClass(@NotNull ClassNode classNode) throws CompileErrorException {
         ClassWriter classWriter = new ClassWriter(0);
-        try
-        {
+        try {
 
             classNode.accept(classWriter);
-        }
-        catch (Throwable e)
-        {
+        } catch (Throwable e) {
             throw new ClassFinalisingException(e);
         }
 
         Path outputFile = this.outputDir.resolve(classNode.name + ".class");
-        try
-        {
+        try {
             Files.createDirectories(outputFile.getParent());
 
             Files.write(outputFile, classWriter.toByteArray());
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             throw new ClassWritingException(e);
         }
-    }
-
-    @NotNull
-    private static JALClassCompiler compile(@NotNull CompileReporter reporter,
-                                     @NotNull CharStream charStream,
-                                     @MagicConstant(valuesFromClass = CompileSettings.class) int settings,
-                                     @Nullable Path sourcePath) throws CompileErrorException
-    {
-        JALLexer lexer = new JALLexer(charStream);
-        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-        JALParser parser = new JALParser(tokenStream);
-        JALCompileErrorStrategy errorStrategy = new JALCompileErrorStrategy(reporter, sourcePath);
-        parser.setErrorHandler(errorStrategy);
-
-        FileEvaluatingReporter fileReporter = new FileEvaluatingReporter(reporter, sourcePath);
-        fileReporter.postInfo("Compiling JAL source code");
-
-        JALParser.RootContext tree = parser.root();
-        if (errorStrategy.isError())
-            throw new CompileErrorException("Failed to parse JAL source code", 0, 0, 0);
-
-        JALParser.ClassDefinitionContext classDefinition = tree.classDefinition();
-        if (classDefinition == null)
-            throw new CompileErrorException("No class definition found in JAL source code", 0, 0, 0);
-
-        String fileName = sourcePath == null ? null: sourcePath.getFileName().toString();
-        JALClassCompiler classCompiler = new JALClassCompiler(fileReporter, fileName, settings);
-
-        classCompiler.compileClassAST(classDefinition);
-        return classCompiler;
-    }
-
-    private static String toClassName(@NotNull String fullQualifiedName)
-    {
-        // a/b/c -> c
-        int lastSlashIndex = fullQualifiedName.lastIndexOf('/');
-        if (lastSlashIndex == -1)
-            return fullQualifiedName;
-        else
-            return fullQualifiedName.substring(lastSlashIndex + 1);
     }
 }

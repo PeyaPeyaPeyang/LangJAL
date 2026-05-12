@@ -1,28 +1,21 @@
 package tokyo.peya.langjal.compiler.instructions;
 
-import tokyo.peya.langjal.analyser.stack.ObjectElement;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.anyObject;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.object;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
-public class TestSwap extends AbstractInstructionTestCase<JALParser.JvmInsSwapContext, InstructionEvaluatorSwap>
-{
-    public TestSwap()
-    {
+public class TestSwap extends AbstractInstructionTestCase<JALParser.JvmInsSwapContext, InstructionEvaluatorSwap> {
+    public TestSwap() {
         super(new InstructionEvaluatorSwap(), EOpcodes.SWAP);
     }
 
     @Override
-    public InstructionCase[] getValidInstructionSyntaxes()
-    {
+    public InstructionCase[] getValidInstructionSyntaxes() {
         StackMachine.StackValue obj1 = object(TypeDescriptor.parse("LMyClass;"));
         StackMachine.StackValue obj2 = object(TypeDescriptor.parse("LAnotherClass;"));
 

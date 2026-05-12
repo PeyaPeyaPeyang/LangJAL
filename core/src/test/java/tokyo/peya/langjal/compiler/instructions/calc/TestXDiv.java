@@ -8,45 +8,33 @@ import tokyo.peya.langjal.compiler.instructions.calc.xdiv.InstructionEvaluatorID
 import tokyo.peya.langjal.compiler.instructions.calc.xdiv.InstructionEvaluatorLDiv;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.doubleValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.floatValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
-import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.longValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 
-public class TestXDiv
-{
+public class TestXDiv {
     @Nested
-    class TestIDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsIdivContext, InstructionEvaluatorIDiv>
-    {
-        TestIDiv()
-        {
+    class TestIDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsIdivContext, InstructionEvaluatorIDiv> {
+        TestIDiv() {
             super(new InstructionEvaluatorIDiv(), integerValue(), "idiv", EOpcodes.IDIV);
         }
     }
 
     @Nested
-    class TestFDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsFdivContext, InstructionEvaluatorFDiv>
-    {
-        TestFDiv()
-        {
+    class TestFDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsFdivContext, InstructionEvaluatorFDiv> {
+        TestFDiv() {
             super(new InstructionEvaluatorFDiv(), floatValue(), "fdiv", EOpcodes.FDIV);
         }
     }
 
     @Nested
-    class TestDDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsDdivContext, InstructionEvaluatorDDiv>
-    {
-        TestDDiv()
-        {
+    class TestDDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsDdivContext, InstructionEvaluatorDDiv> {
+        TestDDiv() {
             super(new InstructionEvaluatorDDiv(), doubleValue(), "ddiv", EOpcodes.DDIV);
         }
     }
 
     @Nested
-    class TestLDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsLdivContext, InstructionEvaluatorLDiv>
-    {
-        TestLDiv()
-        {
+    class TestLDiv extends AbstractMathInstructionTestCase<JALParser.JvmInsLdivContext, InstructionEvaluatorLDiv> {
+        TestLDiv() {
             super(new InstructionEvaluatorLDiv(), longValue(), "ldiv", EOpcodes.LDIV);
         }
     }

@@ -15,15 +15,14 @@ public record ObjectElement(
         InstructionInfo producer,
         @NotNull
         TypeDescriptor content
-) implements StackElement
-{
+) implements StackElement {
     /**
      * Validates that the content is not a primitive type.
+     *
      * @param producer The instruction that produced this element.
-     * @param content The type descriptor.
+     * @param content  The type descriptor.
      */
-    public ObjectElement
-    {
+    public ObjectElement {
         if (!content.isArray() && content.getBaseType().isPrimitive())
             throw new IllegalArgumentException(
                     "ObjectElement content must not be a primitive type: " + content
@@ -32,40 +31,40 @@ public record ObjectElement(
 
     /**
      * Constructs an ObjectElement with java/lang/Object as the type.
+     *
      * @param producer The instruction that produced this element.
      */
-    public ObjectElement(@NotNull InstructionInfo producer)
-    {
+    public ObjectElement(@NotNull InstructionInfo producer) {
         this(producer, TypeDescriptor.className("java/lang/Object"));
     }
 
     /**
      * Gets the type of this stack element.
+     *
      * @return The stack element type.
      */
     @Override
-    public @NotNull StackElementType type()
-    {
+    public @NotNull StackElementType type() {
         return StackElementType.OBJECT;
     }
 
     /**
      * Converts this element to an ASM stack element.
+     *
      * @return The ASM representation.
      */
     @Override
-    public Object toASMStackElement()
-    {
+    public Object toASMStackElement() {
         return this.content.toString();
     }
 
     /**
      * Returns a string representation of this object element.
+     *
      * @return String representation.
      */
     @Override
-    public @NotNull String toString()
-    {
+    public @NotNull String toString() {
         return "Object type of " + this.content + " (by " + this.producer + ")";
     }
 }

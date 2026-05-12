@@ -10,16 +10,14 @@ import org.jetbrains.annotations.NotNull;
  * but by bugs or unhandled situations in the compiler implementation itself.
  * </p>
  */
-public class InternalCompileErrorException extends CompileErrorException
-{
+public class InternalCompileErrorException extends CompileErrorException {
     /**
      * Constructs a new InternalCompileErrorException with a message and a cause.
      *
      * @param message The error message describing the internal error.
      * @param cause   The underlying cause of the error.
      */
-    public InternalCompileErrorException(@NotNull String message, @NotNull Throwable cause)
-    {
+    public InternalCompileErrorException(@NotNull String message, @NotNull Throwable cause) {
         super(message, cause, "An internal compiler error occurred: " + message);
     }
 
@@ -29,8 +27,7 @@ public class InternalCompileErrorException extends CompileErrorException
      * @param message   The error message describing the internal error.
      * @param causeRule The parser rule context where the error occurred.
      */
-    public InternalCompileErrorException(@NotNull String message, @NotNull ParserRuleContext causeRule)
-    {
+    public InternalCompileErrorException(@NotNull String message, @NotNull ParserRuleContext causeRule) {
         super(message, causeRule);
     }
 }

@@ -24,14 +24,27 @@ import org.jetbrains.annotations.NotNull;
  * @see <a href="https://docs.oracle.com/javase/specs/jvms/se24/html/jvms-4.html#jvms-4.3">JVM Descriptors</a>
  */
 @Getter
-public class DescriptorReader
-{
+public class DescriptorReader {
     private final String source;
     private int pos;
 
-    private DescriptorReader(@NotNull String source)
-    {
+    private DescriptorReader(@NotNull String source) {
         this.source = source;
+    }
+
+    /**
+     * Creates a new DescriptorReader from the given descriptor string.
+     *
+     * <p>Usage example:</p>
+     * <pre>{@code
+     * DescriptorReader reader = DescriptorReader.fromString("Ljava/lang/String;");
+     * }</pre>
+     *
+     * @param source The descriptor string to read.
+     * @return A new DescriptorReader instance for the given string.
+     */
+    public static DescriptorReader fromString(@NotNull String source) {
+        return new DescriptorReader(source.trim());
     }
 
     /**
@@ -48,10 +61,10 @@ public class DescriptorReader
      *     // Process nextChar...
      * }
      * }</pre>
-     *  @return Whether there are more characters to read in the descriptor.
+     *
+     * @return Whether there are more characters to read in the descriptor.
      */
-    public boolean hasMore()
-    {
+    public boolean hasMore() {
         return this.pos < this.source.length();
     }
 
@@ -71,8 +84,7 @@ public class DescriptorReader
      *
      * @return The next character in the descriptor.
      */
-    public char peek()
-    {
+    public char peek() {
         return this.source.charAt(this.pos);
     }
 
@@ -89,10 +101,10 @@ public class DescriptorReader
      *     // Process character c...
      * }
      * }</pre>
+     *
      * @return The next character in the descriptor.
      */
-    public char read()
-    {
+    public char read() {
         return this.source.charAt(this.pos++);
     }
 
@@ -108,26 +120,9 @@ public class DescriptorReader
      * @param expected The character that is expected at the current position.
      * @throws IllegalArgumentException if the next character does not match the expected character.
      */
-    public void expect(char expected)
-    {
+    public void expect(char expected) {
         char c = read();
         if (c != expected)
             throw new IllegalArgumentException("Expected '" + expected + "' but got '" + c + "'");
-    }
-
-    /**
-     * Creates a new DescriptorReader from the given descriptor string.
-     *
-     * <p>Usage example:</p>
-     * <pre>{@code
-     * DescriptorReader reader = DescriptorReader.fromString("Ljava/lang/String;");
-     * }</pre>
-     *
-     * @param source The descriptor string to read.
-     * @return A new DescriptorReader instance for the given string.
-     */
-    public static DescriptorReader fromString(@NotNull String source)
-    {
-        return new DescriptorReader(source.trim());
     }
 }

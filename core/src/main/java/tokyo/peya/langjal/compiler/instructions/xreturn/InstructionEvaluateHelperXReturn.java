@@ -7,17 +7,14 @@ import tokyo.peya.langjal.compiler.exceptions.ReturnTypeMismatchedException;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
-public class InstructionEvaluateHelperXReturn
-{
+public class InstructionEvaluateHelperXReturn {
     public static void checkReturnType(@NotNull MethodNode method,
                                        @NotNull ParserRuleContext ctxt,
-                                       @NotNull TypeDescriptor returningType)
-    {
+                                       @NotNull TypeDescriptor returningType) {
         MethodDescriptor methodDescriptor = MethodDescriptor.parse(method.desc);
         TypeDescriptor expectedReturnType = methodDescriptor.getReturnType();
 
-        if (returningType.equals(TypeDescriptor.OBJECT))
-        {
+        if (returningType.equals(TypeDescriptor.OBJECT)) {
             if (expectedReturnType.getBaseType().getDescriptor().startsWith("L"))
                 return;
 
