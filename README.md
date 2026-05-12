@@ -4,7 +4,7 @@
   <a href="https://javadoc.io/doc/tokyo.peya/langjal"><img src="https://javadoc.io/badge2/tokyo.peya/langjal/javadoc.svg?style=flat-square"></a>
 </div>
 
-**JAL (Java Assembly Language)**  is a custom-designed assembly language for the Java Virtual Machine.  
+**JAL (JVM Assembly Language)**  is a custom-designed assembly language for the Java Virtual Machine.  
 It makes exploring the internals of the JVM not just possible, but genuinely fun.
 
 ---
