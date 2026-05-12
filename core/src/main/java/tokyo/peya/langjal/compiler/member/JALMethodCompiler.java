@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.CompileSettings;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
@@ -339,7 +340,7 @@ public class JALMethodCompiler
         if (this.instructions.isEmpty() || shouldAppendReturnOnLast(this.instructions.getLastInstruction()))
         {
             // 最後にRETURNがない場合は、デフォルトでRETURNを追加
-            this.instructions.addReturn();
+            this.instructions.importInstruction(new InsnNode(EOpcodes.RETURN), labelAssignation, -1);
         }
     }
 
