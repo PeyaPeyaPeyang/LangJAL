@@ -2,6 +2,7 @@ package tokyo.peya.langjal.analyser;
 
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.exceptions.analyse.StackElementMismatchedException;
 import tokyo.peya.langjal.compiler.exceptions.analyse.StackSizeDifferentException;
@@ -9,6 +10,7 @@ import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
 
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 
@@ -82,6 +84,37 @@ public class StackElementUtils {
         return mergeLocals(existingLocal, newLocal, Math.min(existingLocal.length, newLocal.length));
     }
 
+    public static LocalStackElement[] mergeLocals(@NotNull LocalStackElement[] existingLocal,
+                                                  @NotNull LocalStackElement[] newLocal,
+                                                  @Nullable BitSet liveLocals) {
+        int maxLocalSize = Math.max(existingLocal.length, newLocal.length);
+        LocalStackElement[] mergedLocals = new LocalStackElement[maxLocalSize];
+        for (int i = 0; i < maxLocalSize; i++) {
+            if (liveLocals != null && !liveLocals.get(i)) {
+                LocalStackElement source = i < newLocal.length ? newLocal[i] : existingLocal[i];
+                mergedLocals[i] = toTopLocal(source, i);
+                continue;
+            }
+
+            if (i >= existingLocal.length || i >= newLocal.length)
+                throw new IllegalArgumentException("Missing live local slot at index " + i);
+
+            LocalStackElement existingLocalElement = existingLocal[i];
+            LocalStackElement newLocalElement = newLocal[i];
+            StackElement existingElement = existingLocalElement.stackElement();
+            StackElement newElement = newLocalElement.stackElement();
+            checkSameType(existingElement, newElement);
+            mergedLocals[i] = new LocalStackElement(
+                    existingLocalElement.producer(),
+                    i,
+                    mergeElement(existingElement, newElement),
+                    existingLocalElement.isParameter() || newLocalElement.isParameter()
+            );
+        }
+
+        return cleanUpLocals(mergedLocals);
+    }
+
     /**
      * Merges two local variable arrays up to the specified minimum size.
      *
@@ -117,6 +150,30 @@ public class StackElementUtils {
 
         // ローカル変数の末尾に連続する TOP 要素を削除する
         return cleanUpLocals(mergedLocals);
+    }
+
+    public static LocalStackElement[] filterDeadLocals(@NotNull LocalStackElement[] locals,
+                                                       @Nullable BitSet liveLocals) {
+        if (locals.length == 0)
+            return locals;
+        else if (liveLocals == null)
+            return cleanUpLocals(locals);
+
+        LocalStackElement[] filteredLocals = new LocalStackElement[locals.length];
+        for (int i = 0; i < locals.length; i++) {
+            LocalStackElement local = locals[i];
+            if (liveLocals.get(i))
+                filteredLocals[i] = local;
+            else
+                filteredLocals[i] = toTopLocal(local, i);
+        }
+
+        return cleanUpLocals(filteredLocals);
+    }
+
+    private static @NotNull LocalStackElement toTopLocal(@NotNull LocalStackElement local, int index) {
+        TopElement top = new TopElement(local.producer());
+        return new LocalStackElement(local.producer(), index, top, local.isParameter());
     }
 
     private static void checkStackSize(@NotNull LabelInfo frameLabel,

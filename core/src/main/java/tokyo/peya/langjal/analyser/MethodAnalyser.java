@@ -2,18 +2,15 @@ package tokyo.peya.langjal.analyser;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
-import tokyo.peya.langjal.analyser.stack.LocalStackElement;
-import tokyo.peya.langjal.analyser.stack.StackElement;
-import tokyo.peya.langjal.analyser.stack.TopElement;
-import tokyo.peya.langjal.analyser.stack.UninitializedThisElement;
+import org.objectweb.asm.tree.*;
+import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNop;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.*;
 
+import java.util.BitSet;
 import java.util.*;
 
 /**
@@ -40,6 +37,7 @@ public class MethodAnalyser {
     private final List<InstructionSetAnalyser> analysers;
     private final List<FramePropagation> pendingPropagations;
     private final Map<FramePropagation, InstructionSetAnalysisResult> confirmedAnalysisResults;
+    private final Map<LabelInfo, BitSet> liveLocalsAtEntry;
 
     private int maxStackSize;
     private int maxLocalSize;
@@ -68,6 +66,7 @@ public class MethodAnalyser {
         this.analysers = new ArrayList<>();
         this.pendingPropagations = new ArrayList<>();
         this.confirmedAnalysisResults = new HashMap<>();
+        this.liveLocalsAtEntry = new HashMap<>();
     }
 
     @Nullable
@@ -75,12 +74,13 @@ public class MethodAnalyser {
             @NotNull FileEvaluatingReporter context,
             @NotNull LabelsHolder labels,
             @NotNull LabelInfo label,
-            @NotNull List<InstructionInfo> instructions) {
+            @NotNull List<InstructionInfo> instructions,
+            @NotNull Map<LabelInfo, BitSet> liveLocalsAtEntry) {
         if (instructions.isEmpty()) {
             return null;
         }
 
-        return new InstructionSetAnalyser(context, labels, label, instructions);
+        return new InstructionSetAnalyser(context, labels, label, instructions, liveLocalsAtEntry);
     }
 
     /**
@@ -276,7 +276,13 @@ public class MethodAnalyser {
                 continue;  // これはグローバル終了ラベルなのでスキップ
             List<InstructionInfo> instructions = this.instructions.getInstructions(label);
 
-            InstructionSetAnalyser analyser = createAnalyser(this.context, this.labels, label, instructions);
+            InstructionSetAnalyser analyser = createAnalyser(
+                    this.context,
+                    this.labels,
+                    label,
+                    instructions,
+                    this.liveLocalsAtEntry
+            );
             if (analyser == null) {
                 this.context.postInfo(String.format(
                         "No instructions found for label: %s, creating empty analyser.",
@@ -287,5 +293,144 @@ public class MethodAnalyser {
 
             this.analysers.add(analyser);
         }
+
+        this.computeLiveLocalsAtEntry();
+    }
+
+    private void computeLiveLocalsAtEntry() {
+        this.liveLocalsAtEntry.clear();
+        for (InstructionSetAnalyser analyser : this.analysers)
+            this.liveLocalsAtEntry.put(analyser.getLabel(), new BitSet());
+
+        boolean updated;
+        do {
+            updated = false;
+            for (int i = this.analysers.size() - 1; i >= 0; i--) {
+                InstructionSetAnalyser analyser = this.analysers.get(i);
+                BitSet nextLive = this.computeLiveLocalsAtEntry(analyser);
+                BitSet previousLive = this.liveLocalsAtEntry.get(analyser.getLabel());
+                if (!nextLive.equals(previousLive)) {
+                    this.liveLocalsAtEntry.put(analyser.getLabel(), nextLive);
+                    updated = true;
+                }
+            }
+        }
+        while (updated);
+    }
+
+    private @NotNull BitSet computeLiveLocalsAtEntry(@NotNull InstructionSetAnalyser analyser) {
+        BitSet liveLocals = this.computeLiveLocalsAtExit(analyser.getLabel());
+        List<InstructionInfo> instructions = analyser.getInstructions();
+        for (int i = instructions.size() - 1; i >= 0; i--)
+            this.applyInstructionLiveness(instructions.get(i), liveLocals);
+
+        return liveLocals;
+    }
+
+    private @NotNull BitSet computeLiveLocalsAtExit(@NotNull LabelInfo label) {
+        BitSet liveLocals = new BitSet();
+        for (LabelInfo successor : this.getSuccessors(label)) {
+            BitSet successorLive = this.liveLocalsAtEntry.get(successor);
+            if (successorLive != null)
+                liveLocals.or(successorLive);
+        }
+        return liveLocals;
+    }
+
+    private @NotNull List<LabelInfo> getSuccessors(@NotNull LabelInfo label) {
+        List<LabelInfo> successors = new ArrayList<>();
+        List<InstructionInfo> blockInstructions = this.instructions.getInstructions(label);
+        if (blockInstructions.isEmpty())
+            return successors;
+
+        InstructionInfo lastInstruction = blockInstructions.getLast();
+        if (lastInstruction == null)
+            return successors;
+
+        if (lastInstruction.insn() instanceof JumpInsnNode jumpNode) {
+            LabelInfo jumpTarget = this.labels.getLabelByNode(jumpNode.label);
+            if (jumpTarget != null)
+                successors.add(jumpTarget);
+
+            int opcode = lastInstruction.opcode();
+            if (opcode != EOpcodes.GOTO && opcode != EOpcodes.GOTO_W) {
+                LabelInfo nextBlock = this.labels.getNextBlock(label);
+                if (nextBlock != null && !successors.contains(nextBlock))
+                    successors.add(nextBlock);
+            }
+            return successors;
+        }
+
+        if (lastInstruction.insn() instanceof TableSwitchInsnNode tableSwitchNode) {
+            this.addSwitchSuccessors(successors, tableSwitchNode.labels);
+            LabelInfo defaultLabel = this.labels.getLabelByNode(tableSwitchNode.dflt);
+            if (defaultLabel != null && !successors.contains(defaultLabel))
+                successors.add(defaultLabel);
+            return successors;
+        }
+
+        if (lastInstruction.insn() instanceof LookupSwitchInsnNode lookupSwitchNode) {
+            this.addSwitchSuccessors(successors, lookupSwitchNode.labels);
+            LabelInfo defaultLabel = this.labels.getLabelByNode(lookupSwitchNode.dflt);
+            if (defaultLabel != null && !successors.contains(defaultLabel))
+                successors.add(defaultLabel);
+            return successors;
+        }
+
+        int opcode = lastInstruction.opcode();
+        if (opcode == EOpcodes.RETURN
+                || opcode == EOpcodes.ARETURN
+                || opcode == EOpcodes.IRETURN
+                || opcode == EOpcodes.FRETURN
+                || opcode == EOpcodes.LRETURN
+                || opcode == EOpcodes.DRETURN
+                || opcode == EOpcodes.ATHROW)
+            return successors;
+
+        LabelInfo nextBlock = this.labels.getNextBlock(label);
+        if (nextBlock != null)
+            successors.add(nextBlock);
+
+        return successors;
+    }
+
+    private void addSwitchSuccessors(@NotNull List<LabelInfo> successors, @NotNull List<LabelNode> labels) {
+        for (LabelNode labelNode : labels) {
+            LabelInfo label = this.labels.getLabelByNode(labelNode);
+            if (label != null && !successors.contains(label))
+                successors.add(label);
+        }
+    }
+
+    private void applyInstructionLiveness(@NotNull InstructionInfo instruction, @NotNull BitSet liveLocals) {
+        StackOperation[] operations = instruction.producer().getFrameDifferenceInfo(instruction).getStackOperations();
+        for (int i = operations.length - 1; i >= 0; i--) {
+            StackOperation operation = operations[i];
+            if (!(operation.element() instanceof LocalStackElement localElement))
+                continue;
+
+            int slotSize = this.getLocalSlotSize(instruction, localElement);
+            if (operation.type() == StackOperation.StackOperationType.PUSH) {
+                liveLocals.clear(localElement.index(), localElement.index() + slotSize);
+            } else {
+                liveLocals.set(localElement.index(), localElement.index() + slotSize);
+            }
+        }
+    }
+
+    private int getLocalSlotSize(@NotNull InstructionInfo instruction, @NotNull LocalStackElement localElement) {
+        StackElement element = localElement.stackElement();
+        if (!(element instanceof tokyo.peya.langjal.analyser.stack.StackElementCapsule)) {
+            StackElementType type = localElement.type();
+            return type == StackElementType.LONG || type == StackElementType.DOUBLE ? 2 : 1;
+        }
+
+        return switch (instruction.opcode()) {
+            case EOpcodes.LLOAD, EOpcodes.LLOAD_0, EOpcodes.LLOAD_1, EOpcodes.LLOAD_2, EOpcodes.LLOAD_3,
+                 EOpcodes.LSTORE, EOpcodes.LSTORE_0, EOpcodes.LSTORE_1, EOpcodes.LSTORE_2, EOpcodes.LSTORE_3,
+                 EOpcodes.DLOAD, EOpcodes.DLOAD_0, EOpcodes.DLOAD_1, EOpcodes.DLOAD_2, EOpcodes.DLOAD_3,
+                 EOpcodes.DSTORE, EOpcodes.DSTORE_0, EOpcodes.DSTORE_1, EOpcodes.DSTORE_2, EOpcodes.DSTORE_3 -> 2;
+            default -> 1;
+        };
     }
 }

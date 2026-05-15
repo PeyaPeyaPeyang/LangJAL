@@ -18,8 +18,10 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 import tokyo.peya.langjal.compiler.member.LabelsHolder;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 /**
@@ -63,6 +65,8 @@ public class InstructionSetAnalyser {
     private final LabelInfo label;
     @NotNull
     private final List<InstructionInfo> instructions;
+    @NotNull
+    private final Map<LabelInfo, BitSet> liveLocalsAtEntry;
 
     @NotNull
     private final List<AnalysedInstruction> analysedInstructions;
@@ -94,12 +98,14 @@ public class InstructionSetAnalyser {
     public InstructionSetAnalyser(@NotNull FileEvaluatingReporter context,
                                   @NotNull LabelsHolder methodLabels,
                                   @NotNull LabelInfo label,
-                                  @NotNull List<InstructionInfo> instructions) {
+                                  @NotNull List<InstructionInfo> instructions,
+                                  @NotNull Map<LabelInfo, BitSet> liveLocalsAtEntry) {
         this.context = context;
         this.methodLabels = methodLabels;
 
         this.label = label;
         this.instructions = new ArrayList<>(instructions);
+        this.liveLocalsAtEntry = liveLocalsAtEntry;
 
         this.analysedInstructions = new ArrayList<>();
         this.propagatedStack = new Stack<>();
@@ -171,7 +177,10 @@ public class InstructionSetAnalyser {
             throw new PropagationMismatchException(propagation, this.label);
 
         StackElement[] stack = propagation.stack();
-        LocalStackElement[] locals = propagation.locals();
+        LocalStackElement[] locals = StackElementUtils.filterDeadLocals(
+                propagation.locals(),
+                this.liveLocalsAtEntry.get(this.label)
+        );
 
         if (!this.isOnceAnalysed) {
             // 初回の解析時は，メソッド本体から貰った Propagation のスタックとローカルをそのまま適用する
@@ -189,9 +198,15 @@ public class InstructionSetAnalyser {
         this.propagatedStack.clear();
         Collections.addAll(this.propagatedStack, mergedStack);
 
-        LocalStackElement[] lastPropagatedLocals = this.propagatedLocals.toArray(new LocalStackElement[0]);
-        int minLocalSize = Math.min(lastPropagatedLocals.length, locals.length);
-        LocalStackElement[] mergedLocals = StackElementUtils.mergeLocals(lastPropagatedLocals, locals, minLocalSize);
+        LocalStackElement[] lastPropagatedLocals = StackElementUtils.filterDeadLocals(
+                this.propagatedLocals.toArray(new LocalStackElement[0]),
+                this.liveLocalsAtEntry.get(this.label)
+        );
+        LocalStackElement[] mergedLocals = StackElementUtils.mergeLocals(
+                lastPropagatedLocals,
+                locals,
+                this.liveLocalsAtEntry.get(this.label)
+        );
         this.propagatedLocals.clear();
         Collections.addAll(this.propagatedLocals, mergedLocals);
 
@@ -228,7 +243,10 @@ public class InstructionSetAnalyser {
     private FramePropagation createPropagations(@NotNull LabelInfo toLabel) {
         // 各ジャンプ先のために，伝搬情報を作る
         StackElement[] stackCopy = this.stack.toArray(new StackElement[0]);
-        LocalStackElement[] localsCopy = this.locals.toArray(new LocalStackElement[0]);
+        LocalStackElement[] localsCopy = StackElementUtils.filterDeadLocals(
+                this.locals.toArray(new LocalStackElement[0]),
+                this.liveLocalsAtEntry.get(toLabel)
+        );
         return new FramePropagation(
                 this.label,
                 this.analysedInstructions.toArray(new AnalysedInstruction[0]),
