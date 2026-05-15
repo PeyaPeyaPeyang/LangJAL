@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.TryCatchBlockNode;
 import tokyo.peya.langjal.compiler.CompileReporter;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
+import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
 import java.nio.file.Path;
@@ -52,6 +53,12 @@ class TryCatchDirectivesHolderTest {
         assertEquals(expectedType, block.type);
     }
 
+    private static String internalName(TypeDescriptor typeDescriptor) {
+        assertFalse(typeDescriptor.isArray(), "Exception type must not be array: " + typeDescriptor);
+        assertInstanceOf(ClassReferenceType.class, typeDescriptor.getBaseType(), "Exception type must be class: " + typeDescriptor);
+        return ((ClassReferenceType) typeDescriptor.getBaseType()).getInternalName();
+    }
+
     @Test
     void finalisingWithoutDirectivesLeavesMethodUntouched() {
         RecordingCompileReporter reporter = new RecordingCompileReporter();
@@ -79,7 +86,7 @@ class TryCatchDirectivesHolderTest {
         holder.finaliseTryCatchDirectives(method);
 
         assertEquals(1, method.tryCatchBlocks.size());
-        assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, catchLabel, exceptionType.toString());
+        assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, catchLabel, internalName(exceptionType));
         assertEquals(1, reporter.infoMessages().size());
         assertEquals(
                 "Finalising try-catch directives for method catchMethod()V",
@@ -122,7 +129,8 @@ class TryCatchDirectivesHolderTest {
         LabelInfo secondCatch = label("SECOND_CATCH", 6);
         LabelInfo secondFinally = label("SECOND_FINALLY", 7);
 
-        holder.addTryCatchDirective(firstStart, firstEnd, firstCatch, TypeDescriptor.INTEGER, null);
+        TypeDescriptor firstExceptionType = TypeDescriptor.className("Ljava/lang/IllegalStateException;");
+        holder.addTryCatchDirective(firstStart, firstEnd, firstCatch, firstExceptionType, null);
         holder.addTryCatchDirective(
                 secondStart,
                 secondEnd,
@@ -138,14 +146,14 @@ class TryCatchDirectivesHolderTest {
                 firstStart,
                 firstEnd,
                 firstCatch,
-                TypeDescriptor.INTEGER.toString()
+                internalName(firstExceptionType)
         );
         assertTryCatchBlock(
                 method.tryCatchBlocks.get(1),
                 secondStart,
                 secondEnd,
                 secondCatch,
-                TypeDescriptor.className("Ljava/lang/RuntimeException;").toString()
+                internalName(TypeDescriptor.className("Ljava/lang/RuntimeException;"))
         );
         assertTryCatchBlock(method.tryCatchBlocks.get(2), secondStart, secondEnd, secondFinally, null);
         assertEquals(1, reporter.infoMessages().size());
@@ -188,4 +196,3 @@ class TryCatchDirectivesHolderTest {
     private record InfoMessage(String message, Path sourcePath) {
     }
 }
-

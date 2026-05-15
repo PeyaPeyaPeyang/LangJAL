@@ -10,7 +10,6 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.*;
 
-import java.util.BitSet;
 import java.util.*;
 
 /**
@@ -76,11 +75,9 @@ public class MethodAnalyser {
             @NotNull LabelInfo label,
             @NotNull List<InstructionInfo> instructions,
             @NotNull Map<LabelInfo, BitSet> liveLocalsAtEntry) {
-        if (instructions.isEmpty()) {
-            return null;
-        }
-
-        return new InstructionSetAnalyser(context, labels, label, instructions, liveLocalsAtEntry);
+        return instructions.isEmpty()
+                ? null
+                : new InstructionSetAnalyser(context, labels, label, instructions, liveLocalsAtEntry);
     }
 
     /**
@@ -90,7 +87,14 @@ public class MethodAnalyser {
      */
     public MethodAnalysisResult analyse() {
         this.context.postInfo("Analysing method: " + this.method.name + " in class: " + this.method.desc);
+
+        // Make analyse() re-entrant: it can be called multiple times on the same instance.
+        this.analysers.clear();
         this.pendingPropagations.clear();
+        this.confirmedAnalysisResults.clear();
+        this.maxStackSize = 0;
+        this.maxLocalSize = 0;
+
         this.createAnalysers();
         if (this.analysers.isEmpty()) {
             this.context.postInfo("There are no instruction sets to analyse in method: " + this.method.name);
@@ -172,6 +176,7 @@ public class MethodAnalyser {
                     this.pendingPropagations.add(nextPropagation);  // 新しい伝播を追加
                 }
             }
+            break;
         }
     }
 
@@ -268,7 +273,6 @@ public class MethodAnalyser {
                 .mapToInt(localInfo -> localInfo.index() + localInfo.type().getBaseType().getCategory())
                 .max()
                 .orElse(0);
-
 
         // locals を index でソート
         Arrays.sort(locals, Comparator.comparingInt(LocalVariableInfo::index));
@@ -377,8 +381,8 @@ public class MethodAnalyser {
     private @NotNull List<LabelInfo> getSuccessors(@NotNull LabelInfo label) {
         List<LabelInfo> successors = new ArrayList<>();
         List<InstructionInfo> blockInstructions = this.instructions.getInstructions(label);
-        if (blockInstructions.isEmpty())
-            return successors;
+            if (blockInstructions.isEmpty())
+                return successors;
 
         InstructionInfo lastInstruction = blockInstructions.getLast();
         if (lastInstruction == null)
@@ -417,13 +421,7 @@ public class MethodAnalyser {
         }
 
         int opcode = lastInstruction.opcode();
-        if (opcode == EOpcodes.RETURN
-                || opcode == EOpcodes.ARETURN
-                || opcode == EOpcodes.IRETURN
-                || opcode == EOpcodes.FRETURN
-                || opcode == EOpcodes.LRETURN
-                || opcode == EOpcodes.DRETURN
-                || opcode == EOpcodes.ATHROW)
+        if (isReturnOrThrow(opcode))
             return successors;
 
         LabelInfo nextBlock = this.labels.getNextBlock(label);
@@ -431,6 +429,16 @@ public class MethodAnalyser {
             successors.add(nextBlock);
 
         return successors;
+    }
+
+    private static boolean isReturnOrThrow(int opcode) {
+        return opcode == EOpcodes.RETURN
+                || opcode == EOpcodes.ARETURN
+                || opcode == EOpcodes.IRETURN
+                || opcode == EOpcodes.FRETURN
+                || opcode == EOpcodes.LRETURN
+                || opcode == EOpcodes.DRETURN
+                || opcode == EOpcodes.ATHROW;
     }
 
     private void addSwitchSuccessors(@NotNull List<? super LabelInfo> successors, @NotNull List<? extends LabelNode> labels) {
