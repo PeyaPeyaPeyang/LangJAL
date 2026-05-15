@@ -23,7 +23,7 @@ public class InstructionEvaluatorLDCW2 extends AbstractInstructionEvaluator<JALP
                                          @NotNull LocalVariablesHolder locals,
                                          JALParser.@NotNull JvmInsLdc2WContext instruction) {
         return InstructionEvaluationHelperLDC.evaluate(
-                this, instruction.jvmInsArgScalarType(), InstructionEvaluationHelperLDC.LDC_W
+                this, instruction.jvmInsArgScalarType(), InstructionEvaluationHelperLDC.LDC2_W
         );
     }
 
