@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
@@ -35,7 +36,9 @@ public class InstructionEvaluatorFLoad extends AbstractInstructionEvaluator<JALP
 
     @Override
     public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
+        VarInsnNode insn = (VarInsnNode) instruction.insn();
         return FrameDifferenceInfo.builder(instruction)
+                .consumeLocalPrimitive(insn.var, StackElementType.FLOAT)
                 .pushPrimitive(StackElementType.FLOAT)
                 .build();
     }

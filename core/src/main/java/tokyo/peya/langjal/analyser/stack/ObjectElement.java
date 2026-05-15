@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.analyser.stack;
 
 import org.jetbrains.annotations.NotNull;
+import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
@@ -55,7 +56,10 @@ public record ObjectElement(
      */
     @Override
     public Object toASMStackElement() {
-        return this.content.toString();
+        if (this.content.isArray())
+            return this.content.toString();
+
+        return ((ClassReferenceType) this.content.getBaseType()).getInternalName();
     }
 
     /**

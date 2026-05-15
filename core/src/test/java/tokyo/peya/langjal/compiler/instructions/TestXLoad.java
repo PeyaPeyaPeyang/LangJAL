@@ -2,21 +2,59 @@ package tokyo.peya.langjal.compiler.instructions;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
+import tokyo.peya.langjal.analyser.stack.LocalStackElement;
+import tokyo.peya.langjal.analyser.stack.PrimitiveElement;
+import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.analyser.stack.StackOperation;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.instructions.xload.*;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
 public class TestXLoad {
+    @Test
+    void iloadFrameDifferenceConsumesLocal() {
+        InstructionEvaluatorILoad evaluator = new InstructionEvaluatorILoad();
+        InstructionInfo instruction = new InstructionInfo(
+                0,
+                new VarInsnNode(Opcodes.ILOAD, 2),
+                new ClassNode(),
+                new MethodNode(),
+                evaluator,
+                null,
+                2,
+                -1
+        );
+
+        FrameDifferenceInfo frameDifference = evaluator.getFrameDifferenceInfo(instruction);
+        StackOperation[] operations = frameDifference.getStackOperations();
+
+        assertEquals(2, operations.length);
+        assertEquals(StackOperation.StackOperationType.POP, operations[0].type());
+        LocalStackElement consumedLocal = assertInstanceOf(LocalStackElement.class, operations[0].element());
+        assertEquals(2, consumedLocal.index());
+        assertEquals(StackElementType.INTEGER, consumedLocal.type());
+
+        assertEquals(StackOperation.StackOperationType.PUSH, operations[1].type());
+        PrimitiveElement pushedValue = assertInstanceOf(PrimitiveElement.class, operations[1].element());
+        assertEquals(StackElementType.INTEGER, pushedValue.type());
+    }
+
     private abstract class XLoadTestCase<T extends ParserRuleContext, E extends AbstractInstructionEvaluator<T>>
             extends AbstractInstructionTestCase<T, E> {
         protected XLoadTestCase(E evaluator, int... expectedOpCodes) {
