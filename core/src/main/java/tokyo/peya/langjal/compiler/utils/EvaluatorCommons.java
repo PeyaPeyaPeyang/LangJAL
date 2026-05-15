@@ -169,7 +169,7 @@ public class EvaluatorCommons {
             if (number.endsWith("l") || number.endsWith("L"))
                 return "long-hex";
             else
-                return "may-int-hex";
+                return fitsInInt(number, 16) ? "may-int-hex" : "long-hex";
         }
 
         if (number.endsWith("f") || number.endsWith("F"))
@@ -181,7 +181,20 @@ public class EvaluatorCommons {
         else if (number.contains("."))
             return "may-double";
         else
-            return "may-int";
+            return fitsInInt(number, 10) ? "may-int" : "long";
+    }
+
+    private static boolean fitsInInt(@NotNull String number, int radix) {
+        String normalized = number;
+        if (radix == 16)
+            normalized = number.startsWith("-0x") ? "-" + number.substring(3) : number.substring(2);
+
+        try {
+            Integer.parseInt(normalized, radix);
+            return true;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     /**

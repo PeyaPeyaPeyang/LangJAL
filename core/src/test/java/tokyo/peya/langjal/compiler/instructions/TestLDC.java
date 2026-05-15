@@ -96,6 +96,7 @@ public class TestLDC {
             return set(
                     constantLoad(123L, longValue(), "ldc2_w 123L"),
                     constantLoadWithBase(123L, longValue(), "ldc2_w 123L"),
+                    constantLoad(10000000000L, longValue(), "ldc2_w 10000000000"),
                     constantLoad(3.5d, doubleValue(), "ldc2_w 3.5d")
             );
         }
