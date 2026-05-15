@@ -233,6 +233,10 @@ public class StackMachine implements Cloneable {
             StackElementType expectedType = element.type();
             StackElementType actualType = poppedValue.type();
 
+            if (isNullAndObjectCompatible(expectedType, actualType)) {
+                return;
+            }
+
             if (expectedType != actualType) {
                 throw new AssertionFailedError(
                         "Stack element type mismatch at step " + this.currentStep,
@@ -259,6 +263,11 @@ public class StackMachine implements Cloneable {
             // java.lang.Object の場合はどんなオブジェクトも許容する
             return element.content().getBaseType().equals(ClassReferenceType.OBJECT) || value.typeName()
                     .equals(element.content());
+        }
+
+        private boolean isNullAndObjectCompatible(@NotNull StackElementType expectedType,
+                                                  @NotNull StackElementType actualType) {
+            return expectedType == StackElementType.OBJECT && actualType == StackElementType.NULL;
         }
     }
 

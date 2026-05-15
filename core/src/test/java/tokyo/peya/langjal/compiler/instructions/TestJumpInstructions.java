@@ -16,6 +16,7 @@ import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.anyObject;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.integerValue;
+import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.nullValue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
 public class TestJumpInstructions {
@@ -322,8 +323,15 @@ public class TestJumpInstructions {
         public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     of(create(anyObject()).expected(create()), "ifnull L1", new JumpInsnNode(EOpcodes.IFNULL, null)),
+                    of(create(nullValue()).expected(create()), "ifnull L1", new JumpInsnNode(EOpcodes.IFNULL, null)),
                     of(
                             create(integerValue(), anyObject())
+                                    .expected(create(integerValue())),
+                            "ifnull L1",
+                            new JumpInsnNode(EOpcodes.IFNULL, null)
+                    ),
+                    of(
+                            create(integerValue(), nullValue())
                                     .expected(create(integerValue())),
                             "ifnull L1",
                             new JumpInsnNode(EOpcodes.IFNULL, null)
@@ -355,7 +363,18 @@ public class TestJumpInstructions {
                             new JumpInsnNode(EOpcodes.IFNONNULL, null)
                     ),
                     of(
+                            create(nullValue()).expected(create()),
+                            "ifnonnull L1",
+                            new JumpInsnNode(EOpcodes.IFNONNULL, null)
+                    ),
+                    of(
                             create(integerValue(), anyObject())
+                                    .expected(create(integerValue())),
+                            "ifnonnull L1",
+                            new JumpInsnNode(EOpcodes.IFNONNULL, null)
+                    ),
+                    of(
+                            create(integerValue(), nullValue())
                                     .expected(create(integerValue())),
                             "ifnonnull L1",
                             new JumpInsnNode(EOpcodes.IFNONNULL, null)

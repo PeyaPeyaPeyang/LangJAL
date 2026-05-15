@@ -195,6 +195,9 @@ public class StackElementUtils {
      * @throws StackElementMismatchedException if types differ.
      */
     public static void checkSameType(@NotNull StackElement element, @NotNull StackElement expectedElement) {
+        if (isNullAndObjectCompatible(element, expectedElement))
+            return;
+
         if (element.type() != expectedElement.type())
             throw new StackElementMismatchedException(
                     element.producer(), expectedElement, element,
@@ -215,8 +218,12 @@ public class StackElementUtils {
     public static StackElement mergeElement(@NotNull StackElement existingElement, @NotNull StackElement newElement) {
         StackElementUtils.checkSameType(existingElement, newElement);
 
-        // null は任意のオブジェクト型と互換性があるのでそのまま返す
-        if (newElement instanceof NullElement)
+        // null は任意の参照型に代入可能なので merge 後は参照型側を採用する
+        if (existingElement instanceof NullElement && newElement instanceof ObjectElement)
+            return newElement;
+        else if (existingElement instanceof ObjectElement && newElement instanceof NullElement)
+            return existingElement;
+        else if (newElement instanceof NullElement)
             return newElement;
         else if (existingElement instanceof NullElement)
             return existingElement;
@@ -230,6 +237,12 @@ public class StackElementUtils {
             }
             case UNINITIALIZED_THIS, UNINITIALIZED -> newElement;  // Uninitialized は新しい要素をそのまま返す
         };
+    }
+
+    private static boolean isNullAndObjectCompatible(@NotNull StackElement element,
+                                                     @NotNull StackElement expectedElement) {
+        return (element instanceof NullElement && expectedElement instanceof ObjectElement)
+                || (element instanceof ObjectElement && expectedElement instanceof NullElement);
     }
 
     /**
