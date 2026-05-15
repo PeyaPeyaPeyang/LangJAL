@@ -293,7 +293,7 @@ public class JALMethodCompiler {
             JALParser.FullQualifiedClassNameContext exceptionTypeName = catchDirective.fullQualifiedClassName();
             if (exceptionTypeName == null)
                 throw new IllegalValueException("Catch directive must have an exception type.", entry);
-            exceptionType = TypeDescriptor.parse(exceptionTypeName.getText());
+            exceptionType = TypeDescriptor.className(exceptionTypeName.getText());
         }
 
         // 各ラベルを解決
