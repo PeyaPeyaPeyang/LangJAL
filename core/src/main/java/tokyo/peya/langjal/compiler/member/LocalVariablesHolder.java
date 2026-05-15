@@ -462,6 +462,17 @@ public class LocalVariablesHolder {
                 .toArray(LocalVariableInfo[]::new);
     }
 
+    /**
+     * Calculates the maximum local variable index used, which determines the size of the local variable array needed.
+     * @return The maximum local variable index plus the size of its type (1 for category 1, 2 for category 2), or 0 if no locals.
+     */
+    public int getMaxLocalSize() {
+        return this.locals.stream()
+                .mapToInt(local -> local.index() + local.type().getBaseType().getCategory())
+                .max()
+                .orElse(0);
+    }
+
     public void importLocalVariable(@NotNull LocalVariableNode node) {
         LabelNode startLabel = node.start;
         LabelNode endLabel = node.end;

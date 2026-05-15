@@ -92,7 +92,7 @@ public class StackElementUtils {
         for (int i = 0; i < maxLocalSize; i++) {
             if (liveLocals != null && !liveLocals.get(i)) {
                 LocalStackElement source = i < newLocal.length ? newLocal[i] : existingLocal[i];
-                mergedLocals[i] = toTopLocal(source, i);
+                mergedLocals[i] = preserveParameterOrTop(source, i);
                 continue;
             }
 
@@ -162,13 +162,17 @@ public class StackElementUtils {
         LocalStackElement[] filteredLocals = new LocalStackElement[locals.length];
         for (int i = 0; i < locals.length; i++) {
             LocalStackElement local = locals[i];
-            if (liveLocals.get(i))
+            if (liveLocals.get(i) || local.isParameter())
                 filteredLocals[i] = local;
             else
                 filteredLocals[i] = toTopLocal(local, i);
         }
 
         return cleanUpLocals(filteredLocals);
+    }
+
+    private static @NotNull LocalStackElement preserveParameterOrTop(@NotNull LocalStackElement local, int index) {
+        return local.isParameter() ? local : toTopLocal(local, index);
     }
 
     private static @NotNull LocalStackElement toTopLocal(@NotNull LocalStackElement local, int index) {

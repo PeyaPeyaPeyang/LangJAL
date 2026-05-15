@@ -6,6 +6,7 @@ import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
+import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
 import java.util.ArrayList;
@@ -89,6 +90,8 @@ public class TryCatchDirectivesHolder {
             return;  // トライキャッチディレクティブがない場合は何もしない
 
         this.context.postInfo("Finalising try-catch directives for method " + method.name + method.desc);
+        if (method.tryCatchBlocks == null)
+            method.tryCatchBlocks = new ArrayList<>();
         for (TryCatchDirective directive : this.tryCatchDirectives) {
             LabelNode tryBlock = directive.tryBlockStartLabel().node();
             LabelNode tryEndBlock = directive.tryBlockEndLabel().node();
@@ -101,7 +104,7 @@ public class TryCatchDirectivesHolder {
                     tryBlock,
                     tryEndBlock,
                     catchBlock,
-                    exceptionType == null ? null : exceptionType.toString()
+                    exceptionType == null ? null : toExceptionInternalName(exceptionType)
             ));
             // finally ブロックがある場合は、トライキャッチブロックに追加
             if (finallyBlock != null) {
@@ -114,5 +117,12 @@ public class TryCatchDirectivesHolder {
                 ));
             }
         }
+    }
+
+    private static @NotNull String toExceptionInternalName(@NotNull TypeDescriptor exceptionType) {
+        if (exceptionType.getBaseType() instanceof ClassReferenceType classType && !exceptionType.isArray())
+            return classType.getInternalName();
+
+        throw new IllegalArgumentException("Catch exception type must be a class type: " + exceptionType);
     }
 }

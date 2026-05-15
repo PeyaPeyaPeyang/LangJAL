@@ -100,10 +100,15 @@ public class MethodAnalyser {
 
         // 最初に渡すグローバル開始ラベルの伝播を作成
         FramePropagation firstPropagation = this.createFirstPropagation(this.labels.getGlobalStart());
+        // 初期パラメータのローカル変数のスロット数を最大ローカルサイズとして設定
+        this.maxStackSize = Math.max(this.maxStackSize, firstPropagation.maxStackSize());
+        this.maxLocalSize = Math.max(this.maxLocalSize, firstPropagation.maxLocalSize());
         this.pendingPropagations.add(firstPropagation);
+        this.pendingPropagations.addAll(this.createExceptionHandlerPropagations(firstPropagation));
 
         // 各インストラクション・セットのスタックとローカル変数の動きを解析
         this.analyseLoop();
+        this.maxLocalSize = Math.max(this.maxLocalSize, this.locals.getMaxLocalSize());
 
         // 分析が完了したら，結果を返答
         return new MethodAnalysisResult(
@@ -127,7 +132,7 @@ public class MethodAnalyser {
                         ", Elapsed: " + elapsedTime + "ms");
             }
 
-            FramePropagation propagation = this.pendingPropagations.remove(0);
+            FramePropagation propagation = this.pendingPropagations.removeFirst();
             LabelInfo receiver = propagation.receiver();
 
             if (receiver == this.labels.getGlobalEnd()) {
@@ -225,6 +230,38 @@ public class MethodAnalyser {
         );
     }
 
+    private @NotNull List<FramePropagation> createExceptionHandlerPropagations(
+            @NotNull FramePropagation firstPropagation) {
+        if (this.method.tryCatchBlocks == null || this.method.tryCatchBlocks.isEmpty())
+            return List.of();
+
+        List<FramePropagation> propagations = new ArrayList<>();
+        for (TryCatchBlockNode tryCatchBlock : this.method.tryCatchBlocks) {
+            LabelInfo handler = this.labels.getLabelByNode(tryCatchBlock.handler);
+            if (handler == null)
+                continue;
+
+            String exceptionTypeClassName = tryCatchBlock.type == null ? "java/lang/Throwable" : tryCatchBlock.type;
+            TypeDescriptor exceptionType = TypeDescriptor.className(exceptionTypeClassName);
+            StackElement[] stack = { exceptionType.toStackElement(this.nop) };
+            LocalStackElement[] locals = StackElementUtils.filterDeadLocals(
+                    firstPropagation.locals(),
+                    this.liveLocalsAtEntry.get(handler)
+            );
+            propagations.add(new FramePropagation(
+                    this.labels.getGlobalStart(),
+                    new AnalysedInstruction[0],
+                    handler,
+                    stack,
+                    locals,
+                    stack.length,
+                    locals.length
+            ));
+        }
+
+        return propagations;
+    }
+
     private LocalStackElement[] createLocalStack(@NotNull LocalVariableInfo[] locals) {
         // ローカル変数のスロットサイズはカテゴリ（1, 2）で変わる。
         int slotSize = Arrays.stream(locals)
@@ -241,12 +278,12 @@ public class MethodAnalyser {
         LocalStackElement[] localStack = new LocalStackElement[slotSize];
         TopElement top = new TopElement(this.nop);
         for (int i = 0; i < slotSize; i++) {
-            if (pendingLocals.isEmpty() || pendingLocals.get(0).index() > i) {
+            if (pendingLocals.isEmpty() || pendingLocals.getFirst().index() > i) {
                 localStack[i] = new LocalStackElement(this.nop, i, top);
                 continue;
             }
 
-            LocalVariableInfo local = pendingLocals.remove(0);
+            LocalVariableInfo local = pendingLocals.removeFirst();
             TypeDescriptor type = local.type();
 
             if (isInitialiseMethod && local.index() == 0) {
@@ -256,7 +293,7 @@ public class MethodAnalyser {
             }
 
             StackElement elem = type.toStackElement(this.nop);
-            localStack[i] = new LocalStackElement(this.nop, local.index(), elem);
+            localStack[i] = new LocalStackElement(this.nop, local.index(), elem, local.isParameter());
 
             // 2スロット型の場合は次のスロットをTopElementで埋める
             if (type.getBaseType().getCategory() == 2) {
@@ -347,34 +384,36 @@ public class MethodAnalyser {
         if (lastInstruction == null)
             return successors;
 
-        if (lastInstruction.insn() instanceof JumpInsnNode jumpNode) {
-            LabelInfo jumpTarget = this.labels.getLabelByNode(jumpNode.label);
-            if (jumpTarget != null)
-                successors.add(jumpTarget);
+        switch (lastInstruction.insn()) {
+            case JumpInsnNode jumpNode -> {
+                LabelInfo jumpTarget = this.labels.getLabelByNode(jumpNode.label);
+                if (jumpTarget != null)
+                    successors.add(jumpTarget);
 
-            int opcode = lastInstruction.opcode();
-            if (opcode != EOpcodes.GOTO && opcode != EOpcodes.GOTO_W) {
-                LabelInfo nextBlock = this.labels.getNextBlock(label);
-                if (nextBlock != null && !successors.contains(nextBlock))
-                    successors.add(nextBlock);
+                int opcode = lastInstruction.opcode();
+                if (opcode != EOpcodes.GOTO && opcode != EOpcodes.GOTO_W) {
+                    LabelInfo nextBlock = this.labels.getNextBlock(label);
+                    if (nextBlock != null && !successors.contains(nextBlock))
+                        successors.add(nextBlock);
+                }
+                return successors;
             }
-            return successors;
-        }
-
-        if (lastInstruction.insn() instanceof TableSwitchInsnNode tableSwitchNode) {
-            this.addSwitchSuccessors(successors, tableSwitchNode.labels);
-            LabelInfo defaultLabel = this.labels.getLabelByNode(tableSwitchNode.dflt);
-            if (defaultLabel != null && !successors.contains(defaultLabel))
-                successors.add(defaultLabel);
-            return successors;
-        }
-
-        if (lastInstruction.insn() instanceof LookupSwitchInsnNode lookupSwitchNode) {
-            this.addSwitchSuccessors(successors, lookupSwitchNode.labels);
-            LabelInfo defaultLabel = this.labels.getLabelByNode(lookupSwitchNode.dflt);
-            if (defaultLabel != null && !successors.contains(defaultLabel))
-                successors.add(defaultLabel);
-            return successors;
+            case TableSwitchInsnNode tableSwitchNode -> {
+                this.addSwitchSuccessors(successors, tableSwitchNode.labels);
+                LabelInfo defaultLabel = this.labels.getLabelByNode(tableSwitchNode.dflt);
+                if (defaultLabel != null && !successors.contains(defaultLabel))
+                    successors.add(defaultLabel);
+                return successors;
+            }
+            case LookupSwitchInsnNode lookupSwitchNode -> {
+                this.addSwitchSuccessors(successors, lookupSwitchNode.labels);
+                LabelInfo defaultLabel = this.labels.getLabelByNode(lookupSwitchNode.dflt);
+                if (defaultLabel != null && !successors.contains(defaultLabel))
+                    successors.add(defaultLabel);
+                return successors;
+            }
+            default -> {
+            }
         }
 
         int opcode = lastInstruction.opcode();
@@ -394,7 +433,7 @@ public class MethodAnalyser {
         return successors;
     }
 
-    private void addSwitchSuccessors(@NotNull List<LabelInfo> successors, @NotNull List<LabelNode> labels) {
+    private void addSwitchSuccessors(@NotNull List<? super LabelInfo> successors, @NotNull List<? extends LabelNode> labels) {
         for (LabelNode labelNode : labels) {
             LabelInfo label = this.labels.getLabelByNode(labelNode);
             if (label != null && !successors.contains(label))
