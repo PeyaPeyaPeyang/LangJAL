@@ -1,0 +1,110 @@
+public class ArithmeticOps (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+    // int arithmetic
+    bipush 40
+    iconst_2
+    iadd
+    istore_1
+
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload_1
+    invokevirtual java/io/PrintStream->println(I)V
+
+    bipush 7
+    iconst_3
+    imul
+    istore_2
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload_2
+    invokevirtual java/io/PrintStream->println(I)V
+
+    bipush 22
+    iconst_5
+    idiv
+    istore_3
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload_3
+    invokevirtual java/io/PrintStream->println(I)V
+
+    bipush 22
+    iconst_5
+    irem
+    istore 4
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 4
+    invokevirtual java/io/PrintStream->println(I)V
+
+    // iinc + bit ops
+    iconst_0
+    istore 5
+    iinc 5 10
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 5
+    invokevirtual java/io/PrintStream->println(I)V
+
+    sipush 170        // 0b10101010
+    sipush 204        // 0b11001100
+    iand
+    istore 6
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 6
+    invokevirtual java/io/PrintStream->println(I)V
+
+    sipush 170
+    sipush 204
+    ior
+    istore 7
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 7
+    invokevirtual java/io/PrintStream->println(I)V
+
+    sipush 170
+    sipush 204
+    ixor
+    istore 8
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 8
+    invokevirtual java/io/PrintStream->println(I)V
+
+    // shifts
+    iconst_3
+    iconst_4
+    ishl
+    istore 9
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 9
+    invokevirtual java/io/PrintStream->println(I)V
+
+    bipush -16
+    iconst_2
+    ishr
+    istore 10
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    iload 10
+    invokevirtual java/io/PrintStream->println(I)V
+
+    // long arithmetic
+    ldc2_w 10000000000
+    ldc2_w 7
+    ldiv
+    lstore 11
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    lload 11
+    invokevirtual java/io/PrintStream->println(J)V
+
+    // double arithmetic
+    ldc2_w 1.5
+    ldc2_w 2.0
+    dmul
+    dstore 13
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    dload 13
+    invokevirtual java/io/PrintStream->println(D)V
+
+    return
+  }
+}
+

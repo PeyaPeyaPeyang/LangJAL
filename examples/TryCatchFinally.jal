@@ -1,0 +1,42 @@
+public class TryCatchFinally (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+    // try { ... } catch (RuntimeException e) { ... } finally { ... }
+    tryStart: [~tryEnd, java/lang/RuntimeException: catchStart -> finallyStart]
+
+    // force exception: throw new RuntimeException("boom")
+    new java/lang/RuntimeException
+    dup
+    ldc "boom"
+    invokespecial java/lang/RuntimeException-><init>(Ljava/lang/String;)V
+    athrow
+
+    tryEnd:
+    goto afterTry
+
+    catchStart:
+    // print caught message
+    astore_1
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    aload_1
+    invokevirtual java/lang/RuntimeException->getMessage()Ljava/lang/String;
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+    goto afterTry
+
+    finallyStart:
+    // always runs
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "finally"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    afterTry:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    ldc "done"
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    return
+  }
+}
+

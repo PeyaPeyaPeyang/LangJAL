@@ -1,0 +1,47 @@
+public class ObjectAndStringBuilder (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+    // StringBuilder sb = new StringBuilder();
+    new java/lang/StringBuilder
+    dup
+    invokespecial java/lang/StringBuilder-><init>()V
+    astore_1
+
+    // sb.append("A=").append(1).append(",B=").append(2);
+    aload_1
+    ldc "A="
+    invokevirtual java/lang/StringBuilder->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iconst_1
+    invokevirtual java/lang/StringBuilder->append(I)Ljava/lang/StringBuilder;
+    ldc ",B="
+    invokevirtual java/lang/StringBuilder->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iconst_2
+    invokevirtual java/lang/StringBuilder->append(I)Ljava/lang/StringBuilder;
+    pop
+
+    // print sb.toString()
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    aload_1
+    invokevirtual java/lang/StringBuilder->toString()Ljava/lang/String;
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    // Object o = null; print (o == null)
+    aconst_null
+    astore_2
+    aload_2
+    ifnull isNull
+    ldc "not null"
+    goto afterNull
+    isNull:
+    ldc "null"
+    afterNull:
+    getstatic java/lang/System->out:Ljava/io/PrintStream;
+    swap
+    invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+    return
+  }
+}
+
