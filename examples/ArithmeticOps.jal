@@ -88,7 +88,7 @@ public class ArithmeticOps (
 
     // long arithmetic
     ldc2_w 10000000000
-    ldc2_w 7
+    ldc2_w 7L
     ldiv
     lstore 11
     getstatic java/lang/System->out:Ljava/io/PrintStream;
@@ -96,8 +96,8 @@ public class ArithmeticOps (
     invokevirtual java/io/PrintStream->println(J)V
 
     // double arithmetic
-    ldc2_w 1.5
-    ldc2_w 2.0
+    ldc2_w 1.5d
+    ldc2_w 2.0d
     dmul
     dstore 13
     getstatic java/lang/System->out:Ljava/io/PrintStream;
@@ -107,4 +107,3 @@ public class ArithmeticOps (
     return
   }
 }
-
