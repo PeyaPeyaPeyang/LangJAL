@@ -32,7 +32,6 @@ public class MethodPrinter {
         }
 
         PrinterUtils.printAccess(this.innerOut, method.access(), method.accessAttrs())
-                .output(" ")
                 .output(method.name())
                 .output(method.descriptor().toString())
                 .output(" {")
