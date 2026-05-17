@@ -28,6 +28,14 @@ public class OutputFormatter {
         return " ".repeat(this.indentSize) + value;
     }
 
+    public @NotNull String noIndentOutput(@NotNull String value) {
+        if (this.parent == null) {
+            return value;
+        }
+
+        return this.parent.output(value);
+    }
+
     public @NotNull String righten(int width, @NotNull String value) {
         int padding = Math.max(0, width - value.length());
         return output(" ".repeat(padding) + value);
@@ -38,8 +46,18 @@ public class OutputFormatter {
         return this;
     }
 
+    public @NotNull OutputFormatter noIndentPrint(@NotNull String value) {
+        System.out.print(noIndentOutput(value));
+        return this;
+    }
+
     public @NotNull OutputFormatter println(@NotNull String value) {
         System.out.println(output(value));
+        return this;
+    }
+
+    public @NotNull OutputFormatter noIndentPrintln(@NotNull String value) {
+        System.out.println(noIndentOutput(value));
         return this;
     }
 
