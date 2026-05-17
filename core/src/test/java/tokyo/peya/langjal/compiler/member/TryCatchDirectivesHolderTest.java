@@ -85,13 +85,13 @@ class TryCatchDirectivesHolderTest {
         holder.finaliseTryCatchDirectives(method);
 
         assertEquals(1, method.tryCatchBlocks.size());
-        assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, catchLabel, internalName(exceptionType));
+        assertTryCatchBlock(method.tryCatchBlocks.getFirst(), start, end, catchLabel, internalName(exceptionType));
         assertEquals(1, reporter.infoMessages().size());
         assertEquals(
                 "Finalising try-catch directives for method catchMethod()V",
-                reporter.infoMessages().get(0).message()
+                reporter.infoMessages().getFirst().message()
         );
-        assertEquals(Path.of("sample.jal"), reporter.infoMessages().get(0).sourcePath());
+        assertEquals(Path.of("sample.jal"), reporter.infoMessages().getFirst().sourcePath());
     }
 
     @Test
@@ -111,7 +111,7 @@ class TryCatchDirectivesHolderTest {
         assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, null, null);
         assertTryCatchBlock(method.tryCatchBlocks.get(1), start, end, finallyLabel, null);
         assertEquals(1, reporter.infoMessages().size());
-        assertTrue(reporter.infoMessages().get(0).message().contains("finallyMethod"));
+        assertTrue(reporter.infoMessages().getFirst().message().contains("finallyMethod"));
     }
 
     @Test
