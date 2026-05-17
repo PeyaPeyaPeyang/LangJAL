@@ -5,9 +5,6 @@ plugins {
     id("io.github.sgtsilvio.gradle.metadata") version "0.6.0"
 }
 
-group = "tokyo.peya"
-version = "1.2.8"
-
 repositories {
     mavenCentral()
 }

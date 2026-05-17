@@ -2,9 +2,6 @@ plugins {
     id("java")
 }
 
-group = "tokyo.peya"
-version = "1.1.0"
-
 repositories {
     mavenCentral()
 }
