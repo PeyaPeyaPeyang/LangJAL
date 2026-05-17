@@ -76,5 +76,9 @@ tasks.register<Zip>("createDistribution") {
     from("${layout.buildDirectory.get().asFile.path}/distribution") {
         into("")
     }
-    archiveFileName.set("langjal-${project.version}.zip")
+     archiveFileName.set(
+        providers.gradleProperty("distributionClassifier")
+            .map { "langjal-${project.version}-$it.zip" }
+            .orElse("langjal-${project.version}.zip")
+    )
 }

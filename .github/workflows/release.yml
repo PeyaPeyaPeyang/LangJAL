@@ -65,6 +65,27 @@ jobs:
       - name: Build release assets
         run: ${{ matrix.gradle-command }} :jalc:build :jalp:build createDistribution -PdistributionClassifier=${{ matrix.asset }}
 
+      - name: Normalize release asset name
+        shell: pwsh
+        env:
+          RELEASE_TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          RELEASE_ASSET: ${{ matrix.asset }}
+        run: |
+          $version = $env:RELEASE_TAG_NAME -replace '^v', ''
+          $target = "build/distributions/langjal-$version-$env:RELEASE_ASSET.zip"
+          $assets = @(Get-ChildItem -Path build/distributions -Filter 'langjal-*.zip' -File)
+
+          if ($assets.Count -ne 1) {
+            Write-Error "Expected 1 built release asset, found $($assets.Count)"
+            $assets | ForEach-Object { Write-Host "  $($_.FullName)" }
+            exit 1
+          }
+
+          $targetFullName = [System.IO.Path]::GetFullPath($target)
+          if ($assets[0].FullName -ne $targetFullName) {
+            Move-Item -LiteralPath $assets[0].FullName -Destination $target -Force
+          }
+
       - name: Upload release asset
         uses: actions/upload-artifact@v4
         with:
@@ -83,6 +104,17 @@ jobs:
           pattern: release-asset-*
           path: build/distributions
           merge-multiple: true
+
+      - name: Verify release assets
+        shell: bash
+        run: |
+          mapfile -t assets < <(find build/distributions -maxdepth 1 -type f -name 'langjal-*.zip' | sort)
+          printf 'Release assets:\n'
+          printf '  %s\n' "${assets[@]}"
+          if [ "${#assets[@]}" -ne 4 ]; then
+            echo "Expected 4 release assets, found ${#assets[@]}" >&2
+            exit 1
+          fi
 
       - name: Attest release assets
         uses: actions/attest@v4
