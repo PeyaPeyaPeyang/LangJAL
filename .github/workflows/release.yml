@@ -48,3 +48,18 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             build/distributions/langjal-*.zip
+
+      - name: Trigger Maven Central publish
+        if: ${{ !contains(github.ref_name, '-') }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'publish-maven-central',
+              client_payload: {
+                tag_name: context.ref.replace('refs/tags/', ''),
+                prerelease: false,
+              },
+            });

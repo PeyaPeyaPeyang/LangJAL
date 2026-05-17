@@ -1,26 +1,29 @@
 name: Publish to Maven Central
+
+run-name: Publish to Maven Central (${{ github.event.release.tag_name || github.event.client_payload.tag_name || inputs.tag_name }})
+
 on:
-  release:
+  repository_dispatch:
     types:
-      - published
+      - publish-maven-central
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || github.event.client_payload.tag_name || inputs.tag_name }}
   cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish release to Maven Central
-    if: ${{ !github.event.release.prerelease }}
+    if: ${{ (github.event_name == 'release' && !github.event.release.prerelease) || (github.event_name == 'repository_dispatch' && !github.event.client_payload.prerelease) || (github.event_name == 'workflow_dispatch' && !inputs.prerelease) }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.event.client_payload.tag_name || inputs.tag_name }}
 
       - uses: actions/setup-java@v4
         with:
