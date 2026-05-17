@@ -65,7 +65,7 @@ class ClassPrinterTest {
         String output = captureOutput(() -> new ClassPrinter(new OutputFormatter(), JALPOptions.SHOW_ACC_PUBLIC)
                 .process(clazz));
 
-        assertTrue(output.contains("  super =\"pkg/Base\"," + System.lineSeparator()));
+        assertTrue(output.contains("  super_class =\"pkg/Base\"," + System.lineSeparator()));
     }
 
     private static JALClass newClass(
