@@ -15,9 +15,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Create release
-    runs-on: ubuntu-latest
+  build-release-assets:
+    name: Build ${{ matrix.asset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - asset: linux-x64
+            os: ubuntu-latest
+            java-architecture: x64
+            gradle-command: ./gradlew
+          - asset: windows-x64
+            os: windows-latest
+            java-architecture: x64
+            gradle-command: ./gradlew.bat
+          - asset: windows-x86
+            os: windows-latest
+            java-architecture: x86
+            gradle-command: ./gradlew.bat
+          - asset: macos-x64
+            os: macos-15-intel
+            java-architecture: x64
+            gradle-command: ./gradlew
+          - asset: macos-aarch64
+            os: macos-latest
+            java-architecture: aarch64
+            gradle-command: ./gradlew
 
     steps:
       - uses: actions/checkout@v4
@@ -26,14 +50,35 @@ jobs:
         with:
           distribution: zulu
           java-version: 21
+          architecture: ${{ matrix.java-architecture }}
 
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Free gradlew
+        if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
 
       - name: Build release assets
-        run: ./gradlew :jalc:build :jalp:build createDistribution
+        run: ${{ matrix.gradle-command }} :jalc:build :jalp:build createDistribution -PdistributionClassifier=${{ matrix.asset }}
+
+      - name: Upload release asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-asset-${{ matrix.asset }}
+          path: build/distributions/langjal-*.zip
+          if-no-files-found: error
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: build-release-assets
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-asset-*
+          path: build/distributions
+          merge-multiple: true
 
       - name: Attest release assets
         uses: actions/attest@v4
