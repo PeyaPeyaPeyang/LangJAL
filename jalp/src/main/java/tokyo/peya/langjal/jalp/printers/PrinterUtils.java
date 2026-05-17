@@ -9,14 +9,25 @@ import tokyo.peya.langjal.jalp.OutputFormatter;
 class PrinterUtils {
     public static OutputChain printAccess(OutputFormatter out, AccessLevel access, AccessAttributeSet attributes) {
         OutputChain outChain = out.chained();
+        boolean hasOutput = false;
         if (access != AccessLevel.PACKAGE_PRIVATE) {
             outChain.output(access.getName());
-            if (!attributes.isEmpty()) {
-                outChain.output(" ");
-            }
+            hasOutput = true;
         }
 
-        return outChain.output(attributes.toString()).output(attributes.isEmpty() ? "" : " ");
+        if (!attributes.isEmpty()) {
+            if (hasOutput) {
+                outChain.output(" ");
+            }
+            outChain.output(attributes.toString());
+            hasOutput = true;
+        }
+
+        if (hasOutput) {
+            outChain.output(" ");
+        }
+
+        return outChain;
     }
 
     public static boolean shouldSkip(int flags, AccessLevel access) {

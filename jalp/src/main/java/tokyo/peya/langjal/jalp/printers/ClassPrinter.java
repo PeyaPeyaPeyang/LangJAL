@@ -50,7 +50,7 @@ public class ClassPrinter {
                 .output("major_version = ")
                 .output(String.valueOf(clazz.majorVersion()))
                 .output(",")
-                .output(" // Java " + majorToJavaVersion(clazz.majorVersion()))
+                .output("  // Java " + majorToJavaVersion(clazz.majorVersion()))
                 .println();
         attrOut.chained()
                 .output("minor_version = ")

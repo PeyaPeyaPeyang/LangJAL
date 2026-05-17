@@ -67,4 +67,22 @@ class PrinterUtilsTest {
 
         assertEquals("field", output.toString());
     }
+
+    @Test
+    void printAccessPrintsPackagePrivateAttributesWithoutLeadingSpace() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(output));
+        try {
+            PrinterUtils.printAccess(
+                    new OutputFormatter(),
+                    AccessLevel.PACKAGE_PRIVATE,
+                    new AccessAttributeSet(AccessAttribute.STATIC)
+            ).output("field").print();
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        assertEquals("static field", output.toString());
+    }
 }

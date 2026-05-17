@@ -48,7 +48,7 @@ class ClassPrinterTest {
                 .process(clazz));
 
         assertTrue(output.contains("public final class Example ( " + System.lineSeparator()));
-        assertTrue(output.contains("  major_version = 65," + System.lineSeparator()));
+        assertTrue(output.contains("  major_version = 65,  // Java 21" + System.lineSeparator()));
         assertTrue(output.contains("  minor_version = 0" + System.lineSeparator()));
         assertTrue(output.endsWith("}" + System.lineSeparator()));
     }
