@@ -33,7 +33,7 @@ public class ClassPrinter {
         PrinterUtils.printAccess(this.out, clazz.access(), clazz.accessAttrs())
                 .output("class ")
                 .output(clazz.thisName().getInternalName())
-                .println();
+                .print();
 
         // attr の出力
         this.out.println(" ( ");

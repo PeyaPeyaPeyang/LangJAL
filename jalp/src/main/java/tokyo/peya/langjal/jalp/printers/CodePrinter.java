@@ -4,12 +4,13 @@ import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.jalp.OutputFormatter;
 import tokyo.peya.langjal.jalp.reader.JALConstantPoolEntry;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CodePrinter {
     private final OutputFormatter out;
     private final JALConstantPoolEntry[] pool;
-    private int[] labelNumbersByPc;
+    private String[] labelsByPc;
 
     public CodePrinter(OutputFormatter out, JALConstantPoolEntry[] pool) {
         this.out = out;
@@ -17,7 +18,7 @@ public class CodePrinter {
     }
 
     public void printCode(byte[] code, LineNumberMatcher matcher) {
-        this.labelNumbersByPc = collectLabels(code);
+        this.labelsByPc = collectLabels(code);
 
         for (int i = 0; i < code.length; i++) {
             // 行番号に応じた空行を出力
@@ -55,7 +56,7 @@ public class CodePrinter {
     }
 
     private boolean noLabel(int pc) {
-        return this.labelNumbersByPc == null || this.labelNumbersByPc[pc] < 0;
+        return this.labelsByPc == null || this.labelsByPc[pc] == null;
     }
 
     private void printLabel(int pc) {
@@ -63,11 +64,11 @@ public class CodePrinter {
             return;
         }
 
-        this.out.noIndentPrintln("L%d:".formatted(this.labelNumbersByPc[pc]));
+        this.out.noIndentPrintln("%s:".formatted(this.labelsByPc[pc]));
     }
 
-    private static int[] collectLabels(byte[] code) {
-        boolean[] branchTargets = new boolean[code.length];
+    private static String[] collectLabels(byte[] code) {
+        String[] labelCandidatesByPc = new String[code.length];
 
         for (int i = 0; i < code.length; i++) {
             int opCode = code[i] & 0xFF;
@@ -82,60 +83,80 @@ public class CodePrinter {
 
             byte[] operand = new byte[operandBytes];
             System.arraycopy(code, i + 1, operand, 0, operandBytes);
-            markBranchTargets(branchTargets, i, opCode, operand);
+            markBranchTargets(labelCandidatesByPc, i, opCode, operand);
 
             i += operandBytes;
         }
 
-        int[] labelNumbersByPc = new int[code.length];
-        Arrays.fill(labelNumbersByPc, -1);
+        String[] labelsByPc = new String[code.length];
+        Map<String, Integer> labelCounts = new HashMap<>();
 
-        int labelNumber = 0;
-        for (int pc = 0; pc < branchTargets.length; pc++) {
-            if (branchTargets[pc]) {
-                labelNumbersByPc[pc] = labelNumber++;
+        for (int pc = 0; pc < labelCandidatesByPc.length; pc++) {
+            String labelCandidate = labelCandidatesByPc[pc];
+            if (labelCandidate != null) {
+                labelsByPc[pc] = uniqueLabel(labelCandidate, labelCounts);
             }
         }
 
-        return labelNumbersByPc;
+        return labelsByPc;
     }
 
-    private static void markBranchTargets(boolean[] branchTargets, int pc, int opCode, byte[] operand) {
+    private static String uniqueLabel(String label, Map<String, Integer> labelCounts) {
+        int count = labelCounts.getOrDefault(label, 0);
+        labelCounts.put(label, count + 1);
+
+        if (label.equals("Path") || count != 0) {
+            return label + count;
+        }
+
+        return label;
+    }
+
+    private static void markBranchTargets(String[] labelsByPc, int pc, int opCode, byte[] operand) {
         switch (opCode) {
             case EOpcodes.IFEQ, EOpcodes.IFNE, EOpcodes.IFLT, EOpcodes.IFGE, EOpcodes.IFGT, EOpcodes.IFLE,
                  EOpcodes.IF_ICMPEQ, EOpcodes.IF_ICMPNE, EOpcodes.IF_ICMPLT,
                  EOpcodes.IF_ICMPGE, EOpcodes.IF_ICMPGT, EOpcodes.IF_ICMPLE,
                  EOpcodes.IF_ACMPEQ, EOpcodes.IF_ACMPNE,
-                 EOpcodes.GOTO, EOpcodes.JSR,
                  EOpcodes.IFNULL, EOpcodes.IFNONNULL ->
-                    markBranchTarget(branchTargets, pc + getShort(operand, 0));
+                    markBranchTarget(labelsByPc, pc + getShort(operand, 0), labelNameForBranch(opCode));
 
-            case EOpcodes.GOTO_W, EOpcodes.JSR_W ->
-                    markBranchTarget(branchTargets, pc + getInt(operand, 0));
+            case EOpcodes.GOTO ->
+                    markBranchTarget(labelsByPc, pc + getShort(operand, 0), "Path");
+
+            case EOpcodes.JSR ->
+                    markBranchTarget(labelsByPc, pc + getShort(operand, 0), "Subroutine");
+
+            case EOpcodes.GOTO_W ->
+                    markBranchTarget(labelsByPc, pc + getInt(operand, 0), "Path");
+
+            case EOpcodes.JSR_W ->
+                    markBranchTarget(labelsByPc, pc + getInt(operand, 0), "Subroutine");
 
             case EOpcodes.TABLESWITCH -> {
                 int padding = switchPadding(pc);
-                markBranchTarget(branchTargets, pc + getInt(operand, padding));
+                markBranchTarget(labelsByPc, pc + getInt(operand, padding), "Default");
 
                 int low = getInt(operand, padding + 4);
                 int high = getInt(operand, padding + 8);
                 int p = padding + 12;
 
                 for (int key = low; key <= high; key++) {
-                    markBranchTarget(branchTargets, pc + getInt(operand, p));
+                    markBranchTarget(labelsByPc, pc + getInt(operand, p), "Case" + key);
                     p += 4;
                 }
             }
 
             case EOpcodes.LOOKUPSWITCH -> {
                 int padding = switchPadding(pc);
-                markBranchTarget(branchTargets, pc + getInt(operand, padding));
+                markBranchTarget(labelsByPc, pc + getInt(operand, padding), "Default");
 
                 int pairs = getInt(operand, padding + 4);
                 int p = padding + 8;
 
                 for (int i = 0; i < pairs; i++) {
-                    markBranchTarget(branchTargets, pc + getInt(operand, p + 4));
+                    int match = getInt(operand, p);
+                    markBranchTarget(labelsByPc, pc + getInt(operand, p + 4), "Case" + match);
                     p += 8;
                 }
             }
@@ -145,10 +166,34 @@ public class CodePrinter {
         }
     }
 
-    private static void markBranchTarget(boolean[] branchTargets, int targetPc) {
-        if (targetPc >= 0 && targetPc < branchTargets.length) {
-            branchTargets[targetPc] = true;
+    private static void markBranchTarget(String[] labelsByPc, int targetPc, String label) {
+        if (targetPc >= 0 && targetPc < labelsByPc.length && shouldReplaceLabel(labelsByPc[targetPc], label)) {
+            labelsByPc[targetPc] = label;
         }
+    }
+
+    private static boolean shouldReplaceLabel(String currentLabel, String newLabel) {
+        return currentLabel == null || currentLabel.equals("Path") && !newLabel.equals("Path");
+    }
+
+    private static String labelNameForBranch(int opCode) {
+        return switch (opCode) {
+            case EOpcodes.IFEQ -> "isZero";
+            case EOpcodes.IFNE -> "isNotZero";
+            case EOpcodes.IFLT -> "isNegative";
+            case EOpcodes.IFGE -> "isNotNegative";
+            case EOpcodes.IFGT -> "isPositive";
+            case EOpcodes.IFLE -> "isNotPositive";
+            case EOpcodes.IF_ICMPEQ, EOpcodes.IF_ACMPEQ -> "isEqual";
+            case EOpcodes.IF_ICMPNE, EOpcodes.IF_ACMPNE -> "isNotEqual";
+            case EOpcodes.IF_ICMPLT -> "isLess";
+            case EOpcodes.IF_ICMPGE -> "isGreaterOrEqual";
+            case EOpcodes.IF_ICMPGT -> "isGreater";
+            case EOpcodes.IF_ICMPLE -> "isLessOrEqual";
+            case EOpcodes.IFNULL -> "isNull";
+            case EOpcodes.IFNONNULL -> "isNotNull";
+            default -> "Path";
+        };
     }
 
     private void printCode(int pc, int opCode, byte[] operand) {
@@ -489,8 +534,8 @@ public class CodePrinter {
     }
 
     private String labelOf(int pc) {
-        if (this.labelNumbersByPc != null && pc >= 0 && pc < this.labelNumbersByPc.length && this.labelNumbersByPc[pc] >= 0) {
-            return "L" + this.labelNumbersByPc[pc];
+        if (this.labelsByPc != null && pc >= 0 && pc < this.labelsByPc.length && this.labelsByPc[pc] != null) {
+            return this.labelsByPc[pc];
         }
 
         return "L" + pc;
