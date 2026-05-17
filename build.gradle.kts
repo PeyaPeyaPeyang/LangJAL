@@ -5,6 +5,11 @@ plugins {
 group = "tokyo.peya"
 version = "1.3.0"
 
+allprojects {
+    group = rootProject.group
+    version = rootProject.version
+}
+
 repositories {
     mavenCentral()
 }
