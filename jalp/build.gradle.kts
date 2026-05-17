@@ -30,6 +30,10 @@ tasks.test {
 }
 
 tasks.jar {
+    archiveBaseName.set("jalp")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+
     manifest {
         attributes(
             "Main-Class" to "tokyo.peya.langjal.jalp.Main",
@@ -38,20 +42,4 @@ tasks.jar {
             "Implementation-Vendor" to project.group
         )
     }
-}
-
-tasks.shadowJar {
-    dependsOn(tasks.jar)
-    archiveBaseName.set("jalp")
-    archiveClassifier.set("")
-    archiveVersion.set("")
-
-    relocate("com.ibm.icu", "tokyo.peya.langjal.cli.relocated.icu")
-    relocate("org.objectweb.asm", "tokyo.peya.langjal.cli.relocated.asm")
-
-    minimize()
-}
-
-tasks.build {
-    dependsOn(tasks.shadowJar)
 }
