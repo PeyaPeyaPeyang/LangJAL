@@ -11,36 +11,26 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class OutputChainTest {
     @Test
     void printOutputsBufferedTextThroughFormatter() {
-        OutputFormatter formatter = new OutputFormatter(new OutputFormatter());
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        PrintStream originalOut = System.out;
-        System.setOut(new PrintStream(output));
-        try {
-            OutputFormatter returned = formatter.chained()
-                    .output("hello")
-                    .output(" ")
-                    .righten(5, "JAL")
-                    .print();
+        OutputFormatter formatter = new OutputFormatter(new OutputFormatter(new PrintStream(output)));
 
-            assertSame(formatter, returned);
-        } finally {
-            System.setOut(originalOut);
-        }
+        OutputFormatter returned = formatter.chained()
+                .output("hello")
+                .output(" ")
+                .righten(5, "JAL")
+                .print();
+
+        assertSame(formatter, returned);
 
         assertEquals("  hello   JAL", output.toString());
     }
 
     @Test
     void printlnOutputsBufferedTextWithLineSeparator() {
-        OutputFormatter formatter = new OutputFormatter();
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        PrintStream originalOut = System.out;
-        System.setOut(new PrintStream(output));
-        try {
-            formatter.chained().output("line").println();
-        } finally {
-            System.setOut(originalOut);
-        }
+        OutputFormatter formatter = new OutputFormatter(new PrintStream(output));
+
+        formatter.chained().output("line").println();
 
         assertEquals("line" + System.lineSeparator(), output.toString());
     }

@@ -24,10 +24,14 @@ public class JALFilePrinter {
     private final ClassPrinter processor;
 
     public JALFilePrinter(String classpath, int flags) {
+        this(new OutputFormatter(), classpath, flags);
+    }
+
+    public JALFilePrinter(OutputFormatter formatter, String classpath, int flags) {
+        this.outputs = formatter;
         this.classpath = classpath;
         this.flags = flags;
 
-        this.outputs = new OutputFormatter();
         this.processor = new ClassPrinter(this.outputs, this.flags);
     }
 
