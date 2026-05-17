@@ -35,12 +35,13 @@ public class ClassPrinter {
                 .output(clazz.thisName().getInternalName())
                 .print();
 
+
         // attr の出力
         this.out.println(" ( ");
         OutputFormatter attrOut = new OutputFormatter(this.out);
         if (clazz.superName() != ClassReferenceType.OBJECT) {
             attrOut.chained()
-                    .output("super =\"")
+                    .output("super_class =\"")
                     .output(clazz.superName().getInternalName())
                     .output("\",")
                     .println();
@@ -49,12 +50,44 @@ public class ClassPrinter {
                 .output("major_version = ")
                 .output(String.valueOf(clazz.majorVersion()))
                 .output(",")
+                .output(" // Java " + majorToJavaVersion(clazz.majorVersion()))
                 .println();
         attrOut.chained()
                 .output("minor_version = ")
                 .output(String.valueOf(clazz.minorVersion()))
                 .println();
+
+        // interfaces
+        if (clazz.interfaces().length > 0) {
+            attrOut.print("interfaces = [");
+            for (int i = 0; i < clazz.interfaces().length; i++) {
+                if (i > 0) {
+                    attrOut.output(", ");
+                }
+                attrOut.chained()
+                        .output("\"")
+                        .output(clazz.interfaces()[i].getInternalName())
+                        .output("\"")
+                        .print();
+
+                // もし最後の要素でなければ，カンマを出力
+                if (i < clazz.interfaces().length - 1) {
+                    attrOut.println(",");
+                }
+            }
+            attrOut.println("]");
+        }
+
         this.out.println(") {");
     }
 
+    private static String majorToJavaVersion(int major) {
+        // 1.8 以下は 1.x で
+        // それ以降は 9
+        if (major <= 52) {
+            return "1." + (major - 44);
+        } else {
+            return String.valueOf(major - 44);
+        }
+    }
 }
