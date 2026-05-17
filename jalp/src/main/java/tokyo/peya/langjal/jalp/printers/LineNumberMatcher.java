@@ -43,27 +43,19 @@ public class LineNumberMatcher {
             return 0;
         }
 
-        int relativeLineNumber = -1;
-
-        for (int i = 0; i < this.startPcs.length; i++) {
-            if (this.startPcs[i] > currentPc) {
-                break;
-            }
-
-            relativeLineNumber = this.relativeLineNumbers[i];
-        }
-
-        if (relativeLineNumber < 0) {
+        int lineIndex = Arrays.binarySearch(this.startPcs, currentPc);
+        if (lineIndex < 0) {
             return 0;
         }
 
-        int blanks = relativeLineNumber - this.currentRelativeLineNumber;
-
-        if (blanks <= 0) {
-            return 0;
-        }
-
+        int relativeLineNumber = this.relativeLineNumbers[lineIndex];
+        int lineGap = relativeLineNumber - this.currentRelativeLineNumber;
         this.currentRelativeLineNumber = relativeLineNumber;
-        return blanks;
+
+        if (lineGap <= 1) {
+            return 0;
+        }
+
+        return Math.min(lineGap - 1, 2);
     }
 }
