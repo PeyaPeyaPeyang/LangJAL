@@ -1,5 +1,11 @@
 name: Release
 on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag (for example v1.2.3)"
+        required: true
+        type: string
   push:
     tags:
       - "v*"
@@ -41,6 +47,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref }}
 
       - uses: actions/setup-java@v4
         with:
@@ -85,14 +93,17 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name, '-') }}
           files: |
             build/distributions/langjal-*.zip
 
       - name: Trigger Maven Central publish
-        if: ${{ !contains(github.ref_name, '-') }}
+        if: ${{ !contains(github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name, '-') }}
         uses: actions/github-script@v7
+        env:
+          RELEASE_TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
         with:
           script: |
             await github.rest.repos.createDispatchEvent({
@@ -100,7 +111,7 @@ jobs:
               repo: context.repo.repo,
               event_type: 'publish-maven-central',
               client_payload: {
-                tag_name: context.ref.replace('refs/tags/', ''),
+                tag_name: process.env.RELEASE_TAG_NAME,
                 prerelease: false,
               },
             });
