@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class JALClassFinder {
         String classEntry = toClassEntry(input);
         for (Path entry : parseClasspathEntries(classpath)) {
             if (Files.isDirectory(entry)) {
-                ClassInfo classFromDirectory = readClassFile(entry.resolve(classEntry));
+                ClassInfo classFromDirectory = findInDirectory(entry, classEntry);
                 if (classFromDirectory != null) {
                     return classFromDirectory;
                 }
@@ -61,6 +62,21 @@ public class JALClassFinder {
                 if (classFromArchive != null) {
                     return classFromArchive;
                 }
+            }
+        }
+        return null;
+    }
+
+    private static ClassInfo findInDirectory(Path directory, String classEntry) {
+        ClassInfo classFromDirectory = readClassFile(directory.resolve(classEntry));
+        if (classFromDirectory != null) {
+            return classFromDirectory;
+        }
+
+        for (Path archivePath : listArchiveFiles(directory)) {
+            ClassInfo classFromArchive = findInArchive(archivePath, classEntry);
+            if (classFromArchive != null) {
+                return classFromArchive;
             }
         }
         return null;
@@ -103,7 +119,7 @@ public class JALClassFinder {
     private static String toClassEntry(String input) {
         String normalized = input;
         if (normalized.endsWith(".class")) {
-            normalized = normalized.substring(0, normalized.length() - ".class".length());
+            normalized = normalized.substring(0, normalized.length() - ".class" .length());
         }
         normalized = normalized.replace('.', '/').replace('\\', '/');
         return normalized + ".class";
@@ -130,6 +146,17 @@ public class JALClassFinder {
         }
         String fileName = entry.getFileName().toString().toLowerCase();
         return fileName.endsWith(".jar") || fileName.endsWith(".zip");
+    }
+
+    private static List<Path> listArchiveFiles(Path directory) {
+        try (var paths = Files.list(directory)) {
+            return paths
+                    .filter(JALClassFinder::isArchiveFile)
+                    .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                    .toList();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to list classpath directory: " + directory, e);
+        }
     }
 
     private static ClassInfo findInArchive(Path archivePath, String classEntry) {

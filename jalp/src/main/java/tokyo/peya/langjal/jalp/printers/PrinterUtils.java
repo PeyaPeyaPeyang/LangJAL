@@ -10,11 +10,13 @@ class PrinterUtils {
     public static OutputChain printAccess(OutputFormatter out, AccessLevel access, AccessAttributeSet attributes) {
         OutputChain outChain = out.chained();
         if (access != AccessLevel.PACKAGE_PRIVATE) {
-            outChain.output(access.getName())
-                    .output(" ");
+            outChain.output(access.getName());
+            if (!attributes.isEmpty()) {
+                outChain.output(" ");
+            }
         }
 
-        return outChain.output(attributes.toString());
+        return outChain.output(attributes.toString()).output(attributes.isEmpty() ? "" : " ");
     }
 
     public static boolean shouldSkip(int flags, AccessLevel access) {

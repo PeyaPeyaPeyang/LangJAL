@@ -5,14 +5,23 @@ import tokyo.peya.langjal.jalp.OutputFormatter;
 import tokyo.peya.langjal.jalp.reader.JALAttribute;
 import tokyo.peya.langjal.jalp.reader.JALConstantPoolEntry;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CodePrinter {
+    private static final int VARIABLE_OPERAND_BYTES = -1;
+
     private final OutputFormatter out;
     private final JALAttribute.BootstrapMethodsAttribute claBootstrapMethods;
     private final JALConstantPoolEntry[] pool;
     private String[] labelsByPc;
+
+    private record Instruction(int pc, int opCode, byte[] operand) {
+        private int nextPc() {
+            return this.pc + 1 + this.operand.length;
+        }
+    }
 
     public CodePrinter(OutputFormatter out, JALAttribute.BootstrapMethodsAttribute claBootstrapMethods, JALConstantPoolEntry[] pool) {
         this.claBootstrapMethods = claBootstrapMethods;
@@ -23,27 +32,15 @@ public class CodePrinter {
     public void printCode(byte[] code, LineNumberMatcher matcher) {
         this.labelsByPc = collectLabels(code);
 
-        for (int i = 0; i < code.length; i++) {
+        for (int pc = 0; pc < code.length; ) {
+            Instruction instruction = readInstruction(code, pc);
+
             // 行番号に応じた空行を出力
-            this.printBlanks(i, matcher, this.noLabel(i));
-            this.printLabel(i);
+            this.printBlanks(pc, matcher, this.noLabel(pc));
+            this.printLabel(pc);
 
-            int opCode = code[i] & 0xFF;  // 符号なしバイトとして扱うために0xFFでマスク
-            int operandBytes = calcOperandBytes(opCode);
-
-            // 動的（オペランドによって変わる）場合は，断片を与えてサイズを計算する
-            if (operandBytes == -1) {
-                int frags = Math.min(16, code.length - i - 1); // 最大16バイトの断片を取る（十分なはず）
-                byte[] operandFrags = new byte[frags];
-                System.arraycopy(code, i + 1, operandFrags, 0, frags);
-                operandBytes = calcVariableOperandSize(opCode, operandFrags);
-            }
-
-            byte[] operand = new byte[operandBytes];
-            System.arraycopy(code, i + 1, operand, 0, operandBytes);
-            this.printCode(i, opCode, operand);
-
-            i += operandBytes;
+            this.printCode(instruction.pc(), instruction.opCode(), instruction.operand());
+            pc = instruction.nextPc();
         }
     }
 
@@ -67,28 +64,16 @@ public class CodePrinter {
             return;
         }
 
-        this.out.noIndentPrintln("%s:".formatted(this.labelsByPc[pc]));
+        this.out.noIndentPrintln("%s:" .formatted(this.labelsByPc[pc]));
     }
 
     private static String[] collectLabels(byte[] code) {
         String[] labelCandidatesByPc = new String[code.length];
 
-        for (int i = 0; i < code.length; i++) {
-            int opCode = code[i] & 0xFF;
-            int operandBytes = calcOperandBytes(opCode);
-
-            if (operandBytes == -1) {
-                int frags = Math.min(16, code.length - i - 1);
-                byte[] operandFrags = new byte[frags];
-                System.arraycopy(code, i + 1, operandFrags, 0, frags);
-                operandBytes = calcVariableOperandSize(opCode, operandFrags);
-            }
-
-            byte[] operand = new byte[operandBytes];
-            System.arraycopy(code, i + 1, operand, 0, operandBytes);
-            markBranchTargets(labelCandidatesByPc, i, opCode, operand);
-
-            i += operandBytes;
+        for (int pc = 0; pc < code.length; ) {
+            Instruction instruction = readInstruction(code, pc);
+            markBranchTargets(labelCandidatesByPc, instruction.pc(), instruction.opCode(), instruction.operand());
+            pc = instruction.nextPc();
         }
 
         String[] labelsByPc = new String[code.length];
@@ -102,6 +87,26 @@ public class CodePrinter {
         }
 
         return labelsByPc;
+    }
+
+    private static Instruction readInstruction(byte[] code, int pc) {
+        int opCode = code[pc] & 0xFF;  // 符号なしバイトとして扱うために0xFFでマスク
+        int operandBytes = calcOperandBytes(opCode);
+
+        // 動的（オペランドによって変わる）場合は，pc からサイズを計算する
+        if (operandBytes == VARIABLE_OPERAND_BYTES) {
+            operandBytes = calcVariableOperandSize(opCode, code, pc);
+        }
+
+        int operandStart = pc + 1;
+        int operandEnd = operandStart + operandBytes;
+        if (operandEnd > code.length) {
+            throw new IllegalArgumentException(
+                    "Truncated operand for opcode 0x%02x at pc %d" .formatted(opCode, pc)
+            );
+        }
+
+        return new Instruction(pc, opCode, Arrays.copyOfRange(code, operandStart, operandEnd));
     }
 
     private static String uniqueLabel(String label, Map<String, Integer> labelCounts) {
@@ -124,17 +129,13 @@ public class CodePrinter {
                  EOpcodes.IFNULL, EOpcodes.IFNONNULL ->
                     markBranchTarget(labelsByPc, pc + getShort(operand, 0), labelNameForBranch(opCode));
 
-            case EOpcodes.GOTO ->
-                    markBranchTarget(labelsByPc, pc + getShort(operand, 0), "Path");
+            case EOpcodes.GOTO -> markBranchTarget(labelsByPc, pc + getShort(operand, 0), "Path");
 
-            case EOpcodes.JSR ->
-                    markBranchTarget(labelsByPc, pc + getShort(operand, 0), "Subroutine");
+            case EOpcodes.JSR -> markBranchTarget(labelsByPc, pc + getShort(operand, 0), "Subroutine");
 
-            case EOpcodes.GOTO_W ->
-                    markBranchTarget(labelsByPc, pc + getInt(operand, 0), "Path");
+            case EOpcodes.GOTO_W -> markBranchTarget(labelsByPc, pc + getInt(operand, 0), "Path");
 
-            case EOpcodes.JSR_W ->
-                    markBranchTarget(labelsByPc, pc + getInt(operand, 0), "Subroutine");
+            case EOpcodes.JSR_W -> markBranchTarget(labelsByPc, pc + getInt(operand, 0), "Subroutine");
 
             case EOpcodes.TABLESWITCH -> {
                 int padding = switchPadding(pc);
@@ -247,70 +248,62 @@ public class CodePrinter {
                  EOpcodes.ISHL, EOpcodes.LSHL, EOpcodes.ISHR, EOpcodes.LSHR,
                  EOpcodes.IUSHR, EOpcodes.LUSHR,
                  EOpcodes.IAND, EOpcodes.LAND, EOpcodes.IOR, EOpcodes.LOR,
-                 EOpcodes.IXOR, EOpcodes.LXOR ->
-                    this.out.println(mnemonic);
+                 EOpcodes.IXOR, EOpcodes.LXOR -> this.out.println(mnemonic);
 
             // local variable
             case EOpcodes.ILOAD, EOpcodes.LLOAD, EOpcodes.FLOAD, EOpcodes.DLOAD, EOpcodes.ALOAD,
                  EOpcodes.ISTORE, EOpcodes.LSTORE, EOpcodes.FSTORE, EOpcodes.DSTORE, EOpcodes.ASTORE,
-                 EOpcodes.RET ->
-                    this.out.println("%s %d".formatted(mnemonic, u1(operand, 0)));
+                 EOpcodes.RET -> this.out.println("%s %d" .formatted(mnemonic, u1(operand, 0)));
 
-            case EOpcodes.IINC ->
-                    this.out.println("iinc %d %d".formatted(u1(operand, 0), operand[1]));
+            case EOpcodes.IINC -> this.out.println("iinc %d %d" .formatted(u1(operand, 0), operand[1]));
 
             // constants
-            case EOpcodes.BIPUSH ->
-                    this.out.println("bipush %d".formatted(operand[0]));
+            case EOpcodes.BIPUSH -> this.out.println("bipush %d" .formatted(operand[0]));
 
-            case EOpcodes.SIPUSH ->
-                    this.out.println("sipush %d".formatted(getShort(operand, 0)));
+            case EOpcodes.SIPUSH -> this.out.println("sipush %d" .formatted(getShort(operand, 0)));
 
             case EOpcodes.LDC, EOpcodes.LDC_W, EOpcodes.LDC2_W ->
-                    this.out.println("%s %s".formatted(mnemonic, formatLdcConstant(cpIndex(opCode, operand))));
+                    this.out.println("%s %s" .formatted(mnemonic, formatLdcConstant(cpIndex(opCode, operand))));
 
             // class/type
-            case EOpcodes.NEW ->
-                    this.out.println("new %s".formatted(formatClassName(u2(operand, 0))));
+            case EOpcodes.NEW -> this.out.println("new %s" .formatted(formatClassName(u2(operand, 0))));
 
             case EOpcodes.ANEWARRAY ->
-                    this.out.println("anewarray %s".formatted(formatObjectTypeDescriptor(u2(operand, 0))));
+                    this.out.println("anewarray %s" .formatted(formatObjectTypeDescriptor(u2(operand, 0))));
 
             case EOpcodes.CHECKCAST ->
-                    this.out.println("checkcast %s".formatted(formatTypeDescriptor(u2(operand, 0))));
+                    this.out.println("checkcast %s" .formatted(formatTypeDescriptor(u2(operand, 0))));
 
             case EOpcodes.INSTANCEOF ->
-                    this.out.println("instanceof %s".formatted(formatTypeDescriptor(u2(operand, 0))));
+                    this.out.println("instanceof %s" .formatted(formatTypeDescriptor(u2(operand, 0))));
 
             case EOpcodes.NEWARRAY ->
-                    this.out.println("newarray %s".formatted(formatPrimitiveDescriptor(u1(operand, 0))));
+                    this.out.println("newarray %s" .formatted(formatPrimitiveDescriptor(u1(operand, 0))));
 
-            case EOpcodes.MULTIANEWARRAY ->
-                    this.out.println("multianewarray %s %d".formatted(
-                            formatTypeDescriptor(u2(operand, 0)),
-                            u1(operand, 2)
-                    ));
+            case EOpcodes.MULTIANEWARRAY -> this.out.println("multianewarray %s %d" .formatted(
+                    formatTypeDescriptor(u2(operand, 0)),
+                    u1(operand, 2)
+            ));
 
             // field refs
             case EOpcodes.GETSTATIC, EOpcodes.PUTSTATIC,
-                 EOpcodes.GETFIELD, EOpcodes.PUTFIELD ->
-                    this.out.println("%s %s".formatted(
-                            mnemonic,
-                            formatFieldRef(u2(operand, 0))
-                    ));
+                 EOpcodes.GETFIELD, EOpcodes.PUTFIELD -> this.out.println("%s %s" .formatted(
+                    mnemonic,
+                    formatFieldRef(u2(operand, 0))
+            ));
 
             // method refs
             case EOpcodes.INVOKEVIRTUAL, EOpcodes.INVOKESPECIAL,
-                 EOpcodes.INVOKESTATIC ->
-                    this.out.println("%s %s".formatted(
-                            mnemonic,
-                            formatMethodRef(u2(operand, 0))
-                    ));
+                 EOpcodes.INVOKESTATIC -> this.out.println("%s %s" .formatted(
+                    mnemonic,
+                    formatMethodRef(u2(operand, 0), JALConstantPoolEntry.MethodEntry.class)
+            ));
 
             case EOpcodes.INVOKEINTERFACE ->
-                    this.out.println("invokeinterface %s".formatted(formatMethodRef(u2(operand, 0))));
-            case EOpcodes.INVOKEDYNAMIC ->
-                    this.out.println(formatInvokeDynamic(u2(operand, 0)));
+                    this.out.println("invokeinterface %s" .formatted(
+                            formatMethodRef(u2(operand, 0), JALConstantPoolEntry.InterfaceMethodEntry.class)
+                    ));
+            case EOpcodes.INVOKEDYNAMIC -> this.out.println(formatInvokeDynamic(u2(operand, 0)));
             // branch
             case EOpcodes.IFEQ, EOpcodes.IFNE, EOpcodes.IFLT, EOpcodes.IFGE, EOpcodes.IFGT, EOpcodes.IFLE,
                  EOpcodes.IF_ICMPEQ, EOpcodes.IF_ICMPNE, EOpcodes.IF_ICMPLT,
@@ -319,25 +312,21 @@ public class CodePrinter {
                  EOpcodes.GOTO, EOpcodes.JSR,
                  EOpcodes.IFNULL, EOpcodes.IFNONNULL -> {
                 int targetPc = pc + getShort(operand, 0);
-                this.out.println("%s %s".formatted(mnemonic, labelOf(targetPc)));
+                this.out.println("%s %s" .formatted(mnemonic, labelOf(targetPc)));
             }
 
             case EOpcodes.GOTO_W, EOpcodes.JSR_W -> {
                 int targetPc = pc + getInt(operand, 0);
-                this.out.println("%s %s".formatted(mnemonic, labelOf(targetPc)));
+                this.out.println("%s %s" .formatted(mnemonic, labelOf(targetPc)));
             }
 
-            case EOpcodes.TABLESWITCH ->
-                    this.printTableSwitch(pc, operand);
+            case EOpcodes.TABLESWITCH -> this.printTableSwitch(pc, operand);
 
-            case EOpcodes.LOOKUPSWITCH ->
-                    this.printLookupSwitch(pc, operand);
+            case EOpcodes.LOOKUPSWITCH -> this.printLookupSwitch(pc, operand);
 
-            case EOpcodes.WIDE ->
-                    this.printWide(operand);
+            case EOpcodes.WIDE -> this.printWide(operand);
 
-            default ->
-                    throw new IllegalArgumentException("Unsupported opcode: 0x%02x".formatted(opCode));
+            default -> throw new IllegalArgumentException("Unsupported opcode: 0x%02x" .formatted(opCode));
         }
     }
 
@@ -363,8 +352,9 @@ public class CodePrinter {
 
         return builder.toString();
     }
+
     private String formatMethodHandle(JALConstantPoolEntry.MethodHandleEntry handle) {
-        return "MethodHandle|%s|%s".formatted(
+        return "MethodHandle|%s|%s" .formatted(
                 formatMethodHandleKind(handle.referenceKind()),
                 formatMethodHandleTarget(handle.referenceKind(), handle.reference())
         );
@@ -403,8 +393,11 @@ public class CodePrinter {
             case JALConstantPoolEntry.ClassEntry classEntry -> formatClassName(classEntry);
             case JALConstantPoolEntry.FieldEntry fieldRef -> formatFieldRef(fieldRef);
             case JALConstantPoolEntry.MethodEntry methodRef -> formatMethodRef(methodRef);
+            case JALConstantPoolEntry.InterfaceMethodEntry methodRef -> formatMethodRef(methodRef);
             case JALConstantPoolEntry.MethodTypeEntry methodType -> "MethodHandle|" + methodType.descriptor();
-            default -> throw new IllegalArgumentException("Unsupported constant pool entry type for bootstrap argument: " + cpEntry.getClass().getSimpleName());
+            case JALConstantPoolEntry.MethodHandleEntry methodHandle -> formatMethodHandle(methodHandle);
+            default ->
+                    throw new IllegalArgumentException("Unsupported constant pool entry type for bootstrap argument: " + cpEntry.getClass().getSimpleName());
         };
     }
 
@@ -416,7 +409,7 @@ public class CodePrinter {
 
         JALConstantPoolEntry entry = pool[index];
         if (!expectedClass.isInstance(entry)) {
-            throw new IllegalArgumentException("Expected constant pool entry of type %s at index %d, but got %s".formatted(
+            throw new IllegalArgumentException("Expected constant pool entry of type %s at index %d, but got %s" .formatted(
                     expectedClass.getSimpleName(),
                     index,
                     entry.getClass().getSimpleName()
@@ -439,24 +432,28 @@ public class CodePrinter {
             throw new IllegalArgumentException("Expected FieldEntry, but got " + cpEntry.getClass().getSimpleName());
         }
 
-        return "%s->%s:%s".formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
+        return "%s->%s:%s" .formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
     }
 
-    private String formatMethodRef(int cpIndex) {
+    private String formatMethodRef(int cpIndex, Class<? extends JALConstantPoolEntry> expectedClass) {
         // owner->name(descriptor)
         // e.g. java/io/PrintStream->println(Ljava/lang/String;)V
-        JALConstantPoolEntry.MethodEntry ref = getConstantPoolEntry(this.pool, cpIndex, JALConstantPoolEntry.MethodEntry.class);
+        JALConstantPoolEntry ref = getConstantPoolEntry(this.pool, cpIndex, expectedClass);
         return formatMethodRef(ref);
     }
 
     private String formatMethodRef(JALConstantPoolEntry cpEntry) {
-        if (!(cpEntry instanceof JALConstantPoolEntry.MethodEntry(
+        if (cpEntry instanceof JALConstantPoolEntry.MethodEntry(
                 JALConstantPoolEntry.ClassEntry owner, JALConstantPoolEntry.NameAndTypeEntry nameAndType
-        ))) {
-            throw new IllegalArgumentException("Expected MethodEntry, but got " + cpEntry.getClass().getSimpleName());
+        )) {
+            return "%s->%s%s" .formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
+        } else if (cpEntry instanceof JALConstantPoolEntry.InterfaceMethodEntry(
+                JALConstantPoolEntry.ClassEntry owner, JALConstantPoolEntry.NameAndTypeEntry nameAndType
+        )) {
+            return "%s->%s%s" .formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
+        } else {
+            throw new IllegalArgumentException("Expected MethodEntry or InterfaceMethodEntry, but got " + cpEntry.getClass().getSimpleName());
         }
-
-        return "%s->%s%s".formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
     }
 
     private String formatClassName(int cpIndex) {
@@ -476,17 +473,12 @@ public class CodePrinter {
             return className;
         }
 
-        return "L%s;".formatted(className);
+        return "L%s;" .formatted(className);
     }
 
     private String formatObjectTypeDescriptor(int cpIndex) {
         String className = formatClassName(cpIndex);
-
-        if (className.startsWith("[")) {
-            throw new IllegalArgumentException("Expected object type descriptor, but got array type: " + className);
-        }
-
-        return "L%s;".formatted(className);
+        return "L%s;" .formatted(className);
     }
 
     private String formatLdcConstant(int cpIndex) {
@@ -499,46 +491,37 @@ public class CodePrinter {
             case JALConstantPoolEntry.DoubleEntry doubleEntry -> doubleEntry.value() + "d";
             case JALConstantPoolEntry.StringEntry stringEntry -> quote(stringEntry.value());
             case JALConstantPoolEntry.ClassEntry classEntry -> formatClassName(cpIndex);
-            default -> throw new IllegalArgumentException("Unsupported constant pool entry type for ldc: " + entry.getClass().getSimpleName());
+            default ->
+                    throw new IllegalArgumentException("Unsupported constant pool entry type for ldc: " + entry.getClass().getSimpleName());
         };
     }
 
-    private void printXStore(int opCode, byte[] operand) {
-        String mnemonic = EOpcodes.getName(opCode);
-        int varIndex = operand[0] & 0xFF; // 符号なしバイトとして扱う
-        this.out.println("%s %d".formatted(mnemonic, varIndex));
-    }
-
-    private void printNoOperandCode(int opCode) {
-        String mnemonic = EOpcodes.getName(opCode);
-        this.out.println(mnemonic);
-    }
-
-    private static int calcVariableOperandSize(int operand, byte[] operandFrags) {
-        return switch (operand) {
-            case 0xaa -> { // tableswitch
-                int padding = (4 - (operandFrags.length % 4)) % 4;
+    private static int calcVariableOperandSize(int opCode, byte[] code, int pc) {
+        return switch (opCode) {
+            case EOpcodes.TABLESWITCH -> {
+                int padding = switchPadding(pc);
                 int baseSize = 12; // default + low + high
-                yield baseSize + padding + 4 * (getInt(operandFrags, padding + 8) - getInt(operandFrags, padding + 4) + 1);
+                yield baseSize + padding + 4 * (getInt(code, pc + 1 + padding + 8) - getInt(code, pc + 1 + padding + 4) + 1);
             }
-            case 0xab -> { // lookupswitch
-                int padding = (4 - (operandFrags.length % 4)) % 4;
+            case EOpcodes.LOOKUPSWITCH -> {
+                int padding = switchPadding(pc);
                 int baseSize = 8; // default + npairs
-                yield baseSize + padding + 8 * getInt(operandFrags, padding + 4);
+                yield baseSize + padding + 8 * getInt(code, pc + 1 + padding + 4);
             }
-            case 0xc4 -> { // wide
-                int modifiedOpcode = operandFrags[0] & 0xFF;
-                if (modifiedOpcode == 0x84) { // iinc
+            case EOpcodes.WIDE -> {
+                int modifiedOpcode = code[pc + 1] & 0xFF;
+                if (modifiedOpcode == EOpcodes.IINC) {
                     yield 5; // opcode + indexbyte1 + indexbyte2 + constbyte1 + constbyte2
                 } else {
                     yield 3; // opcode + indexbyte1 + indexbyte2
                 }
             }
             default -> throw new IllegalArgumentException(
-                    "Unsupported variable-length JVM opcode: 0x%02x".formatted(operand & 0xFF)
+                    "Unsupported variable-length JVM opcode: 0x%02x" .formatted(opCode & 0xFF)
             );
         };
     }
+
     private void printTableSwitch(int pc, byte[] operand) {
         int padding = switchPadding(pc);
 
@@ -609,18 +592,20 @@ public class CodePrinter {
         String mnemonic = EOpcodes.getName(modifiedOpcode);
 
         if (modifiedOpcode == EOpcodes.IINC) {
-            this.out.println("wide iinc %d %d".formatted(
+            this.out.println("wide iinc %d %d" .formatted(
                     u2(operand, 1),
                     getShort(operand, 3)
             ));
             return;
         }
 
-        this.out.println("wide %s %d".formatted(
+        this.out.println("wide %s %d" .formatted(
                 mnemonic,
                 u2(operand, 1)
         ));
-    }private static int cpIndex(int opCode, byte[] operand) {
+    }
+
+    private static int cpIndex(int opCode, byte[] operand) {
         return opCode == EOpcodes.LDC ? u1(operand, 0) : u2(operand, 0);
     }
 
@@ -669,14 +654,14 @@ public class CodePrinter {
     }
 
     private static int switchPadding(int pc) {
-        return (4 - (pc % 4)) % 4;
+        return (4 - ((pc + 1) % 4)) % 4;
     }
 
     private static int getInt(byte[] operandFrags, int i) {
         return ((operandFrags[i] & 0xFF) << 24) |
-               ((operandFrags[i + 1] & 0xFF) << 16) |
-               ((operandFrags[i + 2] & 0xFF) << 8) |
-               (operandFrags[i + 3] & 0xFF);
+                ((operandFrags[i + 1] & 0xFF) << 16) |
+                ((operandFrags[i + 2] & 0xFF) << 8) |
+                (operandFrags[i + 3] & 0xFF);
     }
 
     private static int calcOperandBytes(int opcode) {
@@ -759,11 +744,10 @@ public class CodePrinter {
                  0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
                  0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
                  0x98, 0xac, 0xad, 0xae, 0xaf, 0xb0, 0xb1, 0xbe,
-                 0xbf, 0xc2, 0xc3, 0xca, 0xcb, 0xcc
-                    -> 0;
+                 0xbf, 0xc2, 0xc3, 0xca, 0xcb, 0xcc -> 0;
 
             default -> throw new IllegalArgumentException(
-                    "Unsupported JVM opcode: 0x%02x".formatted(opcode & 0xFF)
+                    "Unsupported JVM opcode: 0x%02x" .formatted(opcode & 0xFF)
             );
         };
     }

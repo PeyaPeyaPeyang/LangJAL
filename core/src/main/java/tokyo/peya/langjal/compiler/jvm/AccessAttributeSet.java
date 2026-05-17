@@ -114,6 +114,10 @@ public class AccessAttributeSet {
         return sb.toString();
     }
 
+    public boolean isEmpty() {
+        return this.attributes.length == 0;
+    }
+
     /**
      * Checks if the set represents a normal class (not abstract, interface, enum, or annotation).
      *
