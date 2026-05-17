@@ -30,10 +30,6 @@ jobs:
             os: windows-latest
             java-architecture: x64
             gradle-command: ./gradlew.bat
-          - asset: windows-x86
-            os: windows-latest
-            java-architecture: x86
-            gradle-command: ./gradlew.bat
           - asset: macos-x64
             os: macos-15-intel
             java-architecture: x64
