@@ -16,8 +16,13 @@ public class MethodPrinter {
     }
 
     public void printMethods(JALClass clazz) {
+        boolean isFirst = true;
         for (JALMethod method : clazz.methods()) {
             this.printMethod(clazz, method);
+            if (!isFirst) {
+                this.innerOut.println("");
+            }
+            isFirst = false;
         }
     }
 
@@ -50,7 +55,9 @@ public class MethodPrinter {
         LineNumberMatcher linesMatcher = new LineNumberMatcher(codeAttr.getAttribute(JALAttribute.LineNumberTableAttribute.class));
         byte[] code = codeAttr.code();
 
-        CodePrinter codePrinter = new CodePrinter(codeOut, clazz.constants());
+        JALAttribute.BootstrapMethodsAttribute bootstrapMethods = clazz.getAttribute("BootstrapMethods");
+
+        CodePrinter codePrinter = new CodePrinter(codeOut, bootstrapMethods, clazz.constants());
         codePrinter.printCode(code, linesMatcher);
     }
 }

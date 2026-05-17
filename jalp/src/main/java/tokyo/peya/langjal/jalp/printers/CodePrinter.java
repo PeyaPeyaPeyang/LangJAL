@@ -2,6 +2,7 @@ package tokyo.peya.langjal.jalp.printers;
 
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.jalp.OutputFormatter;
+import tokyo.peya.langjal.jalp.reader.JALAttribute;
 import tokyo.peya.langjal.jalp.reader.JALConstantPoolEntry;
 
 import java.util.HashMap;
@@ -9,10 +10,12 @@ import java.util.Map;
 
 public class CodePrinter {
     private final OutputFormatter out;
+    private final JALAttribute.BootstrapMethodsAttribute claBootstrapMethods;
     private final JALConstantPoolEntry[] pool;
     private String[] labelsByPc;
 
-    public CodePrinter(OutputFormatter out, JALConstantPoolEntry[] pool) {
+    public CodePrinter(OutputFormatter out, JALAttribute.BootstrapMethodsAttribute claBootstrapMethods, JALConstantPoolEntry[] pool) {
+        this.claBootstrapMethods = claBootstrapMethods;
         this.out = out;
         this.pool = pool;
     }
@@ -306,7 +309,8 @@ public class CodePrinter {
 
             case EOpcodes.INVOKEINTERFACE ->
                     this.out.println("invokeinterface %s".formatted(formatMethodRef(u2(operand, 0))));
-
+            case EOpcodes.INVOKEDYNAMIC ->
+                    this.out.println(formatInvokeDynamic(u2(operand, 0)));
             // branch
             case EOpcodes.IFEQ, EOpcodes.IFNE, EOpcodes.IFLT, EOpcodes.IFGE, EOpcodes.IFGT, EOpcodes.IFLE,
                  EOpcodes.IF_ICMPEQ, EOpcodes.IF_ICMPNE, EOpcodes.IF_ICMPLT,
@@ -337,6 +341,73 @@ public class CodePrinter {
         }
     }
 
+    private String formatInvokeDynamic(int cpIndex) {
+        JALConstantPoolEntry.InvokeDynamicEntry indy =
+                getConstantPoolEntry(this.pool, cpIndex, JALConstantPoolEntry.InvokeDynamicEntry.class);
+
+        JALConstantPoolEntry.NameAndTypeEntry nameAndType = indy.nameAndType();
+        JALAttribute.BootstrapMethodsAttribute.BootstrapMethod bootstrap = this.claBootstrapMethods.methods()[indy.bootstrapMethodAttrIndex()];
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("invokedynamic ");
+        builder.append(nameAndType.name());
+        builder.append(' ');
+        builder.append(nameAndType.descriptor());
+        builder.append(' ');
+        builder.append(formatMethodHandle(bootstrap.bootstrapMethodRef()));
+
+        for (JALConstantPoolEntry arg : bootstrap.arguments()) {
+            builder.append(' ');
+            builder.append(formatBootstrapArg(arg));
+        }
+
+        return builder.toString();
+    }
+    private String formatMethodHandle(JALConstantPoolEntry.MethodHandleEntry handle) {
+        return "MethodHandle|%s|%s".formatted(
+                formatMethodHandleKind(handle.referenceKind()),
+                formatMethodHandleTarget(handle.referenceKind(), handle.reference())
+        );
+    }
+
+    private String formatMethodHandleKind(int kind) {
+        return switch (kind) {
+            case 1 -> "getfield";
+            case 2 -> "getstatic";
+            case 3 -> "putfield";
+            case 4 -> "putstatic";
+            case 5 -> "invokevirtual";
+            case 6 -> "invokestatic";
+            case 7 -> "invokespecial";
+            case 8 -> "newinvokespecial";
+            case 9 -> "invokeinterface";
+            default -> throw new IllegalArgumentException("Invalid method handle kind: " + kind);
+        };
+    }
+
+    private String formatMethodHandleTarget(int kind, JALConstantPoolEntry cpEntry) {
+        return switch (kind) {
+            case 1, 2, 3, 4 -> formatFieldRef(cpEntry);
+            case 5, 6, 7, 8, 9 -> formatMethodRef(cpEntry);
+            default -> throw new IllegalArgumentException("Invalid method handle kind: " + kind);
+        };
+    }
+
+    private String formatBootstrapArg(JALConstantPoolEntry cpEntry) {
+        return switch (cpEntry) {
+            case JALConstantPoolEntry.IntegerEntry intEntry -> Integer.toString(intEntry.value());
+            case JALConstantPoolEntry.FloatEntry floatEntry -> floatEntry.value() + "f";
+            case JALConstantPoolEntry.LongEntry longEntry -> longEntry.value() + "L";
+            case JALConstantPoolEntry.DoubleEntry doubleEntry -> doubleEntry.value() + "d";
+            case JALConstantPoolEntry.StringEntry stringEntry -> quote(stringEntry.value());
+            case JALConstantPoolEntry.ClassEntry classEntry -> formatClassName(classEntry);
+            case JALConstantPoolEntry.FieldEntry fieldRef -> formatFieldRef(fieldRef);
+            case JALConstantPoolEntry.MethodEntry methodRef -> formatMethodRef(methodRef);
+            case JALConstantPoolEntry.MethodTypeEntry methodType -> "MethodHandle|" + methodType.descriptor();
+            default -> throw new IllegalArgumentException("Unsupported constant pool entry type for bootstrap argument: " + cpEntry.getClass().getSimpleName());
+        };
+    }
+
     @SuppressWarnings("unchecked")
     private static <T> T getConstantPoolEntry(JALConstantPoolEntry[] pool, int index, Class<T> expectedClass) {
         if (index <= 0 || index >= pool.length) {
@@ -358,23 +429,43 @@ public class CodePrinter {
         // owner/name:descriptor
         // e.g. java/lang/System->out:Ljava/io/PrintStream;
         JALConstantPoolEntry.FieldEntry ref = getConstantPoolEntry(this.pool, cpIndex, JALConstantPoolEntry.FieldEntry.class);
-        JALConstantPoolEntry.NameAndTypeEntry nameAndType = ref.nameAndType();
+        return formatFieldRef(ref);
+    }
 
-        return "%s->%s:%s".formatted(ref.owner().name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
+    private String formatFieldRef(JALConstantPoolEntry cpEntry) {
+        if (!(cpEntry instanceof JALConstantPoolEntry.FieldEntry(
+                JALConstantPoolEntry.ClassEntry owner, JALConstantPoolEntry.NameAndTypeEntry nameAndType
+        ))) {
+            throw new IllegalArgumentException("Expected FieldEntry, but got " + cpEntry.getClass().getSimpleName());
+        }
+
+        return "%s->%s:%s".formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
     }
 
     private String formatMethodRef(int cpIndex) {
         // owner->name(descriptor)
         // e.g. java/io/PrintStream->println(Ljava/lang/String;)V
         JALConstantPoolEntry.MethodEntry ref = getConstantPoolEntry(this.pool, cpIndex, JALConstantPoolEntry.MethodEntry.class);
-        JALConstantPoolEntry.NameAndTypeEntry nameAndType = ref.nameAndType();
+        return formatMethodRef(ref);
+    }
 
-        return "%s->%s%s" .formatted(ref.owner().name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
+    private String formatMethodRef(JALConstantPoolEntry cpEntry) {
+        if (!(cpEntry instanceof JALConstantPoolEntry.MethodEntry(
+                JALConstantPoolEntry.ClassEntry owner, JALConstantPoolEntry.NameAndTypeEntry nameAndType
+        ))) {
+            throw new IllegalArgumentException("Expected MethodEntry, but got " + cpEntry.getClass().getSimpleName());
+        }
+
+        return "%s->%s%s".formatted(owner.name().getInternalName(), nameAndType.name(), nameAndType.descriptor());
     }
 
     private String formatClassName(int cpIndex) {
         // e.g. java/lang/StringBuilder
         JALConstantPoolEntry.ClassEntry classEntry = getConstantPoolEntry(this.pool, cpIndex, JALConstantPoolEntry.ClassEntry.class);
+        return formatClassName(classEntry);
+    }
+
+    private String formatClassName(JALConstantPoolEntry.ClassEntry classEntry) {
         return classEntry.name().getInternalName();
     }
 

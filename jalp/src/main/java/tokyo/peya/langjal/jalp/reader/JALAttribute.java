@@ -331,7 +331,7 @@ public sealed interface JALAttribute {
     }
 
     record BootstrapMethodsAttribute(String name, BootstrapMethod[] methods) implements JALAttribute {
-        record BootstrapMethod(JALConstantPoolEntry.MethodHandleEntry bootstrapMethodRef, JALConstantPoolEntry[] arguments) {
+        public record BootstrapMethod(JALConstantPoolEntry.MethodHandleEntry bootstrapMethodRef, JALConstantPoolEntry[] arguments) {
         }
 
         public static BootstrapMethodsAttribute read(JALClassReader reader, JALConstantPoolEntry[] pool) {

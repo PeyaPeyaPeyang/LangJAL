@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.jalp.reader;
 
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
+import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
 
 public sealed interface JALConstantPoolEntry {
     non-sealed interface UnresolvedConstantPoolEntry extends JALConstantPoolEntry {
@@ -217,7 +218,7 @@ public sealed interface JALConstantPoolEntry {
     }
 
     // Tag: 16
-    record MethodTypeEntry(String descriptor) implements JALConstantPoolEntry {
+    record MethodTypeEntry(MethodDescriptor descriptor) implements JALConstantPoolEntry {
         record Unresolved(int descriptorIndex) implements UnresolvedConstantPoolEntry {
             public static Unresolved read(JALClassReader input) {
                 int descriptorIndex = input.readUnsignedShort();
@@ -226,7 +227,9 @@ public sealed interface JALConstantPoolEntry {
 
             @Override
             public MethodTypeEntry resolve(JALConstantPoolEntry[] constantPool) {
-                return new MethodTypeEntry(UnresolvedConstantPoolEntry.resolveUtf8(constantPool, this.descriptorIndex).value());
+                return new MethodTypeEntry(
+                        MethodDescriptor.parse(UnresolvedConstantPoolEntry.resolveUtf8(constantPool, this.descriptorIndex).value())
+                );
             }
         }
     }
