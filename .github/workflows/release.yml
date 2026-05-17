@@ -33,7 +33,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build release assets
-        run: ./gradlew :jalc:shadowJar createDistribution
+        run: ./gradlew :jalc:build :jalp:build createDistribution
 
       - name: Attest release assets
         uses: actions/attest@v4
