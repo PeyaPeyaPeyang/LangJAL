@@ -107,7 +107,7 @@ public class Main {
     private static OptionParser createOptionParser() {
         OptionParser parser = new OptionParser();
         parser.acceptsAll(List.of("help", "?"), "Show this help message").forHelp();
-        parser.acceptsAll(List.of("version", "v"), "Show version information").forHelp();
+        parser.accepts("version", "Show version information").forHelp();
         parser.accepts("public", "Show public classes and members");
         parser.accepts("protected", "Show public and protected classes and members");
         parser.accepts("package", "Show public, protected, and package-private classes and members");
@@ -118,6 +118,7 @@ public class Main {
         parser.accepts("c", "Show code instructions");
         parser.accepts("constants", "Show constant pool entries");
         parser.acceptsAll(List.of("verbose", "v"), "Show verbose output (includes line numbers)");
+        parser.accepts("no-header", "Do not show the class header");
         return parser;
     }
 }

@@ -275,7 +275,7 @@ public class CodePrinter {
                     this.out.println("checkcast %s" .formatted(formatTypeDescriptor(u2(operand, 0))));
 
             case EOpcodes.INSTANCEOF ->
-                    this.out.println("instanceof %s" .formatted(formatTypeDescriptor(u2(operand, 0))));
+                    this.out.println("instanceof %s" .formatted(formatClassName(u2(operand, 0))));
 
             case EOpcodes.NEWARRAY ->
                     this.out.println("newarray %s" .formatted(formatPrimitiveDescriptor(u1(operand, 0))));

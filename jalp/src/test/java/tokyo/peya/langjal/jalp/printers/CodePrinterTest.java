@@ -78,7 +78,7 @@ class CodePrinterTest {
     void printCodeFormatsClassAndArrayTypeInstructions() {
         JALConstantPoolEntry[] pool = pool(
                 classEntry("java/lang/String"),
-                classEntry("[Ljava/lang/String;"),
+                classEntry("[java/lang/String"),
                 classEntry("[[I")
         );
 
