@@ -1,9 +1,7 @@
 plugins {
     id("java")
+    id("com.gradleup.shadow").version("9.0.0-rc1")
 }
-
-group = "tokyo.peya"
-version = "1.1.0"
 
 repositories {
     mavenCentral()
@@ -18,7 +16,9 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
     annotationProcessor("org.jetbrains:annotations:26.0.2")
 
-    implementation("org.antlr:antlr4-runtime:4.13.2")
+    implementation("org.ow2.asm:asm:9.10")
+    implementation("org.ow2.asm:asm-commons:9.10")
+
     implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
     implementation(project(":langjal"))
 }
@@ -29,16 +29,28 @@ tasks.test {
 }
 
 tasks.jar {
-    archiveBaseName.set("jalc")
-    archiveClassifier.set("")
-    archiveVersion.set("")
-
     manifest {
         attributes(
-            "Main-Class" to "tokyo.peya.langjal.cli.Main",
-            "Implementation-Title" to "JAL Compiler",
+            "Main-Class" to "tokyo.peya.langjal.jalp.Main",
+            "Implementation-Title" to "JAL Processor",
             "Implementation-Version" to project.version,
             "Implementation-Vendor" to project.group
         )
     }
+}
+
+tasks.shadowJar {
+    dependsOn(tasks.jar)
+    archiveBaseName.set("jalp")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+
+    relocate("com.ibm.icu", "tokyo.peya.langjal.cli.relocated.icu")
+    relocate("org.objectweb.asm", "tokyo.peya.langjal.cli.relocated.asm")
+
+    minimize()
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }

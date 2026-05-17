@@ -25,6 +25,12 @@ tasks.register<Copy>("copyCliTools") {
 
     from(project(":jalc").tasks.named("jar"))
     into("${layout.buildDirectory.get().asFile.path}/distribution/lib")
+
+    from(project(":jalp").configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("distribution/lib"))
+
+    from(project(":jalp").tasks.named("jar"))
+    into("${layout.buildDirectory.get().asFile.path}/distribution/lib")
 }
 
 tasks.register<Copy>("copyAccessories") {

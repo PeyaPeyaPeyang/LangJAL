@@ -54,6 +54,9 @@ public final class ClassReferenceType implements Type {
             System.arraycopy(parts, 0, packageParts, 0, parts.length - 1);
             String packageName = String.join("/", packageParts);
             String className = parts[parts.length - 1];
+
+            if (packageName.equals("java/lang") && className.equals("Object"))
+                return OBJECT; // Return the cached OBJECT instance for java/lang/Object
             return new ClassReferenceType(packageName, className);
         }
     }

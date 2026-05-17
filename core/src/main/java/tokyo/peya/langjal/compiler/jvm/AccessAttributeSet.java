@@ -104,11 +104,12 @@ public class AccessAttributeSet {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        boolean printed = false;
         for (AccessAttribute attribute : this.attributes) {
-            if (sb.isEmpty())
-                sb.append(attribute.getName());
-            else
-                sb.append(" ");
+            if (printed)
+                sb.append(' ');
+            sb.append(attribute.name().toLowerCase());
+            printed = true;
         }
         return sb.toString();
     }
