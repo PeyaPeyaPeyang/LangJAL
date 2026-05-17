@@ -26,11 +26,6 @@ public class TryCatchDirectivesHolder {
     private final FileEvaluatingReporter context;
 
     /**
-     * The holder for label information used in try-catch directives.
-     */
-    private final LabelsHolder labels;
-
-    /**
      * The list of try-catch(-finally) directives collected for the method.
      */
     private final List<TryCatchDirective> tryCatchDirectives;
@@ -39,11 +34,9 @@ public class TryCatchDirectivesHolder {
      * Constructs a new TryCatchDirectivesHolder.
      *
      * @param ctxt   The compilation context for reporting.
-     * @param labels The label holder for resolving label references.
      */
-    public TryCatchDirectivesHolder(@NotNull FileEvaluatingReporter ctxt, @NotNull LabelsHolder labels) {
+    public TryCatchDirectivesHolder(@NotNull FileEvaluatingReporter ctxt) {
         this.context = ctxt;
-        this.labels = labels;
 
         this.tryCatchDirectives = new ArrayList<>();
     }

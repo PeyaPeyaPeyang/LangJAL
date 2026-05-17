@@ -75,7 +75,7 @@ public class JALMethodCompiler {
         this.labels = new LabelsHolder();
         this.instructions = new InstructionsHolder(cn, this.method, this.labels);
         this.locals = new LocalVariablesHolder(this.context, this.labels);
-        this.tryCatchDirectives = new TryCatchDirectivesHolder(this.context, this.labels);
+        this.tryCatchDirectives = new TryCatchDirectivesHolder(this.context);
     }
 
     private static boolean shouldAppendReturnOnLast(InstructionInfo instruction) {

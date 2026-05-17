@@ -131,7 +131,7 @@ public class MethodImporter {
         LabelsHolder labels = new LabelsHolder();
         InstructionsHolder instructions = new InstructionsHolder(this.ownerClass, asmMethod, labels);
         LocalVariablesHolder locals = new LocalVariablesHolder(this.reporter, labels);
-        TryCatchDirectivesHolder tryCatchDirectives = new TryCatchDirectivesHolder(this.reporter, labels);
+        TryCatchDirectivesHolder tryCatchDirectives = new TryCatchDirectivesHolder(this.reporter);
 
         this.importMethodBody(asmMethod, labels, locals, instructions, tryCatchDirectives);
 

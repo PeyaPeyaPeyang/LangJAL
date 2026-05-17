@@ -22,8 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TryCatchDirectivesHolderTest {
     private static TryCatchDirectivesHolder newHolder(RecordingCompileReporter reporter) {
         return new TryCatchDirectivesHolder(
-                new FileEvaluatingReporter(reporter, Path.of("sample.jal")),
-                new LabelsHolder()
+                new FileEvaluatingReporter(reporter, Path.of("sample.jal"))
         );
     }
 
