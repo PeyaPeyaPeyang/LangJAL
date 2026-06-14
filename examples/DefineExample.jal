@@ -1,0 +1,17 @@
+#define CLASS_NAME DefineExample
+#define MESSAGE "Defined by #define"
+#define GET_STDOUT getstatic java/lang/System->out:Ljava/io/PrintStream;
+#define PRINTLN_STRING invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+public class CLASS_NAME (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+    GET_STDOUT
+    ldc MESSAGE
+    PRINTLN_STRING
+
+    return
+  }
+}

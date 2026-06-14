@@ -71,7 +71,7 @@ public class JALFileCompiler {
     public static JALClassCompiler compileOnly(@NotNull String sourceCode, @NotNull CompileReporter reporter,
                                                @MagicConstant(valuesFromClass = CompileSettings.class) int settings
     ) throws CompileErrorException {
-        CharStream charStream = CharStreams.fromString(sourceCode);
+        CharStream charStream = CharStreams.fromString(JALPreprocessor.preprocess(sourceCode));
         return compile(reporter, charStream, settings, null);
     }
 
@@ -120,9 +120,9 @@ public class JALFileCompiler {
      * @throws CompileErrorException If a compilation error occurs.
      */
     public void compile(@NotNull Path inputFile) throws CompileErrorException {
-        CharStream charStream;
+        String sourceCode;
         try {
-            charStream = CharStreams.fromPath(inputFile);
+            sourceCode = Files.readString(inputFile);
         } catch (IOException e) {
             this.reporter.postError(
                     "Failed to read input file: " + inputFile.toAbsolutePath(),
@@ -132,6 +132,7 @@ public class JALFileCompiler {
             return;
         }
 
+        CharStream charStream = CharStreams.fromString(JALPreprocessor.preprocess(sourceCode), inputFile.toString());
         ClassNode compiled = compile(this.reporter, charStream, this.settings, inputFile).getCompiledClass();
         this.writeClass(compiled);
         return;
@@ -146,7 +147,7 @@ public class JALFileCompiler {
      */
     @NotNull
     public ClassNode compile(@NotNull String sourceCode) throws CompileErrorException {
-        CharStream charStream = CharStreams.fromString(sourceCode);
+        CharStream charStream = CharStreams.fromString(JALPreprocessor.preprocess(sourceCode));
         ClassNode compiled = compile(this.reporter, charStream, this.settings, null).getCompiledClass();
         this.writeClass(compiled);
         return compiled;
