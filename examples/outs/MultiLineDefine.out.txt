@@ -1,1 +1,1 @@
-Printed from a multi-line #define
+Printed from a multi-line #definePrinted through outs
