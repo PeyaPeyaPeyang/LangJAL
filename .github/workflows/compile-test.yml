@@ -45,6 +45,8 @@ jobs:
           ArraysAndLoops,
           ObjectAndStringBuilder,
           TryCatchFinally,
+          DefineExample,
+          MultiLineDefine,
         ]
 
     steps:
