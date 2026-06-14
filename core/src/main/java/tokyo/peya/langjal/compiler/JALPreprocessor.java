@@ -29,18 +29,77 @@ final class JALPreprocessor {
             String lineEnding = sourceCode.substring(lineEnd, nextLine);
 
             if (!inBlockComment[0] && isPreprocessorDirective(sourceLine)) {
-                processDirective(defines, sourceLine, line);
-                result.append(lineEnding);
+                ContinuedLine directive = readContinuedLine(sourceCode, sourceLine, lineEnding, nextLine);
+                processDirective(defines, directive.text(), line);
+                result.append(directive.removedLineEndings());
+                index = directive.nextIndex();
+                line += directive.lineCount();
             } else {
                 result.append(expandLine(sourceLine, defines, inBlockComment));
                 result.append(lineEnding);
+                index = nextLine;
+                line++;
             }
-
-            index = nextLine;
-            line++;
         }
 
         return result.toString();
+    }
+
+    @NotNull
+    private static ContinuedLine readContinuedLine(@NotNull String sourceCode,
+                                                   @NotNull String firstLine,
+                                                   @NotNull String firstLineEnding,
+                                                   int firstNextLine) {
+        StringBuilder text = new StringBuilder(removeLineContinuation(firstLine));
+        StringBuilder removedLineEndings = new StringBuilder(firstLineEnding);
+        int index = firstNextLine;
+        int lineCount = 1;
+
+        String previousLine = firstLine;
+        while (hasLineContinuation(previousLine) && index < sourceCode.length()) {
+            int lineEnd = findLineEnd(sourceCode, index);
+            int nextLine = nextLineStart(sourceCode, lineEnd);
+            String sourceLine = sourceCode.substring(index, lineEnd);
+            String lineEnding = sourceCode.substring(lineEnd, nextLine);
+
+            text.append('\n');
+            text.append(removeLineContinuation(sourceLine));
+            removedLineEndings.append(lineEnding);
+
+            previousLine = sourceLine;
+            index = nextLine;
+            lineCount++;
+        }
+
+        return new ContinuedLine(text.toString(), removedLineEndings.toString(), index, lineCount);
+    }
+
+    private static boolean hasLineContinuation(@NotNull String line) {
+        int index = line.length() - 1;
+        while (index >= 0) {
+            char c = line.charAt(index);
+            if (c != ' ' && c != '\t')
+                break;
+            index--;
+        }
+
+        return index >= 0 && line.charAt(index) == '\\';
+    }
+
+    @NotNull
+    private static String removeLineContinuation(@NotNull String line) {
+        int index = line.length() - 1;
+        while (index >= 0) {
+            char c = line.charAt(index);
+            if (c != ' ' && c != '\t')
+                break;
+            index--;
+        }
+
+        if (index < 0 || line.charAt(index) != '\\')
+            return line;
+
+        return line.substring(0, index);
     }
 
     private static int findLineEnd(@NotNull String sourceCode, int start) {
@@ -227,5 +286,11 @@ final class JALPreprocessor {
 
     private static boolean isIdentifierPart(char c) {
         return isIdentifierStart(c) || (c >= '0' && c <= '9');
+    }
+
+    private record ContinuedLine(@NotNull String text,
+                                 @NotNull String removedLineEndings,
+                                 int nextIndex,
+                                 int lineCount) {
     }
 }

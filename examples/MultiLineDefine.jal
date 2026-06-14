@@ -1,0 +1,23 @@
+#define PRINT_MESSAGE \
+getstatic java/lang/System->out:Ljava/io/PrintStream; \
+ldc "Printed from a multi-line #define" \
+invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+#define outs \
+getstatic java/lang/System->out:Ljava/io/PrintStream; \
+swap \
+invokevirtual java/io/PrintStream->println(Ljava/lang/String;)V
+
+public class MultiLineDefine (
+  major_version=55,
+  minor_version=0) {
+
+  public static main([Ljava/lang/String;)V {
+    PRINT_MESSAGE
+
+    ldc "Printed through outs"
+    outs
+
+    return
+  }
+}

@@ -41,6 +41,18 @@ class JALPreprocessorTest {
     }
 
     @Test
+    void preprocessExpandsMultilineDefine() throws CompileErrorException {
+        assertEquals(
+                "\n\niconst_1 \n  pop\n",
+                JALPreprocessor.preprocess(
+                        "#define BODY iconst_1 \\\n"
+                                + "  pop\n"
+                                + "BODY\n"
+                )
+        );
+    }
+
+    @Test
     void preprocessReplacesOnlyWholeIdentifiers() throws CompileErrorException {
         assertEquals(
                 "\nbar FOO1 _FOO $FOO\n",
@@ -161,6 +173,22 @@ class JALPreprocessorTest {
                 """);
 
         assertEquals("Hello", firstLdcOf(method).cst);
+    }
+
+    @Test
+    void defineExpandsMultipleInstructions() throws CompileErrorException {
+        MethodNode method = singleMethod(
+                "#define PUSH_AND_POP iconst_3 \\\n"
+                        + "  pop\n"
+                        + "public class Test {\n"
+                        + "    public demo()V {\n"
+                        + "        PUSH_AND_POP\n"
+                        + "        return\n"
+                        + "    }\n"
+                        + "}\n"
+        );
+
+        assertArrayEquals(new int[]{EOpcodes.ICONST_3, EOpcodes.POP, EOpcodes.RETURN}, opcodesOf(method));
     }
 
     @Test
