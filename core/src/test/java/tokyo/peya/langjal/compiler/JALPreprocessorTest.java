@@ -53,6 +53,29 @@ class JALPreprocessorTest {
     }
 
     @Test
+    void preprocessExpandsFunctionLikeDefine() throws CompileErrorException {
+        assertEquals(
+                "\niconst_1 pop\n",
+                JALPreprocessor.preprocess("""
+                        #define BODY(x, y) x y
+                        BODY(iconst_1, pop)
+                        """)
+        );
+    }
+
+    @Test
+    void preprocessExpandsNestedFunctionLikeDefineArguments() throws CompileErrorException {
+        assertEquals(
+                "\n\niconst_1 pop\n",
+                JALPreprocessor.preprocess("""
+                        #define ONE iconst_1
+                        #define BODY(x, y) x y
+                        BODY(ONE, pop)
+                        """)
+        );
+    }
+
+    @Test
     void preprocessReplacesOnlyWholeIdentifiers() throws CompileErrorException {
         assertEquals(
                 "\nbar FOO1 _FOO $FOO\n",
@@ -187,6 +210,21 @@ class JALPreprocessorTest {
                         + "    }\n"
                         + "}\n"
         );
+
+        assertArrayEquals(new int[]{EOpcodes.ICONST_3, EOpcodes.POP, EOpcodes.RETURN}, opcodesOf(method));
+    }
+
+    @Test
+    void defineExpandsFunctionLikeMacroInMethodBody() throws CompileErrorException {
+        MethodNode method = singleMethod("""
+                #define BODY(push, drop) push drop
+                public class Test {
+                    public demo()V {
+                        BODY(iconst_3, pop)
+                        return
+                    }
+                }
+                """);
 
         assertArrayEquals(new int[]{EOpcodes.ICONST_3, EOpcodes.POP, EOpcodes.RETURN}, opcodesOf(method));
     }
