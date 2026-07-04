@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
 import tokyo.peya.langjal.compiler.instructions.utils.TestCompileReporter;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.preprocessor.JALPreprocessor;
 
 import java.util.Arrays;
 import java.util.Objects;

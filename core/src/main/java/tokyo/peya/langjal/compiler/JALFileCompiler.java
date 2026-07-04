@@ -12,6 +12,7 @@ import tokyo.peya.langjal.compiler.exceptions.ClassFinalisingException;
 import tokyo.peya.langjal.compiler.exceptions.ClassWritingException;
 import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
 import tokyo.peya.langjal.compiler.exceptions.FileReadingException;
+import tokyo.peya.langjal.compiler.preprocessor.JALPreprocessor;
 
 import java.io.IOException;
 import java.nio.file.Files;
