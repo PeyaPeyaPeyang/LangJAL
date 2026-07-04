@@ -1,18 +1,33 @@
 package tokyo.peya.langjal.compiler.instructions;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import tokyo.peya.langjal.compiler.CompileReporter;
+import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
+import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.instructions.utils.StackMachine;
 import tokyo.peya.langjal.compiler.instructions.xstore.*;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
+import tokyo.peya.langjal.compiler.member.InstructionsHolder;
+import tokyo.peya.langjal.compiler.member.LabelsHolder;
+import tokyo.peya.langjal.compiler.member.LocalVariablesHolder;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
@@ -70,6 +85,67 @@ public class TestXStore {
                     localStore(1, OBJECT_VALUE, "astore 1", Opcodes.ASTORE),
                     localStoreWithState(1, OBJECT_VALUE, "astore 1", Opcodes.ASTORE),
                     localStore(300, OBJECT_VALUE, "wide astore 300", Opcodes.ASTORE)
+            );
+        }
+
+        @Test
+        void warnsToUseAstoreNForLowIndexedGenericAstore() {
+            RecordingCompileReporter reporter = new RecordingCompileReporter();
+            FileEvaluatingReporter context = new FileEvaluatingReporter(reporter, Path.of("sample.jal"));
+            InstructionEvaluatorAStore evaluator = new InstructionEvaluatorAStore();
+            JALParser.JvmInsAstoreContext instruction = parseInstruction("astore 1", evaluator::map);
+            ClassNode ownerClass = this.createDummyClass();
+            MethodNode ownerMethod = this.createDummyMethod();
+            ownerClass.methods.add(ownerMethod);
+            LabelsHolder labels = this.createLabelsHolder(instruction);
+            InstructionsHolder instructions = new InstructionsHolder(ownerClass, ownerMethod, labels);
+            LocalVariablesHolder locals = new LocalVariablesHolder(context, labels);
+
+            this.compileWithContext(evaluator, context, ownerClass, ownerMethod, instruction, instructions, labels, locals);
+
+            assertTrue(
+                    reporter.warningMessages.stream().anyMatch(message -> message.contains("astore_1")),
+                    () -> "Expected astore_1 warning, but got: " + reporter.warningMessages
+            );
+        }
+
+        @Test
+        void warnsToUseAstore3ForIndexThree() {
+            RecordingCompileReporter reporter = new RecordingCompileReporter();
+            FileEvaluatingReporter context = new FileEvaluatingReporter(reporter, Path.of("sample.jal"));
+            InstructionEvaluatorAStore evaluator = new InstructionEvaluatorAStore();
+            JALParser.JvmInsAstoreContext instruction = parseInstruction("astore 3", evaluator::map);
+            ClassNode ownerClass = this.createDummyClass();
+            MethodNode ownerMethod = this.createDummyMethod();
+            ownerClass.methods.add(ownerMethod);
+            LabelsHolder labels = this.createLabelsHolder(instruction);
+            InstructionsHolder instructions = new InstructionsHolder(ownerClass, ownerMethod, labels);
+            LocalVariablesHolder locals = new LocalVariablesHolder(context, labels);
+
+            this.compileWithContext(evaluator, context, ownerClass, ownerMethod, instruction, instructions, labels, locals);
+
+            assertTrue(
+                    reporter.warningMessages.stream().anyMatch(message -> message.contains("astore_3")),
+                    () -> "Expected astore_3 warning, but got: " + reporter.warningMessages
+            );
+        }
+
+        private void compileWithContext(InstructionEvaluatorAStore evaluator,
+                                        FileEvaluatingReporter context,
+                                        ClassNode ownerClass,
+                                        MethodNode ownerMethod,
+                                        JALParser.JvmInsAstoreContext instruction,
+                                        InstructionsHolder instructions,
+                                        LabelsHolder labels,
+                                        LocalVariablesHolder locals) {
+            evaluator.evaluate(
+                    context,
+                    ownerClass,
+                    ownerMethod,
+                    instructions,
+                    labels,
+                    locals,
+                    instruction
             );
         }
     }
@@ -257,6 +333,37 @@ public class TestXStore {
                     localStore(2, longValue(), "lstore_2", Opcodes.LSTORE),
                     localStore(3, longValue(), "lstore_3", Opcodes.LSTORE)
             );
+        }
+    }
+
+    private static final class RecordingCompileReporter implements CompileReporter {
+        private final List<String> warningMessages = new ArrayList<>();
+
+        @Override
+        public void postWarning(@NotNull String message, Path sourcePath) {
+            this.warningMessages.add(message);
+        }
+
+        @Override
+        public void postInfo(@NotNull String message, Path sourcePath) {
+        }
+
+        @Override
+        public void postError(@NotNull String message, Path sourcePath) {
+        }
+
+        @Override
+        public void postError(@NotNull String message, @NotNull CompileErrorException cause, Path sourcePath) {
+        }
+
+        @Override
+        public void postWarning(@NotNull String message, Path sourcePath, long line, long column, long length) {
+            this.warningMessages.add(message);
+        }
+
+        @Override
+        public void postWarning(@NotNull String message, @NotNull Path sourcePath, @NotNull ParserRuleContext ctxt) {
+            this.warningMessages.add(message);
         }
     }
 }

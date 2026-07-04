@@ -19,7 +19,7 @@ public class InstructionEvaluateHelperXLoad {
                                                          int opcode,
                                                          @NotNull String callerInsn,
                                                          @Nullable TerminalNode wide) {
-        LocalVariableInfo local = locals.resolve(ref, callerInsn);
+        LocalVariableInfo local = locals.resolve(ref);
 
         int idx = local.index();
         boolean isWide = wide != null;

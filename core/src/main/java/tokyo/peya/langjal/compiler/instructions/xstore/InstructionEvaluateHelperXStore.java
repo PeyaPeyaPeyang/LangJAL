@@ -12,6 +12,7 @@ import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.*;
 
+import java.awt.font.FontRenderContext;
 import java.util.Objects;
 
 @UtilityClass
@@ -31,6 +32,10 @@ public class InstructionEvaluateHelperXStore {
             registeredLocal = registerNewLocal(context, labels, locals, localRef, type, instigation);
 
         int idx = registeredLocal.index();
+        if (idx < 4) {
+            warnLocalPerformance(context, registeredLocal, callerInsn);
+        }
+        
         boolean isWide = wide != null;
         if (idx >= 0xFF && !isWide)
             throw new IllegalInstructionException(
@@ -43,6 +48,15 @@ public class InstructionEvaluateHelperXStore {
         int size = isWide ? 4 : 2;
         VarInsnNode insn = new VarInsnNode(opcode, idx);
         return EvaluatedInstruction.of(evaluator, insn, size);
+    }
+    
+    private void warnLocalPerformance(FileEvaluatingReporter ctxt, @NotNull LocalVariableInfo localVar, @NotNull String callerInsn) {
+        // xLOAD_<n> が定義されているので，代わりにそっちを使ったほうが効率が良い(e.g. iload_1)
+        ctxt.postWarning(String.format(
+                "Local variable %s is accessed in instruction '%s', " +
+                        "but it is recommended to use %s_%d instead for better performance.",
+                localVar.name(), callerInsn, callerInsn, localVar.index()
+        ));
     }
 
     public static @NotNull EvaluatedInstruction evaluateN(@NotNull FileEvaluatingReporter context,

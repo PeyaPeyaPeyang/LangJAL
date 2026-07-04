@@ -158,13 +158,11 @@ public class LocalVariablesHolder {
      * Resolves a local variable by its parser context, throwing if not found.
      *
      * @param localRef   The local reference context.
-     * @param callerInsn The caller instruction name.
      * @return The resolved LocalVariableInfo.
      * @throws UnknownLocalVariableException If not found.
      */
     @NotNull
-    public LocalVariableInfo resolve(@NotNull JALParser.JvmInsArgLocalRefContext localRef,
-                                     @NotNull String callerInsn) {
+    public LocalVariableInfo resolve(@NotNull JALParser.JvmInsArgLocalRefContext localRef) {
         TerminalNode localID = localRef.ID();
         TerminalNode localNumber = localRef.NUMBER();
         if (localID != null) {
@@ -191,8 +189,6 @@ public class LocalVariablesHolder {
             // ローカル変数番号を参照
             LocalVariableInfo localVar = this.resolveSafe(localIndex);
             if (localVar != null) {
-                if (localIndex <= 3 && callerInsn.endsWith("load")) // xload 系のときに警告
-                    this.warnLocalPerformance(localVar, callerInsn);
                 return localVar;
             }
 
@@ -426,15 +422,6 @@ public class LocalVariablesHolder {
 
     public LocalVariableInfo register(int idx, @NotNull TypeDescriptor type, @Nullable String name) {
         return this.register(idx, type, name, this.labelsHolder.getCurrentLabel(), this.labelsHolder.getGlobalEnd());
-    }
-
-    private void warnLocalPerformance(@NotNull LocalVariableInfo localVar, @NotNull String callerInsn) {
-        // xLOAD_<n> が定義されているので，代わりにそっちを使ったほうが効率が良い(e.g. iload_1)
-        this.reporter.postWarning(String.format(
-                "Local variable %s is accessed in instruction '%s', " +
-                        "but it is recommended to use %s_%d instead for better performance.",
-                localVar.name(), callerInsn, localVar.name(), localVar.index()
-        ));
     }
 
     /**
