@@ -43,6 +43,9 @@ class MethodDescriptorTest {
     void parseMultipleParameters() {
         MethodDescriptor method = MethodDescriptor.parse("(IDLjava/lang/String;)V");
         assertEquals(3, method.getParameterTypes().length);
+        assertEquals("I", method.getParameterTypes()[0].toString());
+        assertEquals("D", method.getParameterTypes()[1].toString());
+        assertEquals("Ljava/lang/String;", method.getParameterTypes()[2].toString());
     }
 
     @Test
@@ -62,6 +65,42 @@ class MethodDescriptorTest {
     void equalToDescriptorString() {
         MethodDescriptor method = MethodDescriptor.parse("(I)V");
         assertTrue(method.equals("(I)V"));
+    }
+
+    @Test
+    void toStringNormalizesOriginalWhitespaceButEqualsStringKeepsOriginalDescriptorString() {
+        MethodDescriptor method = MethodDescriptor.parse(" (I)V ");
+
+        assertFalse(method.equals("(I)V"));
+        assertEquals("(I)V", method.toString());
+    }
+
+    @Test
+    void equalsReturnsFalseForDifferentReturnType() {
+        MethodDescriptor method = MethodDescriptor.parse("(I)V");
+
+        assertFalse(method.equals("(I)I"));
+    }
+
+    @Test
+    void equalsReturnsFalseForDifferentParameterType() {
+        MethodDescriptor method = MethodDescriptor.parse("(I)V");
+
+        assertFalse(method.equals("(J)V"));
+    }
+
+    @Test
+    void equalsReturnsFalseForEmptyString() {
+        MethodDescriptor method = MethodDescriptor.parse("(I)V");
+
+        assertFalse(method.equals(""));
+    }
+
+    @Test
+    void equalsReturnsFalseForUnrelatedObject() {
+        MethodDescriptor method = MethodDescriptor.parse("(I)V");
+
+        assertNotEquals(method, "(I)V");
     }
 
     @Test
@@ -87,5 +126,18 @@ class MethodDescriptorTest {
     void parseThrowsForInvalidFormat() {
         assertThrows(Exception.class, () -> MethodDescriptor.parse("invalid"));
     }
-}
 
+    @ParameterizedTest
+    @CsvSource(
+            {
+                    "(I",
+                    "I)V",
+                    "(()V",
+                    "(X)V",
+                    "(Ljava/lang/String)V"
+            }
+    )
+    void parseThrowsForMalformedDescriptors(String descriptor) {
+        assertThrows(Exception.class, () -> MethodDescriptor.parse(descriptor));
+    }
+}

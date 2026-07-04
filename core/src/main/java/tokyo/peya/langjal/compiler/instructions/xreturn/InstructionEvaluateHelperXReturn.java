@@ -14,18 +14,33 @@ public class InstructionEvaluateHelperXReturn {
         MethodDescriptor methodDescriptor = MethodDescriptor.parse(method.desc);
         TypeDescriptor expectedReturnType = methodDescriptor.getReturnType();
 
-        if (returningType.equals(TypeDescriptor.OBJECT)) {
-            if (expectedReturnType.getBaseType().getDescriptor().startsWith("L"))
-                return;
+        if (isCompatibleReturnType(expectedReturnType, returningType))
+            return;
 
-        }
+        throw new ReturnTypeMismatchedException(
+                method,
+                ctxt,
+                expectedReturnType,
+                returningType
+        );
+    }
 
-        if (!expectedReturnType.equals(returningType))
-            throw new ReturnTypeMismatchedException(
-                    method,
-                    ctxt,
-                    expectedReturnType,
-                    returningType
-            );
+    private static boolean isCompatibleReturnType(@NotNull TypeDescriptor expectedReturnType,
+                                                  @NotNull TypeDescriptor returningType) {
+        if (expectedReturnType.equals(returningType))
+            return true;
+
+        if (returningType.equals(TypeDescriptor.OBJECT))
+            return expectedReturnType.isArray()
+                    || expectedReturnType.getBaseType().getDescriptor().startsWith("L");
+
+        if (expectedReturnType.isArray() || returningType.isArray())
+            return false;
+
+        if (!expectedReturnType.getBaseType().isPrimitive() || !returningType.getBaseType().isPrimitive())
+            return false;
+
+        return expectedReturnType.getBaseType().getStackElementType()
+                == returningType.getBaseType().getStackElementType();
     }
 }

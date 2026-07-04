@@ -34,4 +34,24 @@ class OutputChainTest {
 
         assertEquals("line" + System.lineSeparator(), output.toString());
     }
+
+    @Test
+    void rightenDoesNotTrimValuesWiderThanWidth() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter formatter = new OutputFormatter(new PrintStream(output));
+
+        formatter.chained().righten(3, "value").print();
+
+        assertEquals("value", output.toString());
+    }
+
+    @Test
+    void emptyChainCanPrintOnlyFormatterIndent() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter formatter = new OutputFormatter(new OutputFormatter(new PrintStream(output)));
+
+        formatter.chained().print();
+
+        assertEquals("  ", output.toString());
+    }
 }

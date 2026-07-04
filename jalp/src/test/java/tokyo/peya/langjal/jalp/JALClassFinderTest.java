@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.JarEntry;
@@ -57,6 +58,59 @@ class JALClassFinderTest {
     }
 
     @Test
+    void findClassSearchesLaterClasspathEntries() throws IOException {
+        Path emptyDirectory = this.tempDir.resolve("empty");
+        Path classDirectory = this.tempDir.resolve("classes");
+        Path classFile = classDirectory.resolve("pkg").resolve("Example.class");
+        Files.createDirectories(emptyDirectory);
+        Files.createDirectories(classFile.getParent());
+        Files.write(classFile, new byte[] {1});
+
+        ClassInfo info = JALClassFinder.findClass(
+                "pkg.Example",
+                emptyDirectory + File.pathSeparator + classDirectory
+        );
+
+        assertEquals(classFile.toAbsolutePath().normalize(), info.classFile());
+    }
+
+    @Test
+    void findClassIgnoresBlankClasspathEntries() throws IOException {
+        Path classFile = this.tempDir.resolve("pkg").resolve("Example.class");
+        Files.createDirectories(classFile.getParent());
+        Files.write(classFile, new byte[] {2});
+
+        ClassInfo info = JALClassFinder.findClass(
+                "pkg.Example",
+                " " + File.pathSeparator + this.tempDir + File.pathSeparator + " "
+        );
+
+        assertEquals(classFile.toAbsolutePath().normalize(), info.classFile());
+    }
+
+    @Test
+    void findClassAcceptsSlashSeparatedInput() throws IOException {
+        Path classFile = this.tempDir.resolve("pkg").resolve("Example.class");
+        Files.createDirectories(classFile.getParent());
+        Files.write(classFile, new byte[] {3});
+
+        ClassInfo info = JALClassFinder.findClass("pkg/Example", this.tempDir.toString());
+
+        assertEquals(classFile.toAbsolutePath().normalize(), info.classFile());
+    }
+
+    @Test
+    void findClassAcceptsBackslashSeparatedInput() throws IOException {
+        Path classFile = this.tempDir.resolve("pkg").resolve("Example.class");
+        Files.createDirectories(classFile.getParent());
+        Files.write(classFile, new byte[] {4});
+
+        ClassInfo info = JALClassFinder.findClass("pkg\\Example", this.tempDir.toString());
+
+        assertEquals(classFile.toAbsolutePath().normalize(), info.classFile());
+    }
+
+    @Test
     void findClassSearchesArchiveOnClasspath() throws IOException {
         byte[] bytes = {9, 10};
         Path jarFile = this.tempDir.resolve("classes.jar");
@@ -71,6 +125,41 @@ class JALClassFinderTest {
         assertEquals(Path.of(jarFile.toAbsolutePath().normalize() + "!pkg/Example.class"), info.classFile());
         assertEquals(2, info.size());
         assertArrayEquals(bytes, info.bytes());
+    }
+
+    @Test
+    void findClassSearchesArchivesInsideClasspathDirectory() throws IOException {
+        byte[] bytes = {11, 12};
+        Path jarFile = this.tempDir.resolve("classes.zip");
+        try (JarOutputStream output = new JarOutputStream(Files.newOutputStream(jarFile))) {
+            output.putNextEntry(new JarEntry("pkg/Example.class"));
+            output.write(bytes);
+            output.closeEntry();
+        }
+
+        ClassInfo info = JALClassFinder.findClass("pkg.Example", this.tempDir.toString());
+
+        assertEquals(Path.of(jarFile.toAbsolutePath().normalize() + "!pkg/Example.class"), info.classFile());
+        assertArrayEquals(bytes, info.bytes());
+    }
+
+    @Test
+    void findClassPrefersDirectoryClassOverArchiveInSameClasspathDirectory() throws IOException {
+        Path classFile = this.tempDir.resolve("pkg").resolve("Example.class");
+        Files.createDirectories(classFile.getParent());
+        Files.write(classFile, new byte[] {13});
+
+        Path jarFile = this.tempDir.resolve("classes.jar");
+        try (JarOutputStream output = new JarOutputStream(Files.newOutputStream(jarFile))) {
+            output.putNextEntry(new JarEntry("pkg/Example.class"));
+            output.write(new byte[] {14});
+            output.closeEntry();
+        }
+
+        ClassInfo info = JALClassFinder.findClass("pkg.Example", this.tempDir.toString());
+
+        assertEquals(classFile.toAbsolutePath().normalize(), info.classFile());
+        assertArrayEquals(new byte[] {13}, info.bytes());
     }
 
     @Test

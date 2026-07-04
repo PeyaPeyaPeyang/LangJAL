@@ -36,6 +36,14 @@ class DescriptorReaderTest {
     }
 
     @Test
+    void fromStringWithOnlyWhitespaceCreatesEmptyReader() {
+        DescriptorReader reader = DescriptorReader.fromString("   ");
+
+        assertFalse(reader.hasMore());
+        assertEquals("", reader.getSource());
+    }
+
+    @Test
     void peekReturnsCharacterWithoutAdvancing() {
         DescriptorReader reader = DescriptorReader.fromString("Ljava;");
         assertEquals('L', reader.peek());
@@ -60,6 +68,22 @@ class DescriptorReaderTest {
         DescriptorReader reader = DescriptorReader.fromString("IJ");
         reader.read();
         assertEquals('J', reader.peek());
+    }
+
+    @Test
+    void readAtEndThrowsStringIndexOutOfBoundsException() {
+        DescriptorReader reader = DescriptorReader.fromString("I");
+        reader.read();
+
+        assertThrows(StringIndexOutOfBoundsException.class, reader::read);
+    }
+
+    @Test
+    void peekAtEndThrowsStringIndexOutOfBoundsException() {
+        DescriptorReader reader = DescriptorReader.fromString("I");
+        reader.read();
+
+        assertThrows(StringIndexOutOfBoundsException.class, reader::peek);
     }
 
     @Test
@@ -91,6 +115,8 @@ class DescriptorReaderTest {
         assertEquals('I', reader.read());
         assertEquals('D', reader.read());
         assertEquals(')', reader.read());
+        assertEquals('I', reader.read());
+        assertFalse(reader.hasMore());
     }
 
     @Test
@@ -108,4 +134,3 @@ class DescriptorReaderTest {
         assertEquals(1, reader.getPos());
     }
 }
-

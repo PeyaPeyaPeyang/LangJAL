@@ -2,6 +2,9 @@ package tokyo.peya.langjal.jalp;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -41,5 +44,58 @@ class OutputFormatterTest {
 
         assertEquals("    value", formatter.righten(7, "value"));
         assertEquals("  value", formatter.righten(3, "value"));
+    }
+
+    @Test
+    void printWritesWithoutLineSeparator() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter formatter = new OutputFormatter(new PrintStream(output));
+
+        OutputFormatter returned = formatter.print("value");
+
+        assertSame(formatter, returned);
+        assertEquals("value", output.toString());
+    }
+
+    @Test
+    void printlnWritesLineSeparator() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter formatter = new OutputFormatter(new PrintStream(output));
+
+        OutputFormatter returned = formatter.println("value");
+
+        assertSame(formatter, returned);
+        assertEquals("value" + System.lineSeparator(), output.toString());
+    }
+
+    @Test
+    void childPrintDelegatesToRootStreamWithIndent() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter child = new OutputFormatter(new OutputFormatter(new PrintStream(output)));
+
+        child.print("value");
+
+        assertEquals("  value", output.toString());
+    }
+
+    @Test
+    void childNoIndentPrintUsesParentIndent() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter grandChild = new OutputFormatter(new OutputFormatter(new OutputFormatter(new PrintStream(output))));
+
+        grandChild.noIndentPrint("value");
+
+        assertEquals("  value", output.toString());
+    }
+
+    @Test
+    void chainedCreatesOutputChainTargetingFormatter() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        OutputFormatter formatter = new OutputFormatter(new PrintStream(output));
+
+        OutputFormatter returned = formatter.chained().output("value").print();
+
+        assertSame(formatter, returned);
+        assertEquals("value", output.toString());
     }
 }

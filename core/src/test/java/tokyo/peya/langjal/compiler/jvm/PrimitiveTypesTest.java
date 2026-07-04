@@ -65,8 +65,38 @@ class PrimitiveTypesTest {
     @Test
     void getCategoryReturnsOneForMostTypes() {
         assertEquals(1, PrimitiveTypes.BYTE.getCategory());
+        assertEquals(1, PrimitiveTypes.SHORT.getCategory());
         assertEquals(1, PrimitiveTypes.INT.getCategory());
         assertEquals(1, PrimitiveTypes.FLOAT.getCategory());
+        assertEquals(1, PrimitiveTypes.BOOLEAN.getCategory());
+        assertEquals(1, PrimitiveTypes.CHAR.getCategory());
+        assertEquals(1, PrimitiveTypes.VOID.getCategory());
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+            {
+                    "BYTE,INTEGER",
+                    "SHORT,INTEGER",
+                    "INT,INTEGER",
+                    "LONG,LONG",
+                    "FLOAT,FLOAT",
+                    "DOUBLE,DOUBLE",
+                    "BOOLEAN,INTEGER",
+                    "CHAR,INTEGER",
+                    "VOID,TOP"
+            }
+    )
+    void getStackElementTypeMatchesJvmStackCategory(String typeName, String expectedStackType) {
+        PrimitiveTypes type = PrimitiveTypes.valueOf(typeName);
+
+        assertEquals(expectedStackType, type.getStackElementType().name());
+    }
+
+    @ParameterizedTest
+    @MethodSource("allPrimitiveTypes")
+    void asmTypeRoundTrips(PrimitiveTypes original) {
+        assertEquals(original, PrimitiveTypes.fromASMType(original.getAsmType()));
     }
 
     @Test
@@ -132,4 +162,3 @@ class PrimitiveTypesTest {
         assertNull(PrimitiveTypes.fromASMType(-999));
     }
 }
-

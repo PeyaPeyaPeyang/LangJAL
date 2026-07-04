@@ -65,6 +65,18 @@ class ClassReferenceTypeTest {
     @ParameterizedTest
     @CsvSource(
             {
+                    "java/lang/Object",
+                    "Ljava/lang/Object;",
+                    "java.lang.Object"
+            }
+    )
+    void parseJavaLangObjectReturnsCachedObjectInstance(String input) {
+        assertSame(ClassReferenceType.OBJECT, ClassReferenceType.parse(input));
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+            {
                     "Ljava/lang/String;",
                     "java/lang/String",
                     "java.lang.String"
@@ -95,6 +107,29 @@ class ClassReferenceTypeTest {
     }
 
     @Test
+    void notEqualsForDifferentPackage() {
+        ClassReferenceType type1 = ClassReferenceType.parse("java/lang/String");
+        ClassReferenceType type2 = ClassReferenceType.parse("my/lang/String");
+
+        assertNotEquals(type1, type2);
+    }
+
+    @Test
+    void notEqualsForDifferentClassName() {
+        ClassReferenceType type1 = ClassReferenceType.parse("java/lang/String");
+        ClassReferenceType type2 = ClassReferenceType.parse("java/lang/Object");
+
+        assertNotEquals(type1, type2);
+    }
+
+    @Test
+    void notEqualsForUnrelatedObject() {
+        ClassReferenceType type = ClassReferenceType.parse("java/lang/String");
+
+        assertNotEquals(type, "java/lang/String");
+    }
+
+    @Test
     void hashCodeConsistent() {
         ClassReferenceType type1 = ClassReferenceType.parse("java/lang/String");
         ClassReferenceType type2 = ClassReferenceType.parse("java/lang/String");
@@ -107,5 +142,9 @@ class ClassReferenceTypeTest {
         TypeDescriptor descriptor = type.asTypeDescriptor();
         assertEquals("Ljava/lang/Object;", descriptor.toString());
     }
-}
 
+    @Test
+    void getStackElementTypeReturnsObject() {
+        assertEquals(tokyo.peya.langjal.analyser.stack.StackElementType.OBJECT, ClassReferenceType.OBJECT.getStackElementType());
+    }
+}

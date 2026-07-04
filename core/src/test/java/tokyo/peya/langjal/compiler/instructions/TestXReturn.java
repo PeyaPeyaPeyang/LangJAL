@@ -47,6 +47,54 @@ public class TestXReturn {
     }
 
     @Nested
+    class TestBooleanIReturnCase extends XReturnTestCase<JALParser.JvmInsIreturnContext, InstructionEvaluatorIReturn> {
+        TestBooleanIReturnCase() {
+            super(new InstructionEvaluatorIReturn(), "()Z", EOpcodes.IRETURN);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes() {
+            return set(of(create(integerValue()).expected(create()), "ireturn", EOpcodes.IRETURN));
+        }
+    }
+
+    @Nested
+    class TestByteIReturnCase extends XReturnTestCase<JALParser.JvmInsIreturnContext, InstructionEvaluatorIReturn> {
+        TestByteIReturnCase() {
+            super(new InstructionEvaluatorIReturn(), "()B", EOpcodes.IRETURN);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes() {
+            return set(of(create(integerValue()).expected(create()), "ireturn", EOpcodes.IRETURN));
+        }
+    }
+
+    @Nested
+    class TestCharIReturnCase extends XReturnTestCase<JALParser.JvmInsIreturnContext, InstructionEvaluatorIReturn> {
+        TestCharIReturnCase() {
+            super(new InstructionEvaluatorIReturn(), "()C", EOpcodes.IRETURN);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes() {
+            return set(of(create(integerValue()).expected(create()), "ireturn", EOpcodes.IRETURN));
+        }
+    }
+
+    @Nested
+    class TestShortIReturnCase extends XReturnTestCase<JALParser.JvmInsIreturnContext, InstructionEvaluatorIReturn> {
+        TestShortIReturnCase() {
+            super(new InstructionEvaluatorIReturn(), "()S", EOpcodes.IRETURN);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes() {
+            return set(of(create(integerValue()).expected(create()), "ireturn", EOpcodes.IRETURN));
+        }
+    }
+
+    @Nested
     class TestLReturnCase extends XReturnTestCase<JALParser.JvmInsLreturnContext, InstructionEvaluatorLReturn> {
         TestLReturnCase() {
             super(new InstructionEvaluatorLReturn(), "()J", EOpcodes.LRETURN);
@@ -92,6 +140,22 @@ public class TestXReturn {
         public InstructionCase[] getValidInstructionSyntaxes() {
             return set(of(
                     create(object(TypeDescriptor.className("java/lang/String"))).expected(create()),
+                    "areturn",
+                    EOpcodes.ARETURN
+            ));
+        }
+    }
+
+    @Nested
+    class TestArrayAReturnCase extends XReturnTestCase<JALParser.JvmInsAreturnContext, InstructionEvaluatorAReturn> {
+        TestArrayAReturnCase() {
+            super(new InstructionEvaluatorAReturn(), "()[I", EOpcodes.ARETURN);
+        }
+
+        @Override
+        public InstructionCase[] getValidInstructionSyntaxes() {
+            return set(of(
+                    create(object(TypeDescriptor.parse("[I"))).expected(create()),
                     "areturn",
                     EOpcodes.ARETURN
             ));

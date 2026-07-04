@@ -68,6 +68,23 @@ class InvocationTypeTest {
         assertThrows(IllegalArgumentException.class, () -> InvocationType.fromName(""));
     }
 
+    @Test
+    void fromNameThrowsForNullName() {
+        assertThrows(IllegalArgumentException.class, () -> InvocationType.fromName(null));
+    }
+
+    @Test
+    void fromNameIsCaseSensitive() {
+        assertThrows(IllegalArgumentException.class, () -> InvocationType.fromName("INVOKEVIRTUAL"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("allTypes")
+    void nameAndOpcodeAccessorsReturnConstructorValues(InvocationType type) {
+        assertEquals(type.getName(), InvocationType.fromOpcode(type.getOpcode()).getName());
+        assertEquals(type.getOpcode(), InvocationType.fromName(type.getName()).getOpcode());
+    }
+
     @ParameterizedTest
     @MethodSource("allTypes")
     void allTypesHaveValidOpcodes(InvocationType type) {
@@ -80,4 +97,3 @@ class InvocationTypeTest {
         assertEquals(type, InvocationType.fromName(type.getName()));
     }
 }
-

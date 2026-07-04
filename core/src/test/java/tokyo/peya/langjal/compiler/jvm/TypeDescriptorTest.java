@@ -70,6 +70,13 @@ class TypeDescriptorTest {
     }
 
     @Test
+    void classNameAcceptsInternalClassNameWithoutDescriptorMarkers() {
+        TypeDescriptor type = TypeDescriptor.className("java/lang/String");
+
+        assertEquals("Ljava/lang/String;", type.toString());
+    }
+
+    @Test
     void constructorWithNegativeDimensionsThrows() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -96,6 +103,13 @@ class TypeDescriptorTest {
         TypeDescriptor t1 = TypeDescriptor.parse("I");
         TypeDescriptor t2 = TypeDescriptor.parse("[I");
         assertNotEquals(t1, t2);
+    }
+
+    @Test
+    void notEqualsForUnrelatedObject() {
+        TypeDescriptor type = TypeDescriptor.parse("I");
+
+        assertNotEquals(type, "I");
     }
 
     @Test
@@ -155,5 +169,24 @@ class TypeDescriptorTest {
     void getCategoryForReference() {
         assertEquals(1, TypeDescriptor.OBJECT.getBaseType().getCategory());
     }
-}
 
+    @ParameterizedTest
+    @CsvSource(
+            {
+                    "X",
+                    "[X",
+                    "Ljava/lang/String",
+                    "[]I"
+            }
+    )
+    void parseThrowsForMalformedDescriptors(String descriptor) {
+        assertThrows(Exception.class, () -> TypeDescriptor.parse(descriptor));
+    }
+
+    @Test
+    void parseDoesNotConsumeTrailingDescriptorCharacters() {
+        TypeDescriptor type = TypeDescriptor.parse("IJ");
+
+        assertEquals("I", type.toString());
+    }
+}
