@@ -8,6 +8,7 @@ import tokyo.peya.langjal.analyser.FrameDifferenceInfo;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.JALParser;
+import tokyo.peya.langjal.compiler.exceptions.IllegalInstructionException;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.*;
@@ -27,11 +28,20 @@ public class InstructionEvaluatorMultiANewArray
                                          @NotNull LocalVariablesHolder locals,
                                          JALParser.@NotNull JvmInsMultianewarrayContext instruction) {
         JALParser.TypeDescriptorContext typeDescriptor = instruction.typeDescriptor();
-        // Ljava/lang/String; -> java.lang.String に変換
-        String typeName = EvaluatorCommons.unwrapClassTypeDescriptor(typeDescriptor);
+        TypeDescriptor desc = TypeDescriptor.parse(typeDescriptor.getText());
         int dimensions = EvaluatorCommons.asInteger(instruction.NUMBER());
+        if (!desc.isArray())
+            throw new IllegalInstructionException(
+                    "multianewarray instruction requires an array descriptor: " + desc,
+                    instruction
+            );
+        else if (dimensions < 1 || dimensions > desc.getArrayDimensions())
+            throw new IllegalInstructionException(
+                    "multianewarray dimensions must be between 1 and the array dimensions of " + desc,
+                    instruction
+            );
 
-        MultiANewArrayInsnNode insn = new MultiANewArrayInsnNode(typeName, dimensions);
+        MultiANewArrayInsnNode insn = new MultiANewArrayInsnNode(desc.toString(), dimensions);
         return EvaluatedInstruction.of(this, insn);
     }
 

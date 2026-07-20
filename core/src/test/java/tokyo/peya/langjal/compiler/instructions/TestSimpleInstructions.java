@@ -2,12 +2,15 @@ package tokyo.peya.langjal.compiler.instructions;
 
 import org.junit.jupiter.api.Nested;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.instructions.utils.AbstractInstructionTestCase;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.StackValues.*;
 import static tokyo.peya.langjal.compiler.instructions.utils.StackMachine.create;
 
@@ -271,11 +274,17 @@ public class TestSimpleInstructions {
         }
 
         @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual) {
+            super.assertInstructionEquals(expected, actual);
+            assertEquals(((TypeInsnNode) expected).desc, ((TypeInsnNode) actual).desc);
+        }
+
+        @Override
         public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     of(
                             create(integerValue())
-                                    .expected(create(object(TypeDescriptor.className("java/lang/String")))),
+                                    .expected(create(object(TypeDescriptor.parse("[Ljava/lang/String;")))),
                             "anewarray Ljava/lang/String;",
                             new org.objectweb.asm.tree.TypeInsnNode(Opcodes.ANEWARRAY, "java/lang/String")
                     ),
@@ -283,7 +292,7 @@ public class TestSimpleInstructions {
                             create(object(TypeDescriptor.className("java/lang/String")), integerValue())
                                     .expected(create(
                                             object(TypeDescriptor.className("java/lang/String")),
-                                            object(TypeDescriptor.className("java/lang/String"))
+                                            object(TypeDescriptor.parse("[Ljava/lang/String;"))
                                     )),
                             "anewarray Ljava/lang/String;",
                             new org.objectweb.asm.tree.TypeInsnNode(Opcodes.ANEWARRAY, "java/lang/String")
@@ -329,6 +338,15 @@ public class TestSimpleInstructions {
         }
 
         @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual) {
+            super.assertInstructionEquals(expected, actual);
+            MultiANewArrayInsnNode expectedInsn = (MultiANewArrayInsnNode) expected;
+            MultiANewArrayInsnNode actualInsn = (MultiANewArrayInsnNode) actual;
+            assertEquals(expectedInsn.desc, actualInsn.desc);
+            assertEquals(expectedInsn.dims, actualInsn.dims);
+        }
+
+        @Override
         public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     of(
@@ -358,6 +376,12 @@ public class TestSimpleInstructions {
         }
 
         @Override
+        protected void assertInstructionEquals(AbstractInsnNode expected, AbstractInsnNode actual) {
+            super.assertInstructionEquals(expected, actual);
+            assertEquals(((TypeInsnNode) expected).desc, ((TypeInsnNode) actual).desc);
+        }
+
+        @Override
         public InstructionCase[] getValidInstructionSyntaxes() {
             return set(
                     of(
@@ -374,6 +398,12 @@ public class TestSimpleInstructions {
                                     )),
                             "checkcast Ljava/lang/String;",
                             new org.objectweb.asm.tree.TypeInsnNode(Opcodes.CHECKCAST, "java/lang/String")
+                    ),
+                    of(
+                            create(anyObject())
+                                    .expected(create(object(TypeDescriptor.parse("[Ljava/lang/String;")))),
+                            "checkcast [Ljava/lang/String;",
+                            new org.objectweb.asm.tree.TypeInsnNode(Opcodes.CHECKCAST, "[Ljava/lang/String;")
                     )
             );
         }

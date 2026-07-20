@@ -4,6 +4,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.stack.StackElement;
+import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNop;
+import tokyo.peya.langjal.compiler.member.InstructionInfo;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -188,5 +194,23 @@ class TypeDescriptorTest {
         TypeDescriptor type = TypeDescriptor.parse("IJ");
 
         assertEquals("I", type.toString());
+    }
+
+    @Test
+    void primitiveArraysAreStackObjectReferences() {
+        InstructionInfo producer = new InstructionInfo(
+                new InstructionEvaluatorNop(),
+                new ClassNode(),
+                new MethodNode(),
+                0,
+                0,
+                null,
+                0,
+                -1
+        );
+
+        StackElement element = TypeDescriptor.parse("[I").toStackElement(producer);
+
+        assertEquals(StackElementType.OBJECT, element.type());
     }
 }

@@ -36,8 +36,7 @@ public class FileOutputter {
             return output;
 
         try {
-            Path tempOutput = Files.createTempDirectory("langjal-compile-output-");
-            return tempOutput.resolve(output.getFileName());
+            return Files.createTempDirectory("langjal-compile-output-");
         } catch (IOException e) {
             System.err.println("Failed to normalize output path " + output + ": " + e.getMessage());
             throw new UncheckedIOException(e);
@@ -52,17 +51,19 @@ public class FileOutputter {
             return;  // 何もすることはない
 
         if (!Files.exists(this.actualCompileOutput)) {
-            System.err.println("Output file " + this.actualCompileOutput + " does not exist after compilation.");
+            System.err.println("Output directory " + this.actualCompileOutput + " does not exist after compilation.");
             return;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(this.actualCompileOutput.toFile());
+        try (FileOutputStream fos = new FileOutputStream(this.output.toFile());
              ZipOutputStream zos = new ZipOutputStream(fos);
-             Stream<Path> paths = Files.walk(this.actualCompileOutput.getParent())) {
+             Stream<Path> paths = Files.walk(this.actualCompileOutput)) {
             paths.filter(Files::isRegularFile)
                     .forEach(path -> {
                         try {
-                            String zipEntryName = this.actualCompileOutput.getParent().relativize(path).toString();
+                            String zipEntryName = this.actualCompileOutput.relativize(path)
+                                    .toString()
+                                    .replace('\\', '/');
                             zos.putNextEntry(new ZipEntry(zipEntryName));
                             Files.copy(path, zos);
                             zos.closeEntry();
@@ -88,6 +89,8 @@ public class FileOutputter {
         }
 
         Path parentDir = output.getParent();
+        if (parentDir == null)
+            parentDir = Path.of(".");
         if (!Files.exists(parentDir)) {
             if (verbose)
                 System.out.println("Creating parent directory: " + parentDir);

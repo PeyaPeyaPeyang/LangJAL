@@ -173,7 +173,7 @@ public class InstructionsHolder {
                 VarInsnNode varInsn = (VarInsnNode) instruction;
                 int idx = varInsn.var;
 
-                yield (idx < 0xFF) ? 2 : 4; // idx が 0xFF(255) 未満なら 2 バイト，それ以上なら 4 バイト
+                yield (idx <= 0xFF) ? 2 : 4; // idx が 0xFF(255) 以下なら 2 バイト，それ以上なら 4 バイト
             }
             case EOpcodes.IINC -> {
                 IincInsnNode iincInsn = (IincInsnNode) instruction;

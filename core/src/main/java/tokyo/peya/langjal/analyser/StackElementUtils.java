@@ -316,45 +316,55 @@ public class StackElementUtils {
     public static ObjectElement mergeObjects(@NotNull ObjectElement existingObject, @NotNull ObjectElement newObject) {
         TypeDescriptor existingType = existingObject.content();
         TypeDescriptor newType = newObject.content();
-        if (existingType.equals(newType)
-                || existingType.getBaseType().equals(ClassReferenceType.OBJECT)) {
-            // 型が同じまたは Object 型の場合はそのまま返す
+        if (existingType.equals(newType))
             return newObject;
-        }
 
-        if (existingType.getArrayDimensions() != newType.getArrayDimensions()) {
-            // 配列の次元が異なる場合はエラー
-            throw new StackElementMismatchedException(
-                    newObject.producer(), existingObject, newObject,
-                    "Cannot merge object stack elements with different array dimensions: " +
-                            existingType + "produced by " + existingObject.producer()
-                            + " and " + newType + " produced by " + newObject.producer()
-            );
-        }
+        TypeDescriptor mergedType = getCommonReferenceType(existingType, newType);
+        return new ObjectElement(newObject.producer(), mergedType);
+    }
 
-        if (existingType.getBaseType().equals(newType.getBaseType()))
-            return newObject; // 基本型が同じならそのまま返す
-        else if (existingType.getBaseType().isPrimitive() || newType.getBaseType().isPrimitive()) {
-            // ここに到達するプリミティブは，型が違うことが保証されている
-            throw new StackElementMismatchedException(
-                    newObject.producer(), existingObject, newObject,
+    private static @NotNull TypeDescriptor getCommonReferenceType(@NotNull TypeDescriptor existingType,
+                                                                  @NotNull TypeDescriptor newType) {
+        if (existingType.getBaseType().equals(ClassReferenceType.OBJECT)
+                || newType.getBaseType().equals(ClassReferenceType.OBJECT))
+            return TypeDescriptor.OBJECT;
+
+        if (existingType.isArray() || newType.isArray())
+            return getCommonArrayType(existingType, newType);
+
+        if (existingType.getBaseType().isPrimitive() || newType.getBaseType().isPrimitive()) {
+            throw new IllegalArgumentException(
                     "Cannot merge object stack elements with different primitive types: " +
-                            existingType + " produced by " + existingObject.producer()
-                            + " and " + newType + " produced by " + newObject.producer()
+                            existingType + " and " + newType
             );
-
         }
 
-        // 共通のスーパークラスを求める
-        int arayDimension = existingType.getArrayDimensions();  // 配列の次元は同じなのでどちらか一方を使う
         ClassReferenceType commonSuperType = getCommonSuperType(
-                (ClassReferenceType) existingType.getBaseType(),  // 参照型なのは保証されている
+                (ClassReferenceType) existingType.getBaseType(),
                 (ClassReferenceType) newType.getBaseType()
         );
+        return new TypeDescriptor(commonSuperType);
+    }
 
-        TypeDescriptor mergedType = new TypeDescriptor(commonSuperType, arayDimension);
-        // 新しい ObjectElement を返す
-        return new ObjectElement(newObject.producer(), mergedType);
+    private static @NotNull TypeDescriptor getCommonArrayType(@NotNull TypeDescriptor existingType,
+                                                              @NotNull TypeDescriptor newType) {
+        if (!(existingType.isArray() && newType.isArray()))
+            return TypeDescriptor.OBJECT;
+
+        if (existingType.getArrayDimensions() != newType.getArrayDimensions())
+            return TypeDescriptor.OBJECT;
+
+        if (existingType.getBaseType().equals(newType.getBaseType()))
+            return existingType;
+
+        if (existingType.getBaseType().isPrimitive() || newType.getBaseType().isPrimitive())
+            return TypeDescriptor.OBJECT;
+
+        ClassReferenceType commonSuperType = getCommonSuperType(
+                (ClassReferenceType) existingType.getBaseType(),
+                (ClassReferenceType) newType.getBaseType()
+        );
+        return new TypeDescriptor(commonSuperType, existingType.getArrayDimensions());
     }
 
     /**
@@ -384,13 +394,12 @@ public class StackElementUtils {
         if (class1.isInterface() || class2.isInterface())
             return ClassReferenceType.parse(Object.class.getName());  // インターフェースの場合は Object を返す
 
-        do {
+        while (!class1.isAssignableFrom(class2)) {
             Class<?> newClass1 = class1.getSuperclass();
             if (newClass1 == null)
-                break;  // Object まで到達したらループを抜ける
-            class1 = newClass1;  // スーパークラスに移動
+                return ClassReferenceType.OBJECT;
+            class1 = newClass1;
         }
-        while (class1.isAssignableFrom(class2));
 
         // 共通のスーパークラスを返す。 Object まで到達するので，その時は Object を返す
         return ClassReferenceType.parse(class1.getName());

@@ -37,7 +37,8 @@ class InstructionsHolderTest {
     private static Stream<Arguments> variableSizedInstructions() {
         return Stream.of(
                 Arguments.of(new VarInsnNode(EOpcodes.ILOAD, 254), 2),
-                Arguments.of(new VarInsnNode(EOpcodes.ILOAD, 255), 4),
+                Arguments.of(new VarInsnNode(EOpcodes.ILOAD, 255), 2),
+                Arguments.of(new VarInsnNode(EOpcodes.ILOAD, 256), 4),
                 Arguments.of(new IincInsnNode(255, Byte.MAX_VALUE), 3),
                 Arguments.of(new IincInsnNode(256, Byte.MAX_VALUE + 1), 6)
         );

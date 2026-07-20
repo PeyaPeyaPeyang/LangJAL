@@ -63,7 +63,7 @@ public class CompilerCLI {
 
     public static boolean hasValidOutputFileName(@NotNull Path path) {
         Path fileName = path.getFileName();
-        if (fileName == null || !Files.isRegularFile(path) || fileName.toString().isEmpty()) {
+        if (fileName == null || fileName.toString().isEmpty()) {
             System.err.println("Error: " + path + " is not a valid output file.");
             return false;
         }

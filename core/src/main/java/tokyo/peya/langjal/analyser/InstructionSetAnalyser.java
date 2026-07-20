@@ -144,6 +144,7 @@ public class InstructionSetAnalyser {
                 this.label.name(), this.instructions.size(), propagation
         ));
 
+        this.resetAnalysisState();
         this.applyPropagation(propagation);
         this.isOnceAnalysed = true;
 
@@ -170,6 +171,14 @@ public class InstructionSetAnalyser {
                 this.maxStackSize,
                 this.maxLocalSize
         );
+    }
+
+    private void resetAnalysisState() {
+        this.analysedInstructions.clear();
+        this.jumpTargets.clear();
+        this.doesContainCriticalJump = false;
+        this.maxStackSize = 0;
+        this.maxLocalSize = 0;
     }
 
     private void applyPropagation(@NotNull FramePropagation propagation) {

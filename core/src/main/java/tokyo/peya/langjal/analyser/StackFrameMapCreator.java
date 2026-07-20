@@ -198,7 +198,7 @@ public class StackFrameMapCreator {
         int chopCount = previousLocals.length - nextLocals.length;  // 末尾に TOP がないことは確認済み
         if (chopCount > 0) {
             // CHOP フレーム
-            if (chopCount <= 3)  // 最大で 3 個まで CHOP できる
+            if (chopCount <= 3 && isSameStack(previousLocals, nextLocals, nextLocals.length))  // 最大で 3 個まで CHOP できる
             {
                 LocalStackElement[] choppedLocals = new LocalStackElement[chopCount];
                 System.arraycopy(
@@ -213,7 +213,7 @@ public class StackFrameMapCreator {
         } else if (chopCount < 0)  // APPEND フレーム
         {
             int appendCount = -chopCount;  // 負の値を正に変換
-            if (appendCount <= 3)  // 最大で 3 個まで APPEND できる
+            if (appendCount <= 3 && isSameStack(previousLocals, nextLocals, previousLocals.length))  // 最大で 3 個まで APPEND できる
             {
                 LocalStackElement[] appendedLocals = new LocalStackElement[appendCount];
                 System.arraycopy(

@@ -164,7 +164,9 @@ public class TypeDescriptor {
      * @return The corresponding StackElement.
      */
     public StackElement toStackElement(@NotNull InstructionInfo producer) {
-        if (this.baseType.isPrimitive())
+        if (this.isArray())
+            return new ObjectElement(producer, TypeDescriptor.parse(this.toString()));
+        else if (this.baseType.isPrimitive())
             return new PrimitiveElement(producer, this.baseType.getStackElementType());
         else
             return new ObjectElement(producer, TypeDescriptor.parse(this.toString()));

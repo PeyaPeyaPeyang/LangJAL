@@ -45,7 +45,7 @@ public class InstructionEvaluatorANewArray extends AbstractInstructionEvaluator<
         TypeInsnNode type = (TypeInsnNode) instruction.insn();
         return FrameDifferenceInfo.builder(instruction)
                 .popPrimitive(StackElementType.INTEGER)
-                .pushObjectRef(TypeDescriptor.className(type.desc))
+                .pushObjectRef(TypeDescriptor.parse("[L" + type.desc + ";"))
                 .build();
     }
 

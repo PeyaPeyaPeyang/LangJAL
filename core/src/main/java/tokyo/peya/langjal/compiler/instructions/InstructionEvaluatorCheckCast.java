@@ -25,11 +25,17 @@ public class InstructionEvaluatorCheckCast extends AbstractInstructionEvaluator<
                                          @NotNull LocalVariablesHolder locals,
                                          JALParser.@NotNull JvmInsCheckcastContext instruction) {
         JALParser.TypeDescriptorContext typeDescriptor = instruction.typeDescriptor();
-        // Ljava/lang/String; -> java.lang.String に変換
-        String typeName = EvaluatorCommons.unwrapClassTypeDescriptor(typeDescriptor);
+        String typeName = toTypeInsnDescriptor(typeDescriptor);
 
         TypeInsnNode type = new TypeInsnNode(EOpcodes.CHECKCAST, typeName);
         return EvaluatedInstruction.of(this, type);
+    }
+
+    private static @NotNull String toTypeInsnDescriptor(@NotNull JALParser.TypeDescriptorContext typeDescriptor) {
+        String descriptor = typeDescriptor.getText();
+        if (descriptor.startsWith("["))
+            return descriptor;
+        return EvaluatorCommons.unwrapClassTypeDescriptor(typeDescriptor);
     }
 
     @Override
@@ -38,7 +44,9 @@ public class InstructionEvaluatorCheckCast extends AbstractInstructionEvaluator<
         return FrameDifferenceInfo.builder(instruction)
                 .popObjectRef()  // なんでも
                 // キャスト後のオブジェクト参照をプッシュ
-                .pushObjectRef(TypeDescriptor.className(insn.desc))
+                .pushObjectRef(insn.desc.startsWith("[")
+                        ? TypeDescriptor.parse(insn.desc)
+                        : TypeDescriptor.className(insn.desc))
                 .build();
     }
 
