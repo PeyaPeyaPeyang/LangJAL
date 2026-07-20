@@ -28,6 +28,18 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks {
+    withType<JavaCompile> {
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 tasks.jar {
     archiveBaseName.set("jalp")
     archiveClassifier.set("")
