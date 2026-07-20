@@ -32,9 +32,17 @@ jobs:
             os: ubuntu-latest
             java-architecture: x64
             gradle-command: ./gradlew
+          - asset: linux-aarch64
+            os: ubuntu-24.04-arm
+            java-architecture: aarch64
+            gradle-command: ./gradlew
           - asset: windows-x64
             os: windows-latest
             java-architecture: x64
+            gradle-command: ./gradlew.bat
+          - asset: windows-aarch64
+            os: windows-11-arm
+            java-architecture: aarch64
             gradle-command: ./gradlew.bat
           - asset: macos-x64
             os: macos-15-intel
@@ -111,8 +119,8 @@ jobs:
           mapfile -t assets < <(find build/distributions -maxdepth 1 -type f -name 'langjal-*.zip' | sort)
           printf 'Release assets:\n'
           printf '  %s\n' "${assets[@]}"
-          if [ "${#assets[@]}" -ne 4 ]; then
-            echo "Expected 4 release assets, found ${#assets[@]}" >&2
+          if [ "${#assets[@]}" -ne 6 ]; then
+            echo "Expected 6 release assets, found ${#assets[@]}" >&2
             exit 1
           fi
 
