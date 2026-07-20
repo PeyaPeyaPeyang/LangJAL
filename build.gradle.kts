@@ -50,7 +50,7 @@ tasks.register<Copy>("copyAccessories") {
     from("README.md") {
         into("")
     }
-    from("LICENSE") {
+    from("LICENCE") {
         into("")
     }
     from("examples") {
