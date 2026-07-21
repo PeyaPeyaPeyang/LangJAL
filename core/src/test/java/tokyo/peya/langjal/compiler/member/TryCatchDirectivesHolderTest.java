@@ -1,6 +1,7 @@
 package tokyo.peya.langjal.compiler.member;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Label;
@@ -171,6 +172,10 @@ class TryCatchDirectivesHolderTest {
         @Override
         public void postInfo(@NotNull String message, Path sourcePath) {
             this.infoMessages.add(new InfoMessage(message, sourcePath));
+        }
+
+        @Override
+        public void postDebug(@NotNull String message, @Nullable Path sourcePath) {
         }
 
         @Override

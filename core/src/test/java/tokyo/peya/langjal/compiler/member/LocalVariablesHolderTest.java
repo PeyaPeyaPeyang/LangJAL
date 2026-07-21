@@ -2,6 +2,7 @@ package tokyo.peya.langjal.compiler.member;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Label;
@@ -175,6 +176,10 @@ class LocalVariablesHolderTest {
         @Override
         public void postInfo(@NotNull String message, Path sourcePath) {
             this.infoMessages.add(message);
+        }
+
+        @Override
+        public void postDebug(@NotNull String message, @Nullable Path sourcePath) {
         }
 
         @Override

@@ -60,6 +60,12 @@ public class JALCompilerReporter implements CompileReporter {
     }
 
     @Override
+    public void postDebug(@NotNull String message, @Nullable Path sourcePath) {
+        if (this.verbose)
+            System.out.println("Debug: " + message + (sourcePath == null ? "" : " in " + sourcePath));
+    }
+
+    @Override
     public void postError(@NotNull String message, @Nullable Path sourcePath) {
         System.err.println("Error: " + message + (sourcePath == null ? "" : " in " + sourcePath));
     }

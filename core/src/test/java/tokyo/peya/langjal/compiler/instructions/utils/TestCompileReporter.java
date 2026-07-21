@@ -20,6 +20,11 @@ public class TestCompileReporter implements CompileReporter {
     }
 
     @Override
+    public void postDebug(@NotNull String message, @Nullable Path sourcePath) {
+        System.out.println("DEBUG: " + message + (sourcePath != null ? " at " + sourcePath : ""));
+    }
+
+    @Override
     public void postError(@NotNull String message, @Nullable Path sourcePath) {
         System.err.println("ERROR: " + message + (sourcePath != null ? " at " + sourcePath : ""));
     }

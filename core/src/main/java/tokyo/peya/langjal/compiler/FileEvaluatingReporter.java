@@ -41,6 +41,15 @@ public class FileEvaluatingReporter {
     }
 
     /**
+     * Posts a detailed debug message for the source file.
+     *
+     * @param message The debug message.
+     */
+    public void postDebug(@NotNull String message) {
+        this.delegate.postDebug(message, this.sourcePath);
+    }
+
+    /**
      * Posts an error message for the source file.
      *
      * @param message The error message.

@@ -87,6 +87,7 @@ public class MethodAnalyser {
      */
     public MethodAnalysisResult analyse() {
         this.context.postInfo("Analysing method: " + this.method.name + " in class: " + this.method.desc);
+        this.context.postDebug("Preparing analyser state for method: " + this.method.name + this.method.desc);
 
         // Make analyse() re-entrant: it can be called multiple times on the same instance.
         this.analysers.clear();
@@ -108,10 +109,13 @@ public class MethodAnalyser {
         this.maxStackSize = Math.max(this.maxStackSize, firstPropagation.maxStackSize());
         this.maxLocalSize = Math.max(this.maxLocalSize, firstPropagation.maxLocalSize());
         this.pendingPropagations.add(firstPropagation);
+        this.context.postDebug("Initial propagation queued: " + firstPropagation);
 
         // 各インストラクション・セットのスタックとローカル変数の動きを解析
         this.analyseLoop();
         this.pendingPropagations.addAll(this.createExceptionHandlerPropagations());
+        this.context.postDebug("Exception handler propagation pass queued " + this.pendingPropagations.size() +
+                " propagation(s).");
         this.analyseLoop();
         this.maxLocalSize = Math.max(this.maxLocalSize, this.locals.getMaxLocalSize());
 
@@ -138,10 +142,12 @@ public class MethodAnalyser {
             }
 
             FramePropagation propagation = this.pendingPropagations.removeFirst();
+            this.context.postDebug("Dequeued propagation #" + iterationCount + ": " + propagation +
+                    ", remaining pending: " + this.pendingPropagations.size());
             LabelInfo receiver = propagation.receiver();
 
             if (receiver == this.labels.getGlobalEnd()) {
-                this.context.postInfo("Reached global end label, stopping analysis for branch: " + propagation.sender()
+                this.context.postDebug("Reached global end label, stopping analysis for branch: " + propagation.sender()
                         .name());
                 continue;  // グローバル終了ラベルに到達した場合、分析を停止
             }
@@ -160,22 +166,32 @@ public class MethodAnalyser {
     private void analysePropagation(@NotNull FramePropagation propagation) {
         LabelInfo sender = propagation.sender();
         LabelInfo receiver = propagation.receiver();
-        this.context.postInfo("Analysing propagation for jump " + sender.name() + " -> " + receiver.name() +
+        this.context.postDebug("Analysing propagation for jump " + sender.name() + " -> " + receiver.name() +
                 ", Stack size: " + propagation.stack().length +
-                ", Local size: " + propagation.locals().length);
+                ", Local size: " + propagation.locals().length +
+                ", Stack: " + StackElementUtils.stackToString(propagation.stack()) +
+                ", Locals: " + StackElementUtils.stackToString(propagation.locals()));
 
         for (InstructionSetAnalyser analyser : this.analysers) {
             if (!analyser.getLabel().equals(receiver))  // 該当するインストラクション・セットを探す
                 continue;
 
+            this.context.postDebug("Matched propagation receiver " + receiver.name() +
+                    " to instruction set with " + analyser.getInstructions().size() + " instruction(s).");
             InstructionSetAnalysisResult analysisResult = analyser.analyse(propagation);
             this.confirmedAnalysisResults.put(propagation, analysisResult);  // 分析結果を確定
             this.updateMaxes(analysisResult);
+            this.context.postDebug("Confirmed propagation " + sender.name() + " -> " + receiver.name() +
+                    ", result stack: " + StackElementUtils.stackToString(analysisResult.stack()) +
+                    ", result locals: " + StackElementUtils.stackToString(analysisResult.locals()) +
+                    ", emitted propagations: " + analysisResult.framePropagations().length);
             for (FramePropagation nextPropagation : analysisResult.framePropagations()) {
                 if (this.checkConfirmedPropagation(nextPropagation)) {
-                    this.context.postInfo("New propagation found: " + nextPropagation);
+                    this.context.postDebug("New propagation found: " + nextPropagation);
                     this.pendingPropagations.add(nextPropagation);  // 新しい伝播を追加
                 }
+                else
+                    this.context.postDebug("Skipping already-confirmed propagation: " + nextPropagation);
             }
             break;
         }
@@ -192,7 +208,8 @@ public class MethodAnalyser {
                         Arrays.equals(confirmed.locals(), propagation.locals()))
                     return false;  // 同じスタックとローカル変数の組み合わせが既に存在する
                 else {
-                    this.context.postInfo("Found existing propagation with different stack/locals: " + confirmed);
+                    this.context.postDebug("Found existing propagation with different stack/locals: " + confirmed +
+                            ", replacement: " + propagation);
                     // 既存の伝播と異なるスタックやローカル変数がある場合、更新する
                     iterator.remove();  // 古い伝播を削除
                     return true;  // 新しい伝播を追加する必要がある
@@ -336,7 +353,7 @@ public class MethodAnalyser {
                     this.liveLocalsAtEntry
             );
             if (analyser == null) {
-                this.context.postInfo(String.format(
+                this.context.postDebug(String.format(
                         "No instructions found for label: %s, creating empty analyser.",
                         label.name()
                 ));
@@ -355,26 +372,37 @@ public class MethodAnalyser {
             this.liveLocalsAtEntry.put(analyser.getLabel(), new BitSet());
 
         boolean updated;
+        int pass = 0;
         do {
+            pass++;
             updated = false;
             for (int i = this.analysers.size() - 1; i >= 0; i--) {
                 InstructionSetAnalyser analyser = this.analysers.get(i);
                 BitSet nextLive = this.computeLiveLocalsAtEntry(analyser);
                 BitSet previousLive = this.liveLocalsAtEntry.get(analyser.getLabel());
                 if (!nextLive.equals(previousLive)) {
+                    this.context.postDebug("Live locals changed at " + analyser.getLabel().name() +
+                            " on pass " + pass + ": " + previousLive + " -> " + nextLive);
                     this.liveLocalsAtEntry.put(analyser.getLabel(), nextLive);
                     updated = true;
                 }
             }
         }
         while (updated);
+        this.context.postDebug("Live local analysis converged in " + pass + " pass(es): " + this.liveLocalsAtEntry);
     }
 
     private @NotNull BitSet computeLiveLocalsAtEntry(@NotNull InstructionSetAnalyser analyser) {
         BitSet liveLocals = this.computeLiveLocalsAtExit(analyser.getLabel());
+        this.context.postDebug("Initial live locals at exit of " + analyser.getLabel().name() + ": " + liveLocals);
         List<InstructionInfo> instructions = analyser.getInstructions();
-        for (int i = instructions.size() - 1; i >= 0; i--)
+        for (int i = instructions.size() - 1; i >= 0; i--) {
+            BitSet before = (BitSet) liveLocals.clone();
             this.applyInstructionLiveness(instructions.get(i), liveLocals);
+            if (!before.equals(liveLocals))
+                this.context.postDebug("Liveness after walking " + instructions.get(i) +
+                        " backwards: " + before + " -> " + liveLocals);
+        }
 
         return liveLocals;
     }
@@ -386,6 +414,7 @@ public class MethodAnalyser {
             if (successorLive != null)
                 liveLocals.or(successorLive);
         }
+        this.context.postDebug("Computed live locals at exit of " + label.name() + ": " + liveLocals);
         return liveLocals;
     }
 

@@ -2,6 +2,7 @@ package tokyo.peya.langjal.compiler.instructions;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Opcodes;
@@ -346,6 +347,10 @@ public class TestXStore {
 
         @Override
         public void postInfo(@NotNull String message, Path sourcePath) {
+        }
+
+        @Override
+        public void postDebug(@NotNull String message, @Nullable Path sourcePath) {
         }
 
         @Override

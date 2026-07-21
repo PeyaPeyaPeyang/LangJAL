@@ -29,6 +29,17 @@ public interface CompileReporter {
     void postInfo(@NotNull String message, @Nullable Path sourcePath);
 
     /**
+     * Posts a detailed debug message.
+     * <p>
+     * Debug messages are intentionally more verbose than info messages and may include
+     * per-instruction analysis state, frame snapshots, and propagation decisions.
+     *
+     * @param message    The debug message.
+     * @param sourcePath The source file path, or null if not applicable.
+     */
+    void postDebug(@NotNull String message, @Nullable Path sourcePath);
+
+    /**
      * Posts an error message.
      *
      * @param message    The error message.

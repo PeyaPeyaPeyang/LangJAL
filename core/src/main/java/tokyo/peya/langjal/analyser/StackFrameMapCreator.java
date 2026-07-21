@@ -113,13 +113,15 @@ public class StackFrameMapCreator {
             return;
         }
 
-        this.context.postInfo("Merging frame at " + label.name() + " with existing frame.");
+        this.context.postDebug("Merging frame at " + label.name() + " with existing frame.");
 
         // 既に同じものがあったら，スタックとローカル変数をマージする。
         InstructionSetFrame existingFrame = this.frames.get(label);
+        this.context.postDebug("Existing frame: " + this.formatFrame(existingFrame));
+        this.context.postDebug("Incoming frame: " + this.formatFrame(newFrame));
         InstructionSetFrame mergedFrame = mergeFrames(existingFrame, newFrame);
 
-        this.context.postInfo("Merged frame at " + label.name() + ":");
+        this.context.postDebug("Merged frame at " + label.name() + ":");
         this.printFrame(mergedFrame);
 
         this.frames.put(label, mergedFrame);
@@ -159,6 +161,8 @@ public class StackFrameMapCreator {
             InstructionSetFrame previous = frames.get(i);
             InstructionSetFrame next = frames.get(i + 1);
             StackFrameMapEntry nextFrame = computeNextFrame(previous, next);
+            this.context.postDebug("Computed StackMap frame transition " + previous.label().name() +
+                    " -> " + next.label().name() + ": " + nextFrame);
             stackFrameMap[i] = nextFrame;
         }
 
@@ -232,9 +236,9 @@ public class StackFrameMapCreator {
     }
 
     private void printFrames(List<InstructionSetFrame> frames) {
-        this.context.postInfo("----- Stack Frames of " + this.method.name + " -----");
+        this.context.postDebug("----- Stack Frames of " + this.method.name + " -----");
         if (this.frames.isEmpty()) {
-            this.context.postInfo("No stack frames found.");
+            this.context.postDebug("No stack frames found.");
             return;
         }
         for (InstructionSetFrame frame : frames)
@@ -242,10 +246,12 @@ public class StackFrameMapCreator {
     }
 
     private void printFrame(@NotNull InstructionSetFrame frame) {
-        this.context.postInfo(
-                "--- Frame at " + this.method.name + ":" + frame.label().name() + " ---" +
-                        "Stack: " + StackElementUtils.stackToString(frame.stack())
-                        + ", Locals: " + StackElementUtils.stackToString(frame.locals())
-        );
+        this.context.postDebug(this.formatFrame(frame));
+    }
+
+    private @NotNull String formatFrame(@NotNull InstructionSetFrame frame) {
+        return "--- Frame at " + this.method.name + ":" + frame.label().name() + " ---" +
+                "Stack: " + StackElementUtils.stackToString(frame.stack())
+                + ", Locals: " + StackElementUtils.stackToString(frame.locals());
     }
 }

@@ -104,4 +104,9 @@ public final class StackElementCapsule implements StackElement {
     public Object toASMStackElement() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "{" + this.element + "}";
+    }
 }
