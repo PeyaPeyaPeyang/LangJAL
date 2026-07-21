@@ -1,13 +1,13 @@
 package tokyo.peya.langjal.jalp.printers;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
 import tokyo.peya.langjal.jalp.ClassInfo;
 import tokyo.peya.langjal.jalp.JALClassFinder;
+import tokyo.peya.langjal.jalp.JALPOptions;
 import tokyo.peya.langjal.jalp.OutputFormatter;
 import tokyo.peya.langjal.jalp.reader.JALAttribute;
 import tokyo.peya.langjal.jalp.reader.JALClass;
 import tokyo.peya.langjal.jalp.reader.JALClassReader;
+import tokyo.peya.langjal.jalp.reader.JALConstantPoolEntry;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -43,7 +43,12 @@ public class JALFilePrinter {
 
         JALClass clazz = JALClassReader.read(classInfo.bytes());
 
-        this.printHeader(classInfo, clazz);
+        if (JALPOptions.is(this.flags, JALPOptions.SHOW_HEADER)) {
+            this.printHeader(classInfo, clazz);
+        }
+        if (JALPOptions.is(this.flags, JALPOptions.SHOW_CONSTANTS)) {
+            this.printConstants(clazz);
+        }
         this.processor.process(clazz);
     }
 
@@ -67,5 +72,54 @@ public class JALFilePrinter {
         }
 
         this.outputs.println("*/");
+    }
+
+    private void printConstants(JALClass clazz) {
+        this.outputs.println("Constant pool:");
+        OutputFormatter constantsOut = new OutputFormatter(this.outputs);
+        JALConstantPoolEntry[] constants = clazz.constants();
+        for (int i = 1; i < constants.length; i++) {
+            JALConstantPoolEntry entry = constants[i];
+            if (entry == null) {
+                continue;
+            }
+            constantsOut.println("#" + i + " = " + formatConstant(entry));
+        }
+    }
+
+    private static String formatConstant(JALConstantPoolEntry entry) {
+        return switch (entry) {
+            case JALConstantPoolEntry.Utf8Entry utf8 -> "Utf8 " + utf8.value();
+            case JALConstantPoolEntry.ClassEntry classEntry -> "Class " + classEntry.name().getInternalName();
+            case JALConstantPoolEntry.StringEntry stringEntry -> "String \"" + stringEntry.value() + "\"";
+            case JALConstantPoolEntry.IntegerEntry integerEntry -> "Integer " + integerEntry.value();
+            case JALConstantPoolEntry.FloatEntry floatEntry -> "Float " + floatEntry.value();
+            case JALConstantPoolEntry.LongEntry longEntry -> "Long " + longEntry.value();
+            case JALConstantPoolEntry.DoubleEntry doubleEntry -> "Double " + doubleEntry.value();
+            case JALConstantPoolEntry.NameAndTypeEntry nameAndType ->
+                    "NameAndType " + nameAndType.name() + ":" + nameAndType.descriptor();
+            case JALConstantPoolEntry.FieldEntry fieldEntry ->
+                    "Field " + fieldEntry.owner().name().getInternalName() + "."
+                            + fieldEntry.nameAndType().name() + ":" + fieldEntry.nameAndType().descriptor();
+            case JALConstantPoolEntry.MethodEntry methodEntry ->
+                    "Method " + methodEntry.owner().name().getInternalName() + "."
+                            + methodEntry.nameAndType().name() + methodEntry.nameAndType().descriptor();
+            case JALConstantPoolEntry.InterfaceMethodEntry methodEntry ->
+                    "InterfaceMethod " + methodEntry.owner().name().getInternalName() + "."
+                            + methodEntry.nameAndType().name() + methodEntry.nameAndType().descriptor();
+            case JALConstantPoolEntry.MethodHandleEntry handleEntry ->
+                    "MethodHandle " + handleEntry.referenceKind() + " " + formatConstant(handleEntry.reference());
+            case JALConstantPoolEntry.MethodTypeEntry methodType -> "MethodType " + methodType.descriptor();
+            case JALConstantPoolEntry.DynamicEntry dynamicEntry ->
+                    "Dynamic " + dynamicEntry.bootstrapMethodAttrIndex() + " "
+                            + dynamicEntry.nameAndType().name() + dynamicEntry.nameAndType().descriptor();
+            case JALConstantPoolEntry.InvokeDynamicEntry dynamicEntry ->
+                    "InvokeDynamic " + dynamicEntry.bootstrapMethodAttrIndex() + " "
+                            + dynamicEntry.nameAndType().name() + dynamicEntry.nameAndType().descriptor();
+            case JALConstantPoolEntry.ModuleEntry moduleEntry -> "Module " + moduleEntry.name();
+            case JALConstantPoolEntry.PackageEntry packageEntry -> "Package " + packageEntry.name();
+            case JALConstantPoolEntry.UnresolvedConstantPoolEntry unresolved ->
+                    "Unresolved " + unresolved.getClass().getSimpleName();
+        };
     }
 }

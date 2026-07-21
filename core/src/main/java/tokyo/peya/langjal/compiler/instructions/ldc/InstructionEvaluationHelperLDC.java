@@ -37,8 +37,7 @@ public class InstructionEvaluationHelperLDC {
                         scalar
                 );
 
-            String value = string.getText();
-            value = value.substring(1, value.length() - 1); // Remove quotes
+            String value = EvaluatorCommons.asString(string);
             ldcInsnNode = new LdcInsnNode(value);
             return EvaluatedInstruction.of(evaluator, ldcInsnNode);
         } else if (number == null)

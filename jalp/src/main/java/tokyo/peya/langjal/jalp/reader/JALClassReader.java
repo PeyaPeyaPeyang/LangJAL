@@ -4,15 +4,22 @@ import tokyo.peya.langjal.compiler.jvm.AccessAttributeSet;
 import tokyo.peya.langjal.compiler.jvm.AccessLevel;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class JALClassReader {
     private final byte[] bytes;
+    private final Deque<Integer> attributeEnds;
     private int current;
 
     private JALClassReader(byte[] bytes) {
         this.bytes = bytes;
+        this.attributeEnds = new ArrayDeque<>();
         this.current = 0;
     }
 
@@ -34,7 +41,10 @@ public class JALClassReader {
         AccessAttributeSet accessAttrs = AccessAttributeSet.fromAccess(access);
 
         JALConstantPoolEntry.ClassEntry thisClass = this.getClassEntryFromConstants(constantPool, this.readUnsignedShort());  // u2 this_class
-        JALConstantPoolEntry.ClassEntry superClass = this.getClassEntryFromConstants(constantPool, this.readUnsignedShort());  // u2 super_class
+        int superClassIndex = this.readUnsignedShort();  // u2 super_class
+        ClassReferenceType superClass = superClassIndex == 0
+                ? ClassReferenceType.OBJECT
+                : this.getClassEntryFromConstants(constantPool, superClassIndex).name();
 
         ClassReferenceType[] interfaces = this.readInterfaces(constantPool);  // u2 interfaces_count, u2 interfaces[interfaces_count]
         JALField[] fields = this.readFields(constantPool);  // u2 fields_count, field_info fields[fields_count]
@@ -48,7 +58,7 @@ public class JALClassReader {
                 accessLevel,
                 accessAttrs,
                 thisClass.name(),
-                superClass.name(),
+                superClass,
                 interfaces,
                 fields,
                 methods,
@@ -68,6 +78,10 @@ public class JALClassReader {
         JALConstantPoolEntry[] constantPool = new JALConstantPoolEntry[constantPoolCount];
         for (int i = 1; i < constantPoolCount; i++) {
             constantPool[i] = JALConstantPoolEntry.read(this);
+            if (constantPool[i] instanceof JALConstantPoolEntry.LongEntry
+                    || constantPool[i] instanceof JALConstantPoolEntry.DoubleEntry) {
+                i++;
+            }
         }
 
         // 未解決の参照があるので，定数プールの解決を行う
@@ -148,6 +162,9 @@ public class JALClassReader {
 
         // 型が違う場合もダメ
         JALConstantPoolEntry entry = constantPool[idx];
+        if (entry == null) {
+            throw new IllegalArgumentException("Invalid constant pool index: " + idx + " points to an empty slot");
+        }
         if (!type.test(entry)) {
             throw new IllegalArgumentException("Expected " + type + " at index " + idx + " but found " + entry.getClass().getSimpleName());
         }
@@ -155,6 +172,9 @@ public class JALClassReader {
     }
 
     /* non-public */ byte[] readBytes(int length) {
+        if (length < 0 || this.current + length > this.bytes.length) {
+            throw new IllegalArgumentException("Unexpected end of class file");
+        }
         byte[] result = new byte[length];
         System.arraycopy(this.bytes, this.current, result, 0, length);
         this.current += length;
@@ -164,7 +184,15 @@ public class JALClassReader {
     /* non-public */ String readUTF8() {
         int length = this.readUnsignedShort();
         byte[] bytes = this.readBytes(length);
-        return new String(bytes);
+        byte[] utf = new byte[length + 2];
+        utf[0] = (byte) (length >>> 8);
+        utf[1] = (byte) length;
+        System.arraycopy(bytes, 0, utf, 2, length);
+        try {
+            return new DataInputStream(new ByteArrayInputStream(utf)).readUTF();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid modified UTF-8 constant", e);
+        }
     }
 
     /* non-public */ int readUnsignedShort() {
@@ -174,6 +202,9 @@ public class JALClassReader {
     }
 
     /* non-public */ int readByte() {
+        if (this.current >= this.bytes.length) {
+            throw new IllegalArgumentException("Unexpected end of class file");
+        }
         return this.bytes[this.current++];
     }
 
@@ -227,6 +258,19 @@ public class JALClassReader {
     }
 
     /* non-public */ void skip(int length) {
-        this.current += length;
+        this.readBytes(length);
+    }
+
+    /* non-public */ void markAttributeLength(int length) {
+        this.attributeEnds.push(this.current + length);
+    }
+
+    /* non-public */ void finishAttribute(String name) {
+        int expectedEnd = this.attributeEnds.pop();
+        if (this.current != expectedEnd) {
+            throw new IllegalStateException(
+                    "Invalid " + name + " attribute length: ended at " + this.current + " (expected: " + expectedEnd + ")"
+            );
+        }
     }
 }

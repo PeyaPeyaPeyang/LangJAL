@@ -8,6 +8,9 @@ public sealed interface JALConstantPoolEntry {
         JALConstantPoolEntry resolve(JALConstantPoolEntry[] constantPool);
 
         static JALConstantPoolEntry resolveEntry(JALConstantPoolEntry[] constantPool, int index) {
+            if (index <= 0 || index >= constantPool.length || constantPool[index] == null) {
+                throw new IllegalArgumentException("Invalid constant pool index: " + index);
+            }
             JALConstantPoolEntry entry = constantPool[index];
             if (entry instanceof UnresolvedConstantPoolEntry unresolved) {
                 JALConstantPoolEntry resolved = unresolved.resolve(constantPool);

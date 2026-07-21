@@ -1,8 +1,10 @@
 package tokyo.peya.langjal.compiler;
 
 import org.junit.jupiter.api.Test;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
@@ -151,6 +153,14 @@ class JALPreprocessorTest {
         return clazz.methods.getFirst();
     }
 
+    private static MethodNode methodNamed(String source, String name) throws CompileErrorException {
+        ClassNode clazz = compile(source);
+        return clazz.methods.stream()
+                .filter(method -> name.equals(method.name))
+                .findFirst()
+                .orElseThrow();
+    }
+
     private static int[] opcodesOf(MethodNode method) {
         return Arrays.stream(method.instructions.toArray())
                 .filter(Objects::nonNull)
@@ -163,6 +173,14 @@ class JALPreprocessorTest {
         return Arrays.stream(method.instructions.toArray())
                 .filter(LdcInsnNode.class::isInstance)
                 .map(LdcInsnNode.class::cast)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static InvokeDynamicInsnNode firstInvokeDynamicOf(MethodNode method) {
+        return Arrays.stream(method.instructions.toArray())
+                .filter(InvokeDynamicInsnNode.class::isInstance)
+                .map(InvokeDynamicInsnNode.class::cast)
                 .findFirst()
                 .orElseThrow();
     }
@@ -258,5 +276,46 @@ class JALPreprocessorTest {
                 """);
 
         assertEquals("MESSAGE", firstLdcOf(method).cst);
+    }
+
+    @Test
+    void ldcUnescapesStringLiteral() throws CompileErrorException {
+        MethodNode method = singleMethod("""
+                public class Test {
+                    public demo()V {
+                        ldc "line\\n\\\"quoted\\\"\\\\tail"
+                        pop
+                        return
+                    }
+                }
+                """);
+
+        assertEquals("line\n\"quoted\"\\tail", firstLdcOf(method).cst);
+    }
+
+    @Test
+    void invokedynamicAcceptsMethodHandleBootstrapArgument() throws CompileErrorException {
+        MethodNode method = methodNamed("""
+                public class Test {
+                    public demo()Ljava/lang/Runnable; {
+                        invokedynamic run()Ljava/lang/Runnable; MethodHandle|invokestatic|java/lang/invoke/LambdaMetafactory->metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; MethodType|()V MethodHandle|invokestatic|Test->target()V MethodType|()V
+                        areturn
+                    }
+
+                    public static target()V {
+                        return
+                    }
+                }
+                """, "demo");
+
+        InvokeDynamicInsnNode invokedynamic = firstInvokeDynamicOf(method);
+
+        assertEquals(3, invokedynamic.bsmArgs.length);
+        assertEquals("()V", invokedynamic.bsmArgs[0].toString());
+        Handle handle = (Handle) invokedynamic.bsmArgs[1];
+        assertEquals("Test", handle.getOwner());
+        assertEquals("target", handle.getName());
+        assertEquals("()V", handle.getDesc());
+        assertEquals("()V", invokedynamic.bsmArgs[2].toString());
     }
 }

@@ -333,6 +333,9 @@ public class CodePrinter {
     private String formatInvokeDynamic(int cpIndex) {
         JALConstantPoolEntry.InvokeDynamicEntry indy =
                 getConstantPoolEntry(this.pool, cpIndex, JALConstantPoolEntry.InvokeDynamicEntry.class);
+        if (this.claBootstrapMethods == null) {
+            throw new IllegalArgumentException("Missing BootstrapMethods attribute for invokedynamic");
+        }
 
         JALConstantPoolEntry.NameAndTypeEntry nameAndType = indy.nameAndType();
         JALAttribute.BootstrapMethodsAttribute.BootstrapMethod bootstrap = this.claBootstrapMethods.methods()[indy.bootstrapMethodAttrIndex()];
@@ -394,7 +397,7 @@ public class CodePrinter {
             case JALConstantPoolEntry.FieldEntry fieldRef -> formatFieldRef(fieldRef);
             case JALConstantPoolEntry.MethodEntry methodRef -> formatMethodRef(methodRef);
             case JALConstantPoolEntry.InterfaceMethodEntry methodRef -> formatMethodRef(methodRef);
-            case JALConstantPoolEntry.MethodTypeEntry methodType -> "MethodHandle|" + methodType.descriptor();
+            case JALConstantPoolEntry.MethodTypeEntry methodType -> "MethodType|" + methodType.descriptor();
             case JALConstantPoolEntry.MethodHandleEntry methodHandle -> formatMethodHandle(methodHandle);
             default ->
                     throw new IllegalArgumentException("Unsupported constant pool entry type for bootstrap argument: " + cpEntry.getClass().getSimpleName());
@@ -408,6 +411,9 @@ public class CodePrinter {
         }
 
         JALConstantPoolEntry entry = pool[index];
+        if (entry == null) {
+            throw new IllegalArgumentException("Constant pool index points to an empty slot: " + index);
+        }
         if (!expectedClass.isInstance(entry)) {
             throw new IllegalArgumentException("Expected constant pool entry of type %s at index %d, but got %s" .formatted(
                     expectedClass.getSimpleName(),
@@ -478,10 +484,16 @@ public class CodePrinter {
 
     private String formatObjectTypeDescriptor(int cpIndex) {
         String className = formatClassName(cpIndex);
+        if (className.startsWith("[")) {
+            return className;
+        }
         return "L%s;" .formatted(className);
     }
 
     private String formatLdcConstant(int cpIndex) {
+        if (cpIndex <= 0 || cpIndex >= this.pool.length || this.pool[cpIndex] == null) {
+            throw new IllegalArgumentException("Invalid constant pool index for ldc: " + cpIndex);
+        }
         JALConstantPoolEntry entry = this.pool[cpIndex];
 
         return switch (entry) {

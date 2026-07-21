@@ -48,14 +48,17 @@ public sealed interface JALAttribute {
                 case "NestMembers" -> NestMembersAttribute.read(reader, pool);
                 case "Record" -> RecordAttribute.read(reader, pool);
                 case "PermittedSubclasses" -> PermittedSubclassesAttribute.read(reader, pool);
-                default -> throw new IllegalStateException("Unknown attribute: " + name);
+                default -> UnknownAttribute.read(name, reader);
             };
+            reader.finishAttribute(name);
         }
         return attributes;
     }
 
     private static int readLength(JALClassReader reader) {
-        return reader.readInt();
+        int length = reader.readInt();
+        reader.markAttributeLength(length);
+        return length;
     }
 
     private static void requireLength(String name, int expected, int actual) {
@@ -88,11 +91,25 @@ public sealed interface JALAttribute {
         );
     }
 
+    private static JALConstantPoolEntry cpEntry(JALConstantPoolEntry[] pool, int idx) {
+        return JALClassReader.getFromConstants(
+                pool, idx,
+                entry -> true,
+                entry -> entry
+        );
+    }
+
+    record UnknownAttribute(String name, byte[] info) implements JALAttribute {
+        public static UnknownAttribute read(String name, JALClassReader reader) {
+            return new UnknownAttribute(name, reader.readBytes(readLength(reader)));
+        }
+    }
+
     record ConstantValueAttribute(String name, JALConstantPoolEntry constant) implements JALAttribute {
         public static ConstantValueAttribute read(JALClassReader reader, JALConstantPoolEntry[] pool) {
             int length = readLength(reader);
             requireLength("ConstantValue", 2, length);
-            return new ConstantValueAttribute("ConstantValue", pool[reader.readUnsignedShort()]);
+            return new ConstantValueAttribute("ConstantValue", cpEntry(pool, reader.readUnsignedShort()));
         }
     }
 
@@ -346,7 +363,7 @@ public sealed interface JALAttribute {
                 );
                 int argN = reader.readUnsignedShort();
                 JALConstantPoolEntry[] args = new JALConstantPoolEntry[argN];
-                for (int j = 0; j < argN; j++) args[j] = pool[reader.readUnsignedShort()];
+                for (int j = 0; j < argN; j++) args[j] = cpEntry(pool, reader.readUnsignedShort());
                 methods[i] = new BootstrapMethod(handle, args);
             }
             return new BootstrapMethodsAttribute("BootstrapMethods", methods);
@@ -603,7 +620,7 @@ public sealed interface JALAttribute {
     private static ElementValue readElementValue(JALClassReader reader, JALConstantPoolEntry[] pool) {
         char tag = (char) reader.readUnsignedByte();
         return switch (tag) {
-            case 'B', 'C', 'D', 'F', 'I', 'J', 'S', 'Z', 's' -> new ConstElementValue(tag, pool[reader.readUnsignedShort()]);
+            case 'B', 'C', 'D', 'F', 'I', 'J', 'S', 'Z', 's' -> new ConstElementValue(tag, cpEntry(pool, reader.readUnsignedShort()));
             case 'e' -> new EnumElementValue(tag, cpUtf8(pool, reader.readUnsignedShort()), cpUtf8(pool, reader.readUnsignedShort()));
             case 'c' -> new ClassElementValue(tag, cpUtf8(pool, reader.readUnsignedShort()));
             case '@' -> new AnnotationElementValue(tag, readAnnotation(reader, pool));

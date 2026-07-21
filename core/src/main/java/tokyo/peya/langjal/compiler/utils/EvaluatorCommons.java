@@ -44,14 +44,35 @@ public class EvaluatorCommons {
         if (text == null || text.isEmpty())
             return null;
 
+        return unescapeStringLiteral(text);
+    }
+
+    public static String unescapeStringLiteral(@NotNull String text) {
         if (text.startsWith("\"") && text.endsWith("\""))
             text = text.substring(1, text.length() - 1);
         else if (text.startsWith("'") && text.endsWith("'"))
             text = text.substring(1, text.length() - 1);
 
-        return text.replace("\\\"", "\"")
-                .replace("\\'", "'")
-                .replace("\\\\", "\\");
+        StringBuilder result = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c != '\\' || i + 1 >= text.length()) {
+                result.append(c);
+                continue;
+            }
+
+            char escaped = text.charAt(++i);
+            switch (escaped) {
+                case 'b' -> result.append('\b');
+                case 't' -> result.append('\t');
+                case 'n' -> result.append('\n');
+                case 'f' -> result.append('\f');
+                case 'r' -> result.append('\r');
+                case '"', '\'', '\\' -> result.append(escaped);
+                default -> result.append('\\').append(escaped);
+            }
+        }
+        return result.toString();
     }
 
     /**
@@ -245,8 +266,7 @@ public class EvaluatorCommons {
         if (scalar.NUMBER() != null)
             return toNumber(scalar.NUMBER());
         else if (scalar.STRING() != null) {
-            String value = scalar.STRING().getText();
-            return value.substring(1, value.length() - 1); // Remove quotes
+            return asString(scalar.STRING());
         } else if (scalar.BOOLEAN() != null)
             return toBoolean(scalar.BOOLEAN());
         else

@@ -111,9 +111,18 @@ public class JALClassFinder {
             if (entry.isBlank()) {
                 continue;
             }
-            entries.add(Path.of(entry.trim()));
+            entries.add(Path.of(stripSurroundingQuotes(entry.trim())));
         }
         return entries;
+    }
+
+    private static String stripSurroundingQuotes(String value) {
+        if (value.length() >= 2
+                && ((value.startsWith("\"") && value.endsWith("\""))
+                || (value.startsWith("'") && value.endsWith("'")))) {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
     }
 
     private static String toClassEntry(String input) {
@@ -149,10 +158,10 @@ public class JALClassFinder {
     }
 
     private static List<Path> listArchiveFiles(Path directory) {
-        try (var paths = Files.list(directory)) {
+        try (var paths = Files.walk(directory)) {
             return paths
                     .filter(JALClassFinder::isArchiveFile)
-                    .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                    .sorted(Comparator.comparing(path -> directory.relativize(path).toString()))
                     .toList();
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to list classpath directory: " + directory, e);

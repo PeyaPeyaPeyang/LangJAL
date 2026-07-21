@@ -1,10 +1,12 @@
 package tokyo.peya.langjal.jalp;
 
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.jetbrains.annotations.NotNull;
 import tokyo.peya.langjal.jalp.printers.JALFilePrinter;
 
+import java.io.PrintStream;
 import java.util.List;
 
 public class Main {
@@ -13,7 +15,7 @@ public class Main {
         try {
             OptionSet options = parser.parse(args);
             if (options.has("help")) {
-                printHelpAndExit(parser);
+                printHelp(parser, System.out);
                 return;
             }
             if (options.has("version")) {
@@ -24,7 +26,8 @@ public class Main {
             List<?> nonOptions = options.nonOptionArguments();
             if (nonOptions.isEmpty()) {
                 System.err.println("Error: Missing input file.");
-                printHelpAndExit(parser);
+                printHelp(parser, System.err);
+                System.exit(1);
                 return;
             }
             String input = nonOptions.getFirst().toString();
@@ -35,6 +38,14 @@ public class Main {
 
             JALFilePrinter bootstrap = new JALFilePrinter(classpath, flags);
             bootstrap.process(input);
+        } catch (OptionException e) {
+            System.err.println("Error: " + e.getMessage());
+            try {
+                parser.printHelpOn(System.err);
+            } catch (Exception printEx) {
+                System.err.println("Failed to print help: " + printEx.getMessage());
+            }
+            System.exit(1);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             try {
@@ -42,27 +53,30 @@ public class Main {
             } catch (Exception printEx) {
                 System.err.println("Failed to print help: " + printEx.getMessage());
             }
+            System.exit(1);
         }
     }
 
     private static int getFlags(@NotNull OptionSet options) {
         int flags = 0;
+        int visibilityFlags = 0;
 
         if (options.has("public")) {
-            flags |= JALPOptions.SHOW_ACC_PUBLIC;
+            visibilityFlags |= JALPOptions.SHOW_ACC_PUBLIC;
         }
 
         if (options.has("protected")) {
-            flags |= JALPOptions.SHOW_ACC_PUBLIC | JALPOptions.SHOW_ACC_PROTECTED;
+            visibilityFlags |= JALPOptions.SHOW_ACC_PUBLIC | JALPOptions.SHOW_ACC_PROTECTED;
         }
 
         if (options.has("package")) {
-            flags |= JALPOptions.SHOW_ACC_PUBLIC | JALPOptions.SHOW_ACC_PROTECTED | JALPOptions.SHOW_ACC_PACKAGE_PRIVATE;
+            visibilityFlags |= JALPOptions.SHOW_ACC_PUBLIC | JALPOptions.SHOW_ACC_PROTECTED | JALPOptions.SHOW_ACC_PACKAGE_PRIVATE;
         }
 
         if (options.has("private") || options.has("p")) {
-            flags |= JALPOptions.SHOW_ACC_PUBLIC | JALPOptions.SHOW_ACC_PROTECTED | JALPOptions.SHOW_ACC_PACKAGE_PRIVATE | JALPOptions.SHOW_ACC_PRIVATE;
+            visibilityFlags |= JALPOptions.SHOW_ACC_PUBLIC | JALPOptions.SHOW_ACC_PROTECTED | JALPOptions.SHOW_ACC_PACKAGE_PRIVATE | JALPOptions.SHOW_ACC_PRIVATE;
         }
+        flags |= visibilityFlags;
 
         if (options.has("c")) {
             flags |= JALPOptions.SHOW_CODE;
@@ -76,8 +90,8 @@ public class Main {
             flags |= JALPOptions.VERBOSE;
         }
 
-        if (flags == 0) {
-            flags = JALPOptions.DEFAULT;
+        if (visibilityFlags == 0) {
+            flags |= JALPOptions.DEFAULT;
         }
 
         if (options.has("no-header")) {
@@ -87,21 +101,20 @@ public class Main {
         return flags;
     }
 
-    private static void printHelpAndExit(OptionParser parser) {
-        System.out.println("Usage: jalp [options] <input>");
-        System.out.println();
-        System.out.println("Example:");
-        System.out.println("  jalp -p -c MyClass");
-        System.out.println();
-        System.out.println("Options:");
+    private static void printHelp(OptionParser parser, PrintStream out) {
+        out.println("Usage: jalp [options] <input>");
+        out.println();
+        out.println("Example:");
+        out.println("  jalp -p -c MyClass");
+        out.println();
+        out.println("Options:");
 
         try {
-            parser.printHelpOn(System.out);
+            parser.printHelpOn(out);
         } catch (Exception ignored) {
         }
 
-        System.out.println();
-        System.exit(1);
+        out.println();
     }
 
     private static OptionParser createOptionParser() {

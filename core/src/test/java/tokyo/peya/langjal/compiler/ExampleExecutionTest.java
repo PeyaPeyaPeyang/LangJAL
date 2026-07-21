@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ExampleExecutionTest {
     private static final Path PROJECT_ROOT = findProjectRoot();
@@ -51,7 +50,7 @@ class ExampleExecutionTest {
                     .sorted(Comparator.comparing(ExampleCase::name))
                     .toList();
 
-            assertTrue(!cases.isEmpty(), "No example output fixtures found");
+            assertFalse(cases.isEmpty(), "No example output fixtures found");
             return cases.stream();
         }
     }

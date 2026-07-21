@@ -18,19 +18,18 @@ public class MethodPrinter {
     public void printMethods(JALClass clazz) {
         boolean isFirst = true;
         for (JALMethod method : clazz.methods()) {
-            this.printMethod(clazz, method);
+            if (PrinterUtils.shouldSkip(this.flags, method.access())) {
+                continue;
+            }
             if (!isFirst) {
                 this.innerOut.println("");
             }
+            this.printMethod(clazz, method);
             isFirst = false;
         }
     }
 
     private void printMethod(JALClass clazz, JALMethod method) {
-        if (PrinterUtils.shouldSkip(this.flags, method.access())) {
-            return;
-        }
-
         PrinterUtils.printAccess(this.innerOut, method.access(), method.accessAttrs())
                 .output(method.name())
                 .output(method.descriptor().toString())

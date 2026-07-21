@@ -3,7 +3,10 @@ package tokyo.peya.langjal.jalp.printers;
 import tokyo.peya.langjal.compiler.jvm.ClassReferenceType;
 import tokyo.peya.langjal.jalp.OutputChain;
 import tokyo.peya.langjal.jalp.OutputFormatter;
+import tokyo.peya.langjal.jalp.reader.JALAttribute;
 import tokyo.peya.langjal.jalp.reader.JALClass;
+import tokyo.peya.langjal.jalp.reader.JALConstantPoolEntry;
+import tokyo.peya.langjal.jalp.reader.JALField;
 
 public class ClassPrinter {
     private final OutputFormatter out;
@@ -23,6 +26,8 @@ public class ClassPrinter {
 
         this.processClassMaster(clazz);
 
+        this.printFields(clazz);
+
         MethodPrinter methodPrinter = new MethodPrinter(this.innerOut, this.flags);
         methodPrinter.printMethods(clazz);
 
@@ -39,7 +44,7 @@ public class ClassPrinter {
         // attr の出力
         this.out.println(" ( ");
         OutputFormatter attrOut = new OutputFormatter(this.out);
-        if (clazz.superName() != ClassReferenceType.OBJECT) {
+        if (!clazz.superName().equals(ClassReferenceType.OBJECT)) {
             attrOut.chained()
                     .output("super_class =\"")
                     .output(clazz.superName().getInternalName())
@@ -79,6 +84,54 @@ public class ClassPrinter {
         }
 
         this.out.println(") {");
+    }
+
+    private void printFields(JALClass clazz) {
+        for (JALField field : clazz.fields()) {
+            if (PrinterUtils.shouldSkip(this.flags, field.access())) {
+                continue;
+            }
+            OutputChain line = PrinterUtils.printAccess(this.innerOut, field.access(), field.accessAttributeSet())
+                    .output(field.name())
+                    .output(":")
+                    .output(field.descriptor().toString());
+            JALAttribute.ConstantValueAttribute constantValue = getAttribute(field, JALAttribute.ConstantValueAttribute.class);
+            if (constantValue != null) {
+                line.output(" = ").output(formatConstantValue(constantValue.constant()));
+            }
+            line.output(";").println();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends JALAttribute> T getAttribute(JALField field, Class<T> attrClass) {
+        for (JALAttribute attr : field.attributes()) {
+            if (attrClass.isInstance(attr)) {
+                return (T) attr;
+            }
+        }
+        return null;
+    }
+
+    private static String formatConstantValue(JALConstantPoolEntry constant) {
+        return switch (constant) {
+            case JALConstantPoolEntry.IntegerEntry entry -> String.valueOf(entry.value());
+            case JALConstantPoolEntry.FloatEntry entry -> entry.value() + "f";
+            case JALConstantPoolEntry.LongEntry entry -> entry.value() + "L";
+            case JALConstantPoolEntry.DoubleEntry entry -> entry.value() + "d";
+            case JALConstantPoolEntry.StringEntry entry -> quote(entry.value());
+            default -> throw new IllegalArgumentException("Unsupported field constant: " + constant.getClass().getSimpleName());
+        };
+    }
+
+    private static String quote(String value) {
+        return "\"" + value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                + "\"";
     }
 
     private static String majorToJavaVersion(int major) {

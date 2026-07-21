@@ -30,6 +30,8 @@ public class InstructionEvaluatorInvokeDynamic
         for (JALParser.JvmInsArgInvokeDynamicRefContext arg : ctxt.jvmInsArgInvokeDynamicRef()) {
             if (arg.jvmInsArgInvokeDynamicMethodType() != null)
                 size += 1; // Method type
+            else if (arg.jvmInsArgInvokeDynamicMethodHandle() != null)
+                size += 1; // Method handle
             else if (arg.jvmInsArgScalarType() != null)
                 size += 1; // Scalar type
         }
@@ -43,7 +45,7 @@ public class InstructionEvaluatorInvokeDynamic
         } else if (arg.jvmInsArgInvokeDynamicMethodType() != null) {
             String desc = arg.jvmInsArgInvokeDynamicMethodType().methodDescriptor().getText();
             return Type.getMethodType(desc);
-        } else if (arg.jvmInsArgInvokeDynamicMethodType() != null) {
+        } else if (arg.jvmInsArgInvokeDynamicMethodHandle() != null) {
             JALParser.JvmInsArgInvokeDynamicMethodHandleContext handle = arg.jvmInsArgInvokeDynamicMethodHandle();
             return toHandle(handle);
         } else
