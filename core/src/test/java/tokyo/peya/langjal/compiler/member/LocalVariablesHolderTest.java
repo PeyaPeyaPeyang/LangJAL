@@ -48,7 +48,7 @@ class LocalVariablesHolderTest {
         assertSame(local, holder.resolveSafe("value"));
         labels.setCurrentLabel(outside);
         assertNull(holder.resolveSafe("value"));
-        assertTrue(holder.isLocalLiving(local, end));
+        assertFalse(holder.isLocalLiving(local, end));
     }
 
     @Test
@@ -117,8 +117,8 @@ class LocalVariablesHolderTest {
         LocalVariableInfo early = holder.register(0, TypeDescriptor.INTEGER, "early", first, second);
         LocalVariableInfo longLived = holder.register(1, TypeDescriptor.INTEGER, "longLived", first, third);
 
-        assertArrayEquals(new LocalVariableInfo[]{early, longLived}, holder.getAvailableLocalsAt(second));
-        assertArrayEquals(new LocalVariableInfo[]{longLived}, holder.getAvailableLocalsAt(third));
+        assertArrayEquals(new LocalVariableInfo[]{longLived}, holder.getAvailableLocalsAt(second));
+        assertArrayEquals(new LocalVariableInfo[0], holder.getAvailableLocalsAt(third));
     }
 
     @Test

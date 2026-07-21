@@ -18,6 +18,7 @@ public final class StackElementCapsule implements StackElement {
     private final InstructionInfo instruction;
     @Nullable
     private final Function<? super StackElement, ? extends StackElement> producerFunction;
+    private final boolean acceptsCategoryTwoTop;
 
     private StackElement element;
 
@@ -29,6 +30,13 @@ public final class StackElementCapsule implements StackElement {
     public StackElementCapsule(@NotNull InstructionInfo instruction) {
         this.instruction = instruction;
         this.producerFunction = null;
+        this.acceptsCategoryTwoTop = false;
+    }
+
+    public StackElementCapsule(@NotNull InstructionInfo instruction, boolean acceptsCategoryTwoTop) {
+        this.instruction = instruction;
+        this.producerFunction = null;
+        this.acceptsCategoryTwoTop = acceptsCategoryTwoTop;
     }
 
     /**
@@ -41,6 +49,7 @@ public final class StackElementCapsule implements StackElement {
                                @NotNull Function<? super StackElement, ? extends StackElement> producerFunction) {
         this.instruction = instruction;
         this.producerFunction = producerFunction;
+        this.acceptsCategoryTwoTop = false;
     }
 
     /**

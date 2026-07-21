@@ -7,6 +7,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.compiler.CompileSettings;
+import tokyo.peya.langjal.compiler.JALFileCompiler;
+import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
+import tokyo.peya.langjal.compiler.instructions.utils.TestCompileReporter;
 
 import java.util.List;
 
@@ -92,7 +96,7 @@ class LabelsHolderTest {
 
         assertTrue(holder.isInScope(start, end));
         assertTrue(LabelsHolder.isInScope(start, end, start));
-        assertTrue(LabelsHolder.isInScope(start, end, end));
+        assertFalse(LabelsHolder.isInScope(start, end, end));
         assertFalse(LabelsHolder.isInScope(start, end, outside));
         assertSame(middle, holder.getNextBlock(start));
         assertSame(end, holder.getNextBlock(middle));
@@ -105,16 +109,39 @@ class LabelsHolderTest {
                     "9, false",
                     "10, true",
                     "20, true",
-                    "30, true",
+                    "30, false",
                     "31, false"
             }
     )
-    void staticScopeCheckIsInclusive(int currentIndex, boolean expected) {
+    void staticScopeCheckTreatsEndAsExclusive(int currentIndex, boolean expected) {
         LabelInfo start = label("START", 10);
         LabelInfo end = label("END", 30);
         LabelInfo current = label("CURRENT", currentIndex);
 
         assertEquals(expected, LabelsHolder.isInScope(start, end, current));
+    }
+
+    @Test
+    void localDeclaredWithoutExplicitEndSurvivesOrdinaryLongMethod() {
+        String source = """
+                public class Test {
+                    public static demo()V {
+                        iconst_1
+                        istore 0 [I -> value]
+                %s
+                    Later:
+                        iload value
+                        pop
+                        return
+                    }
+                }
+                """.formatted("        nop\n".repeat(5000));
+
+        assertDoesNotThrow(() -> JALFileCompiler.compileOnly(
+                source,
+                new TestCompileReporter(),
+                CompileSettings.REQUIRED_ONLY
+        ));
     }
 
     @Test

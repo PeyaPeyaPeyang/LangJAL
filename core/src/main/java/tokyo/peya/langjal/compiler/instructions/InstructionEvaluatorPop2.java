@@ -15,7 +15,7 @@ public class InstructionEvaluatorPop2 extends AbstractSingleInstructionEvaluator
     @Override
     public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
         return FrameDifferenceInfo.builder(instruction)
-                .popToCapsule(new StackElementCapsule(instruction))  // 捨てる
+                .popToCapsule(new StackElementCapsule(instruction, true))  // 捨てる
                 .popToCapsule(new StackElementCapsule(instruction))  // 捨てる
                 .build();
     }

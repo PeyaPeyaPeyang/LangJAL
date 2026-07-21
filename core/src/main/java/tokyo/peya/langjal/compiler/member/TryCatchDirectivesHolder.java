@@ -93,12 +93,14 @@ public class TryCatchDirectivesHolder {
             LabelNode finallyBlock = directive.finallyBlockLabel() == null ? null : directive.finallyBlockLabel().node();
 
             // トライキャッチブロックをメソッドに追加
-            method.tryCatchBlocks.add(new TryCatchBlockNode(
-                    tryBlock,
-                    tryEndBlock,
-                    catchBlock,
-                    exceptionType == null ? null : toExceptionInternalName(exceptionType)
-            ));
+            if (catchBlock != null) {
+                method.tryCatchBlocks.add(new TryCatchBlockNode(
+                        tryBlock,
+                        tryEndBlock,
+                        catchBlock,
+                        exceptionType == null ? null : toExceptionInternalName(exceptionType)
+                ));
+            }
             // finally ブロックがある場合は、トライキャッチブロックに追加
             if (finallyBlock != null) {
                 // finally ブロックは try-catch ブロックの後に追加される

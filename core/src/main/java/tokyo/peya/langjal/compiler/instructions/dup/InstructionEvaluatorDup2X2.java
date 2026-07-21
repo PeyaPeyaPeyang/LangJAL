@@ -15,9 +15,9 @@ public class InstructionEvaluatorDup2X2 extends AbstractSingleInstructionEvaluat
 
     @Override
     public FrameDifferenceInfo getFrameDifferenceInfo(@NotNull InstructionInfo instruction) {
-        StackElementCapsule topElement1 = new StackElementCapsule(instruction);
+        StackElementCapsule topElement1 = new StackElementCapsule(instruction, true);
         StackElementCapsule topElement2 = new StackElementCapsule(instruction);
-        StackElementCapsule topElement3 = new StackElementCapsule(instruction);
+        StackElementCapsule topElement3 = new StackElementCapsule(instruction, true);
         StackElementCapsule topElement4 = new StackElementCapsule(instruction);
         return FrameDifferenceInfo.builder(instruction)  // ..., topElement4, topElement3, topElement2, topElement1
                 .popToCapsule(topElement1)  // ..., topElement4, topElement3, topElement2

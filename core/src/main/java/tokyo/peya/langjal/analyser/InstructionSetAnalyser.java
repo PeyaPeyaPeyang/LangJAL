@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.TableSwitchInsnNode;
 import tokyo.peya.langjal.analyser.stack.*;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.exceptions.analyse.PropagationMismatchException;
+import tokyo.peya.langjal.compiler.exceptions.analyse.StackElementMismatchedException;
 import tokyo.peya.langjal.compiler.exceptions.analyse.StackUnderflowException;
 import tokyo.peya.langjal.compiler.exceptions.analyse.UnknownJumpException;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
@@ -298,23 +299,29 @@ public class InstructionSetAnalyser {
 
     private List<FramePropagation> checkJump(@NotNull InstructionInfo info) {
         List<FramePropagation> propagations = new ArrayList<>();
-        if (info.insn() instanceof JumpInsnNode jumpNode) {
-            this.analyseJumpTarget(info, jumpNode);
-            propagations.add(this.createPropagations(jumpNode.label, info));
-        } else if (info.insn() instanceof TableSwitchInsnNode tableSwitchNode) {
-            // テーブルスイッチの場合は，すべてのターゲットラベルを登録
-            for (LabelNode label : tableSwitchNode.labels)
-                propagations.add(this.createPropagations(label, info));
-            // デフォルトラベルも登録
-            LabelNode defaultLabelNode = tableSwitchNode.dflt;
-            propagations.add(this.createPropagations(defaultLabelNode, info));
-        } else if (info.insn() instanceof LookupSwitchInsnNode lookupSwitchNode) {
-            // ルックアップスイッチの場合は，すべてのターゲットラベルを登録
-            for (LabelNode label : lookupSwitchNode.labels)
-                propagations.add(this.createPropagations(label, info));
-            // デフォルトラベルも登録
-            LabelNode defaultLabelNode = lookupSwitchNode.dflt;
-            propagations.add(this.createPropagations(defaultLabelNode, info));
+        switch (info.insn()) {
+            case JumpInsnNode jumpNode -> {
+                this.analyseJumpTarget(info, jumpNode);
+                propagations.add(this.createPropagations(jumpNode.label, info));
+            }
+            case TableSwitchInsnNode tableSwitchNode -> {
+                // テーブルスイッチの場合は，すべてのターゲットラベルを登録
+                for (LabelNode label : tableSwitchNode.labels)
+                    propagations.add(this.createPropagations(label, info));
+                // デフォルトラベルも登録
+                LabelNode defaultLabelNode = tableSwitchNode.dflt;
+                propagations.add(this.createPropagations(defaultLabelNode, info));
+            }
+            case LookupSwitchInsnNode lookupSwitchNode -> {
+                // ルックアップスイッチの場合は，すべてのターゲットラベルを登録
+                for (LabelNode label : lookupSwitchNode.labels)
+                    propagations.add(this.createPropagations(label, info));
+                // デフォルトラベルも登録
+                LabelNode defaultLabelNode = lookupSwitchNode.dflt;
+                propagations.add(this.createPropagations(defaultLabelNode, info));
+            }
+            default -> {
+            }
         }
 
         return propagations;
@@ -373,14 +380,30 @@ public class InstructionSetAnalyser {
 
         StackElement poppedElement = this.stack.pop();
         if (expectedElement instanceof StackElementCapsule capsule) {
+            if (this.isCategoryTwoTop(poppedElement) && !capsule.isAcceptsCategoryTwoTop())
+                throw new StackElementMismatchedException(
+                        instruction,
+                        expectedElement,
+                        poppedElement,
+                        "Instruction cannot consume only the TOP slot of a category-2 stack value"
+                );
             capsule.setElement(poppedElement);  // Capsule の場合は，その中の要素を使う
             return expectedElement;  // Capsule の場合は，その中の要素を使うだけなので，後のチェックは省く。
         }
 
-        // マージできるかチェック（マージ結果は使わないが，型チェックのために必要）
-        StackElementUtils.mergeElement(poppedElement, expectedElement);
+        StackElementUtils.checkAssignableTo(poppedElement, expectedElement);
 
         return poppedElement;  // マージ結果は使わないが，型チェックのために必要
+    }
+
+    private boolean isCategoryTwoTop(@NotNull StackElement poppedElement) {
+        if (!(poppedElement instanceof TopElement))
+            return false;
+        if (this.stack.isEmpty())
+            return false;
+
+        StackElementType previousType = this.stack.peek().type();
+        return previousType == StackElementType.LONG || previousType == StackElementType.DOUBLE;
     }
 
     private void addLocalElement(@NotNull LocalStackElement localElement) {

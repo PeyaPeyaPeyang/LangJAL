@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.MethodNode;
 import tokyo.peya.langjal.compiler.CompileSettings;
 import tokyo.peya.langjal.compiler.JALFileCompiler;
 import tokyo.peya.langjal.compiler.exceptions.CompileErrorException;
+import tokyo.peya.langjal.compiler.exceptions.IllegalValueException;
 import tokyo.peya.langjal.compiler.instructions.utils.TestCompileReporter;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 
@@ -15,6 +16,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JALMethodCompilerImplicitReturnTest {
     private static MethodNode compileSingleMethod(String source) throws CompileErrorException {
@@ -26,6 +28,17 @@ class JALMethodCompilerImplicitReturnTest {
 
         assertEquals(1, clazz.methods.size());
         return clazz.methods.getFirst();
+    }
+
+    private static JALMethodCompiler compileSingleMethodCompiler(String source) throws CompileErrorException {
+        var compiler = JALFileCompiler.compileOnly(
+                source,
+                new TestCompileReporter(),
+                CompileSettings.REQUIRED_ONLY
+        );
+
+        assertEquals(1, compiler.getMethodCompilers().size());
+        return compiler.getMethodCompilers().getFirst();
     }
 
     private static int[] opcodesOf(MethodNode method) {
@@ -114,6 +127,36 @@ class JALMethodCompilerImplicitReturnTest {
                 },
                 opcodesOf(method)
         );
+    }
+
+    @Test
+    void rejectsNonVoidMethodWithoutExplicitReturn() {
+        assertThrows(IllegalValueException.class, () -> compileSingleMethod("""
+                public class Test {
+                    public static demo()I {
+                        iconst_1
+                    }
+                }
+                """));
+    }
+
+    @Test
+    void firstExplicitLabelIsRegisteredOnlyOnceAsGlobalStart() throws CompileErrorException {
+        JALMethodCompiler compiler = compileSingleMethodCompiler("""
+                public class Test {
+                    public static demo()V {
+                    Start:
+                        return
+                    }
+                }
+                """);
+
+        LabelInfo globalStart = compiler.getLabels().getGlobalStart();
+        long occurrences = compiler.getLabels().getLabels().stream()
+                .filter(label -> label == globalStart)
+                .count();
+
+        assertEquals(1, occurrences);
     }
 
     @Test

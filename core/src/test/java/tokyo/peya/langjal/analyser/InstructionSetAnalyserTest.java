@@ -2,19 +2,24 @@ package tokyo.peya.langjal.analyser;
 
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodNode;
+import tokyo.peya.langjal.analyser.stack.ObjectElement;
 import tokyo.peya.langjal.analyser.stack.PrimitiveElement;
 import tokyo.peya.langjal.analyser.stack.StackElement;
 import tokyo.peya.langjal.analyser.stack.StackElementType;
+import tokyo.peya.langjal.analyser.stack.TopElement;
+import tokyo.peya.langjal.compiler.exceptions.analyse.StackElementMismatchedException;
 import tokyo.peya.langjal.compiler.FileEvaluatingReporter;
 import tokyo.peya.langjal.compiler.instructions.AbstractInstructionEvaluator;
 import tokyo.peya.langjal.compiler.instructions.InstructionEvaluatorNop;
 import tokyo.peya.langjal.compiler.instructions.utils.TestCompileReporter;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
+import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.member.InstructionInfo;
 import tokyo.peya.langjal.compiler.member.JALInstructionEvaluator;
 import tokyo.peya.langjal.compiler.member.LabelInfo;
@@ -24,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InstructionSetAnalyserTest {
@@ -56,6 +62,22 @@ class InstructionSetAnalyserTest {
         return new InstructionInfo(
                 0,
                 new JumpInsnNode(opcode, target),
+                clazz,
+                method,
+                evaluator,
+                label,
+                EOpcodes.getOpcodeSize(opcode),
+                -1
+        );
+    }
+
+    private static InstructionInfo field(LabelInfo label, int opcode, String owner, String name, String descriptor) {
+        ClassNode clazz = new ClassNode();
+        MethodNode method = new MethodNode();
+        AbstractInstructionEvaluator<?> evaluator = JALInstructionEvaluator.getEvaluatorByOpcode(opcode);
+        return new InstructionInfo(
+                0,
+                new FieldInsnNode(opcode, owner, name, descriptor),
                 clazz,
                 method,
                 evaluator,
@@ -127,6 +149,39 @@ class InstructionSetAnalyserTest {
 
         assertEquals(0, result.stack().length);
         assertEquals(0, result.framePropagations().length);
+    }
+
+    @Test
+    void putstaticRejectsObjectWhenFieldRequiresString() {
+        LabelInfo label = new LabelInfo("L0", new Label(), 0);
+        InstructionSetAnalyser analyser = newAnalyser(
+                new LabelsHolder(),
+                label,
+                List.of(field(label, EOpcodes.PUTSTATIC, "Test", "value", "Ljava/lang/String;"))
+        );
+
+        assertThrows(
+                StackElementMismatchedException.class,
+                () -> analyser.analyse(propagation(
+                        label,
+                        new ObjectElement(nop(label), TypeDescriptor.OBJECT)
+                ))
+        );
+    }
+
+    @Test
+    void popRejectsCategoryTwoValue() {
+        LabelInfo label = new LabelInfo("L0", new Label(), 0);
+        InstructionSetAnalyser analyser = newAnalyser(new LabelsHolder(), label, List.of(insn(label, EOpcodes.POP)));
+
+        assertThrows(
+                StackElementMismatchedException.class,
+                () -> analyser.analyse(propagation(
+                        label,
+                        new PrimitiveElement(nop(label), StackElementType.LONG),
+                        new TopElement(nop(label))
+                ))
+        );
     }
 
     @Test

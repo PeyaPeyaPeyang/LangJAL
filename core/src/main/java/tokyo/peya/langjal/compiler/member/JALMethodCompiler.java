@@ -14,6 +14,7 @@ import tokyo.peya.langjal.compiler.JALParser;
 import tokyo.peya.langjal.compiler.exceptions.IllegalValueException;
 import tokyo.peya.langjal.compiler.jvm.EOpcodes;
 import tokyo.peya.langjal.compiler.jvm.MethodDescriptor;
+import tokyo.peya.langjal.compiler.jvm.PrimitiveTypes;
 import tokyo.peya.langjal.compiler.jvm.TypeDescriptor;
 import tokyo.peya.langjal.compiler.utils.EvaluatorCommons;
 
@@ -340,9 +341,18 @@ public class JALMethodCompiler {
             }
         }
 
+        this.labels.updateGlobalEndInstructionIndex(this.instructions.getSize());
         if (this.instructions.isEmpty() || shouldAppendReturnOnLast(this.instructions.getLastInstruction())) {
+            MethodDescriptor descriptor = MethodDescriptor.parse(this.method.desc);
+            if (descriptor.getReturnType().getBaseType() != PrimitiveTypes.VOID)
+                throw new IllegalValueException(
+                        "Non-void method must end with an explicit return instruction.",
+                        body
+                );
+
             // 最後にRETURNがない場合は、デフォルトでRETURNを追加
             this.instructions.importInstruction(new InsnNode(EOpcodes.RETURN), labelAssignation, -1);
+            this.labels.updateGlobalEndInstructionIndex(this.instructions.getSize());
         }
     }
 }

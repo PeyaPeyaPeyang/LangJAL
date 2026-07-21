@@ -108,9 +108,10 @@ public class MethodAnalyser {
         this.maxStackSize = Math.max(this.maxStackSize, firstPropagation.maxStackSize());
         this.maxLocalSize = Math.max(this.maxLocalSize, firstPropagation.maxLocalSize());
         this.pendingPropagations.add(firstPropagation);
-        this.pendingPropagations.addAll(this.createExceptionHandlerPropagations(firstPropagation));
 
         // 各インストラクション・セットのスタックとローカル変数の動きを解析
+        this.analyseLoop();
+        this.pendingPropagations.addAll(this.createExceptionHandlerPropagations());
         this.analyseLoop();
         this.maxLocalSize = Math.max(this.maxLocalSize, this.locals.getMaxLocalSize());
 
@@ -235,8 +236,7 @@ public class MethodAnalyser {
         );
     }
 
-    private @NotNull List<FramePropagation> createExceptionHandlerPropagations(
-            @NotNull FramePropagation firstPropagation) {
+    private @NotNull List<FramePropagation> createExceptionHandlerPropagations() {
         if (this.method.tryCatchBlocks == null || this.method.tryCatchBlocks.isEmpty())
             return List.of();
 
@@ -245,23 +245,34 @@ public class MethodAnalyser {
             LabelInfo handler = this.labels.getLabelByNode(tryCatchBlock.handler);
             if (handler == null)
                 continue;
+            LabelInfo tryStart = this.labels.getLabelByNode(tryCatchBlock.start);
+            LabelInfo tryEnd = this.labels.getLabelByNode(tryCatchBlock.end);
+            if (tryStart == null || tryEnd == null)
+                continue;
 
             String exceptionTypeClassName = tryCatchBlock.type == null ? "java/lang/Throwable" : tryCatchBlock.type;
             TypeDescriptor exceptionType = TypeDescriptor.className(exceptionTypeClassName);
             StackElement[] stack = { exceptionType.toStackElement(this.nop) };
-            LocalStackElement[] locals = StackElementUtils.filterDeadLocals(
-                    firstPropagation.locals(),
-                    this.liveLocalsAtEntry.get(handler)
-            );
-            propagations.add(new FramePropagation(
-                    this.labels.getGlobalStart(),
-                    new AnalysedInstruction[0],
-                    handler,
-                    stack,
-                    locals,
-                    stack.length,
-                    locals.length
-            ));
+            for (Map.Entry<FramePropagation, InstructionSetAnalysisResult> entry : this.confirmedAnalysisResults.entrySet()) {
+                FramePropagation sourcePropagation = entry.getKey();
+                if (!LabelsHolder.isInScope(tryStart, tryEnd, sourcePropagation.receiver()))
+                    continue;
+
+                InstructionSetAnalysisResult result = entry.getValue();
+                LocalStackElement[] locals = StackElementUtils.filterDeadLocals(
+                        result.locals(),
+                        this.liveLocalsAtEntry.get(handler)
+                );
+                propagations.add(new FramePropagation(
+                        sourcePropagation.receiver(),
+                        result.analyzedInstructions(),
+                        handler,
+                        stack,
+                        locals,
+                        Math.max(stack.length, result.maxStackSize()),
+                        Math.max(locals.length, result.maxLocalSize())
+                ));
+            }
         }
 
         return propagations;

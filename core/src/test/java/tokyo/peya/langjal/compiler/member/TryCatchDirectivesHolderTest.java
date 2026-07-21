@@ -107,9 +107,8 @@ class TryCatchDirectivesHolderTest {
         holder.addTryCatchDirective(start, end, null, null, finallyLabel);
         holder.finaliseTryCatchDirectives(method);
 
-        assertEquals(2, method.tryCatchBlocks.size());
-        assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, null, null);
-        assertTryCatchBlock(method.tryCatchBlocks.get(1), start, end, finallyLabel, null);
+        assertEquals(1, method.tryCatchBlocks.size());
+        assertTryCatchBlock(method.tryCatchBlocks.get(0), start, end, finallyLabel, null);
         assertEquals(1, reporter.infoMessages().size());
         assertTrue(reporter.infoMessages().getFirst().message().contains("finallyMethod"));
     }

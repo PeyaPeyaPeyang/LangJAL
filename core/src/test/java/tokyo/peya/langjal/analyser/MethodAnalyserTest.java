@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MethodAnalyserTest {
@@ -137,6 +138,27 @@ class MethodAnalyserTest {
                 """);
 
         assertTrue(Arrays.stream(result.propagations()).anyMatch(p -> p.receiver().name().equals("Next")));
+    }
+
+    @Test
+    void exceptionHandlerKeepsLiveLocalsDefinedInProtectedRange() {
+        assertDoesNotThrow(() -> analyse("""
+                public class Test {
+                    public static demo()V {
+                    TryStart: [~ TryEnd, java/lang/Throwable: Catch]
+                        iconst_1
+                        istore 0 [I -> value]
+                        aconst_null
+                        athrow
+                    TryEnd:
+                        return
+                    Catch:
+                        iload value
+                        pop
+                        return
+                    }
+                }
+                """));
     }
 
     @Test

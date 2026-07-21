@@ -300,6 +300,73 @@ public class StackElementUtils {
         };
     }
 
+    public static void checkAssignableTo(@NotNull StackElement actualElement,
+                                         @NotNull StackElement expectedElement) {
+        if (actualElement instanceof NullElement && expectedElement instanceof ObjectElement)
+            return;
+
+        if (actualElement.type() != expectedElement.type())
+            throw new StackElementMismatchedException(
+                    actualElement.producer(), expectedElement, actualElement,
+                    "Cannot assign stack element with type " + actualElement.type() +
+                            " to expected type " + expectedElement.type()
+            );
+
+        if (!((actualElement instanceof ObjectElement actualObject) 
+                && (expectedElement instanceof ObjectElement expectedObject)))
+            return;
+
+        if (!isObjectAssignableTo(actualObject.content(), expectedObject.content()))
+            throw new StackElementMismatchedException(
+                    actualElement.producer(), expectedElement, actualElement,
+                    "Cannot assign object " + actualObject.content() +
+                            " to expected object " + expectedObject.content()
+            );
+    }
+
+    private static boolean isObjectAssignableTo(@NotNull TypeDescriptor actualType,
+                                                @NotNull TypeDescriptor expectedType) {
+        if (actualType.equals(expectedType))
+            return true;
+
+        if (expectedType.equals(TypeDescriptor.OBJECT))
+            return true;
+
+        if (actualType.isArray() || expectedType.isArray())
+            return isArrayAssignableTo(actualType, expectedType);
+
+        if (actualType.getBaseType().isPrimitive() || expectedType.getBaseType().isPrimitive())
+            return false;
+
+        ClassReferenceType commonSuperType = getCommonSuperType(
+                (ClassReferenceType) actualType.getBaseType(),
+                (ClassReferenceType) expectedType.getBaseType()
+        );
+        return commonSuperType.equals(expectedType.getBaseType());
+    }
+
+    private static boolean isArrayAssignableTo(@NotNull TypeDescriptor actualType,
+                                               @NotNull TypeDescriptor expectedType) {
+        if (!actualType.isArray())
+            return false;
+        if (expectedType.equals(TypeDescriptor.OBJECT))
+            return true;
+        if (!expectedType.isArray())
+            return false;
+        if (actualType.getArrayDimensions() != expectedType.getArrayDimensions())
+            return false;
+        if (actualType.getBaseType().equals(expectedType.getBaseType()))
+            return true;  // 注意
+        if (actualType.getBaseType().isPrimitive() || expectedType.getBaseType().isPrimitive())
+            return false;
+
+        ClassReferenceType commonSuperType = getCommonSuperType(
+                (ClassReferenceType) actualType.getBaseType(),
+                (ClassReferenceType) expectedType.getBaseType()
+        );
+        return commonSuperType.equals(expectedType.getBaseType());
+    }
+
     private static boolean isNullAndObjectCompatible(@NotNull StackElement element,
                                                      @NotNull StackElement expectedElement) {
         return (element instanceof NullElement && expectedElement instanceof ObjectElement)

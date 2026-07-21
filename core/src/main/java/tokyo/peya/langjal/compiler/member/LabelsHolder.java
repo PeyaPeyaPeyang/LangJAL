@@ -32,7 +32,7 @@ public class LabelsHolder {
      * The global end label for the method.
      */
     @Getter
-    private final LabelInfo globalEnd;
+    private LabelInfo globalEnd;
     /**
      * The global start label for the method.
      */
@@ -52,7 +52,7 @@ public class LabelsHolder {
         this.labels = new ArrayList<>();
 
         this.globalStart = this.currentLabel = new LabelInfo("MBEGIN", new Label(), 0);
-        this.globalEnd = new LabelInfo("MEND", new Label(), 50);
+        this.globalEnd = new LabelInfo("MEND", new Label(), Integer.MAX_VALUE);
     }
 
     /**
@@ -69,7 +69,7 @@ public class LabelsHolder {
         int endIndex = scopeEnd.instructionIndex();
         int currentIndex = currentLabel.instructionIndex();
 
-        return currentIndex >= startIndex && currentIndex <= endIndex;
+        return currentIndex >= startIndex && currentIndex < endIndex;
     }
 
     /**
@@ -211,8 +211,18 @@ public class LabelsHolder {
     public void finalise(@NotNull MethodNode method) {
         LabelNode globalEndNode = this.globalEnd.node();
         method.instructions.add(globalEndNode);
-        this.labels.add(this.globalEnd);  // グローバル終了ラベルも登録
+        if (!this.labels.contains(this.globalEnd))
+            this.labels.add(this.globalEnd);  // グローバル終了ラベルも登録
         // ↑ END なので，いっちゃんさいご
+    }
+
+    public void updateGlobalEndInstructionIndex(int instructionIndex) {
+        this.globalEnd = new LabelInfo(
+                this.globalEnd.name(),
+                this.globalEnd.label(),
+                this.globalEnd.node(),
+                instructionIndex
+        );
     }
 
     /**
@@ -223,7 +233,8 @@ public class LabelsHolder {
     public void registerGlobalStart(@NotNull MethodNode method) {
         LabelNode globalStartNode = this.globalStart.node();
         method.instructions.add(globalStartNode);
-        this.labels.add(this.globalStart);  // グローバル開始ラベルも登録
+        if (!this.labels.contains(this.globalStart))
+            this.labels.add(this.globalStart);  // グローバル開始ラベルも登録
     }
 
     /**
