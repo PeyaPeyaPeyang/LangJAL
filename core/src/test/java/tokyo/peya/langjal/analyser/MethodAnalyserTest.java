@@ -232,4 +232,23 @@ class MethodAnalyserTest {
         assertTrue(endPropagation.get().stack()[0] instanceof ObjectElement);
         assertEquals(TypeDescriptor.parse("[I"), ((ObjectElement) endPropagation.get().stack()[0]).content());
     }
+
+    @Test
+    void ignoresInstructionsAfterTerminalInstructionInSameBlock() throws CompileErrorException {
+        MethodAnalysisResult result = analyse("""
+                public class Test {
+                    public static demo()V {
+                        return
+                        iconst_1
+                        iconst_1
+                        iconst_1
+                        pop
+                        pop
+                        pop
+                    }
+                }
+                """);
+
+        assertEquals(0, result.maxStack());
+    }
 }

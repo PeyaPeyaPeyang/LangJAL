@@ -109,6 +109,10 @@ public class LocalVariablesHolder {
     @Nullable
     public LocalVariableInfo resolveSafe(int localIndex) {
         for (LocalVariableInfo foundLocal : this.locals)  // リストのサイズと index は無関係。
+            if (foundLocal.index() == localIndex && this.isLocalLiving(foundLocal))
+                return foundLocal;
+
+        for (LocalVariableInfo foundLocal : this.locals)
             if (foundLocal.index() == localIndex)
                 return foundLocal;
         return null;
@@ -397,9 +401,8 @@ public class LocalVariablesHolder {
                     String.valueOf(idx)
             );
 
-        // すでに登録されているか確認
-        LocalVariableInfo existingLocal = this.resolveSafe(idx);
-        if (existingLocal != null)  // インデックス指定なのに，すでにあるのは問題。
+        LocalVariableInfo existingLocal = this.findOverlappingLocal(idx, type, startLabel, endLabel);
+        if (existingLocal != null)
             throw new UnknownLocalVariableException(
                     "Local variable at index " + idx + " is already defined as " + existingLocal.name(),
                     String.valueOf(idx)
@@ -418,6 +421,33 @@ public class LocalVariablesHolder {
 
         // メソッドへの登録は後ほど。
         return newLocal;
+    }
+
+    private @Nullable LocalVariableInfo findOverlappingLocal(int idx,
+                                                             @NotNull TypeDescriptor type,
+                                                             @NotNull LabelInfo startLabel,
+                                                             @NotNull LabelInfo endLabel) {
+        int newStartSlot = idx;
+        int newEndSlot = idx + type.getBaseType().getCategory();
+        for (LocalVariableInfo local : this.locals) {
+            int existingStartSlot = local.index();
+            int existingEndSlot = local.index() + local.type().getBaseType().getCategory();
+            if (newStartSlot >= existingEndSlot || existingStartSlot >= newEndSlot)
+                continue;
+
+            if (scopesOverlap(startLabel, endLabel, local.start(), local.end()))
+                return local;
+        }
+
+        return null;
+    }
+
+    private static boolean scopesOverlap(@NotNull LabelInfo firstStart,
+                                         @NotNull LabelInfo firstEnd,
+                                         @NotNull LabelInfo secondStart,
+                                         @NotNull LabelInfo secondEnd) {
+        return firstStart.instructionIndex() < secondEnd.instructionIndex()
+                && secondStart.instructionIndex() < firstEnd.instructionIndex();
     }
 
     public LocalVariableInfo register(int idx, @NotNull TypeDescriptor type, @Nullable String name) {

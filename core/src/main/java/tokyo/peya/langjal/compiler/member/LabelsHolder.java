@@ -217,12 +217,7 @@ public class LabelsHolder {
     }
 
     public void updateGlobalEndInstructionIndex(int instructionIndex) {
-        this.globalEnd = new LabelInfo(
-                this.globalEnd.name(),
-                this.globalEnd.label(),
-                this.globalEnd.node(),
-                instructionIndex
-        );
+        this.globalEnd.setInstructionIndex(instructionIndex);
     }
 
     /**

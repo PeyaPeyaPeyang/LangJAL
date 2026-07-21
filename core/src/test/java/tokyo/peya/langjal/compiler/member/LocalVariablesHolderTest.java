@@ -122,6 +122,32 @@ class LocalVariablesHolderTest {
     }
 
     @Test
+    void localsUsingDefaultEndFollowUpdatedGlobalEndIndex() {
+        LabelsHolder labels = new LabelsHolder();
+        LocalVariablesHolder holder = newHolder(labels);
+
+        LocalVariableInfo local = holder.register(0, TypeDescriptor.INTEGER, "value", null);
+        labels.updateGlobalEndInstructionIndex(10);
+        labels.setCurrentLabel(labels.getGlobalEnd());
+
+        assertEquals(10, local.end().instructionIndex());
+        assertFalse(holder.isLocalLiving(local));
+    }
+
+    @Test
+    void permitsReusingLocalIndexAfterPreviousScopeEnds() {
+        LabelsHolder labels = new LabelsHolder();
+        LocalVariablesHolder holder = newHolder(labels);
+        LabelInfo firstStart = label("FIRST_START", 1);
+        LabelInfo firstEnd = label("FIRST_END", 2);
+        LabelInfo secondEnd = label("SECOND_END", 3);
+
+        holder.register(0, TypeDescriptor.INTEGER, "first", firstStart, firstEnd);
+
+        assertDoesNotThrow(() -> holder.register(0, TypeDescriptor.FLOAT, "second", firstEnd, secondEnd));
+    }
+
+    @Test
     void importLocalVariableUsesKnownLabelsOrGlobalFallback() {
         LabelsHolder labels = new LabelsHolder();
         LocalVariablesHolder holder = newHolder(labels);

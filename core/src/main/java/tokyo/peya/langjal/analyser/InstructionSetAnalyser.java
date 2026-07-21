@@ -277,7 +277,8 @@ public class InstructionSetAnalyser {
             StackOperation[] stackOperations = frameDifference.getStackOperations();
             this.processStackLocalDifference(instruction, stackOperations);
 
-            this.doesContainCriticalJump |= isCriticalJump(instruction);  // returnn も判定するので, ↓ if 外。
+            boolean isCriticalJump = isCriticalJump(instruction);
+            this.doesContainCriticalJump |= isCriticalJump;  // return も判定するので, ↓ if 外。
             // ジャンプターゲットを計算
             propagations.addAll(this.checkJump(instruction));
 
@@ -287,6 +288,10 @@ public class InstructionSetAnalyser {
                     this.stack.toArray(new StackElement[0]),  // この操作を実行した時点でのスナップショット
                     this.locals.toArray(new LocalStackElement[0])
             ));
+
+            // return 後も解析してしまうと，maxLocals/maxStacks に加算されてしまうため，当該ブロックの線形解析を終了する。
+            if (isCriticalJump)
+                break;
         }
 
         this.context.postInfo(String.format(

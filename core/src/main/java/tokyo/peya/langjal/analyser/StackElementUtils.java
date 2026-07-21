@@ -351,20 +351,24 @@ public class StackElementUtils {
             return false;
         if (expectedType.equals(TypeDescriptor.OBJECT))
             return true;
+        if (expectedType.equals(TypeDescriptor.className("java/lang/Cloneable"))
+                || expectedType.equals(TypeDescriptor.className("java/io/Serializable")))
+            return true;
         if (!expectedType.isArray())
             return false;
-        if (actualType.getArrayDimensions() != expectedType.getArrayDimensions())
-            return false;
         if (actualType.getBaseType().equals(expectedType.getBaseType()))
-            return true;  // 注意
+            return actualType.getArrayDimensions() == expectedType.getArrayDimensions();
         if (actualType.getBaseType().isPrimitive() || expectedType.getBaseType().isPrimitive())
             return false;
 
-        ClassReferenceType commonSuperType = getCommonSuperType(
-                (ClassReferenceType) actualType.getBaseType(),
-                (ClassReferenceType) expectedType.getBaseType()
-        );
-        return commonSuperType.equals(expectedType.getBaseType());
+        return isObjectAssignableTo(componentType(actualType), componentType(expectedType));
+    }
+
+    private static @NotNull TypeDescriptor componentType(@NotNull TypeDescriptor type) {
+        if (!type.isArray())
+            throw new IllegalArgumentException("Cannot get component type from non-array type: " + type);
+
+        return new TypeDescriptor(type.getBaseType(), type.getArrayDimensions() - 1);
     }
 
     private static boolean isNullAndObjectCompatible(@NotNull StackElement element,

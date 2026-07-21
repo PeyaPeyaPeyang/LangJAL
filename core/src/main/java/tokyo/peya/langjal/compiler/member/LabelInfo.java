@@ -13,12 +13,12 @@ import org.objectweb.asm.tree.LabelNode;
  * @param node             The ASM LabelNode corresponding to this label.
  * @param instructionIndex The index of the instruction associated with this label.
  */
-public record LabelInfo(
-        @NotNull String name,
-        @NotNull Label label,
-        @NotNull LabelNode node,
-        int instructionIndex
-) {
+public class LabelInfo {
+    private final @NotNull String name;
+    private final @NotNull Label label;
+    private final @NotNull LabelNode node;
+    private int instructionIndex;
+
     /**
      * Constructs a LabelInfo with a name, label, and instruction index.
      *
@@ -29,6 +29,33 @@ public record LabelInfo(
     public LabelInfo(@NotNull String name, @NotNull Label label, int instructionIndex) {
         this(name, label, new LabelNode(label), instructionIndex);
         label.info = this.node;
+    }
+
+    public LabelInfo(@NotNull String name, @NotNull Label label, @NotNull LabelNode node, int instructionIndex) {
+        this.name = name;
+        this.label = label;
+        this.node = node;
+        this.instructionIndex = instructionIndex;
+    }
+
+    public @NotNull String name() {
+        return this.name;
+    }
+
+    public @NotNull Label label() {
+        return this.label;
+    }
+
+    public @NotNull LabelNode node() {
+        return this.node;
+    }
+
+    public int instructionIndex() {
+        return this.instructionIndex;
+    }
+
+    public void setInstructionIndex(int instructionIndex) {
+        this.instructionIndex = instructionIndex;
     }
 
     /**

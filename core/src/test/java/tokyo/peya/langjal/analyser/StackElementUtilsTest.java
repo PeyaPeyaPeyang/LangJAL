@@ -19,6 +19,7 @@ import tokyo.peya.langjal.compiler.member.LabelInfo;
 
 import java.util.BitSet;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -216,6 +217,28 @@ class StackElementUtilsTest {
         ObjectElement strings = new ObjectElement(NOP, TypeDescriptor.parse("[Ljava/lang/String;"));
 
         assertEquals(TypeDescriptor.OBJECT, StackElementUtils.mergeObjects(string, strings).content());
+    }
+
+    @Test
+    void assignabilityAllowsNestedReferenceArrayToObjectArray() {
+        assertDoesNotThrow(() -> StackElementUtils.checkAssignableTo(
+                new ObjectElement(NOP, TypeDescriptor.parse("[[Ljava/lang/String;")),
+                new ObjectElement(NOP, TypeDescriptor.parse("[Ljava/lang/Object;"))
+        ));
+    }
+
+    @Test
+    void assignabilityAllowsArrayToCloneableAndSerializable() {
+        ObjectElement intArray = new ObjectElement(NOP, TypeDescriptor.parse("[I"));
+
+        assertDoesNotThrow(() -> StackElementUtils.checkAssignableTo(
+                intArray,
+                new ObjectElement(NOP, TypeDescriptor.className("java/lang/Cloneable"))
+        ));
+        assertDoesNotThrow(() -> StackElementUtils.checkAssignableTo(
+                intArray,
+                new ObjectElement(NOP, TypeDescriptor.className("java/io/Serializable"))
+        ));
     }
 
     @Test
