@@ -157,7 +157,7 @@ class CodePrinterTest {
         assertEquals(lines(
                 "invokedynamic makeConcatWithConstants (I)Ljava/lang/String; "
                 + "MethodHandle|invokestatic|java/lang/invoke/StringConcatFactory->makeConcatWithConstants()V "
-                + "\"value=\\\\u0001\" 10 MethodHandle|(I)V"
+                + "\"value=\\\\u0001\" 10 MethodType|(I)V"
         ), output);
     }
 
