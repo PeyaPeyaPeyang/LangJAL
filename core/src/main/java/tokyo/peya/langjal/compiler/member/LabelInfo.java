@@ -7,11 +7,6 @@ import org.objectweb.asm.tree.LabelNode;
 /**
  * Represents a label in JVM bytecode, including its name, ASM label, label node, and instruction index.
  * Used for marking positions in the instruction stream for jumps and exception handling.
- *
- * @param name             The name of the label.
- * @param label            The ASM Label object.
- * @param node             The ASM LabelNode corresponding to this label.
- * @param instructionIndex The index of the instruction associated with this label.
  */
 public class LabelInfo {
     private final @NotNull String name;
