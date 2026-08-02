@@ -27,6 +27,7 @@ jobs:
 
       - name: Extract distribution
         run: |
+          mkdir -p dist/langjal
           unzip build/distributions/langjal-*.zip -d dist/langjal
           chmod +x dist/langjal/bin/jalc.sh
 
